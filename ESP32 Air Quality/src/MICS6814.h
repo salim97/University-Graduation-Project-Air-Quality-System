@@ -2,12 +2,6 @@
 #define MICS6814_H
 
 #include "Arduino.h"
-#include <driver/adc.h>
-
-#define ADC_MAX_VALUE 4095U
-#define ADC_MIN_VALUE 0U
-#define ADC_SAMPLES 3U
-#define ADC_SAMPLE_DELAY 100U
 
 typedef enum
 {
@@ -26,8 +20,8 @@ typedef enum
 class MICS6814
 {
 public:
-	MICS6814(adc1_channel_t channel_CO, adc1_channel_t channel_NO2, adc1_channel_t channel_NH3);
-	bool mics6814_read(uint16_t *no2, uint16_t *nh3, uint16_t *co);
+	MICS6814(int pinCO, int pinNO2, int pinNH3);
+
 	void calibrate();
 	void loadCalibrationData(
 		uint16_t base_NH3,
@@ -36,14 +30,13 @@ public:
 
 	float measure(gas_t gas);
 
-	uint16_t getResistance(channel_t channel) const;
+	uint16_t getResistance    (channel_t channel) const;
 	uint16_t getBaseResistance(channel_t channel) const;
-	float getCurrentRatio(channel_t channel) const;
-
+	float    getCurrentRatio  (channel_t channel) const;
 private:
-	adc1_channel_t _pinCO;
-	adc1_channel_t _pinNO2;
-	adc1_channel_t _pinNH3;
+	uint8_t _pinCO;
+	uint8_t _pinNO2;
+	uint8_t _pinNH3;
 
 	uint16_t _baseNH3;
 	uint16_t _baseCO;

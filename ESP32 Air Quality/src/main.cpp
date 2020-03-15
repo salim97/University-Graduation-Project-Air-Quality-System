@@ -17,9 +17,19 @@
 #include <DHT_U.h>
 #include <MICS6814.h>
 
-#define PIN_CO ADC1_CHANNEL_4
-#define PIN_NO2 ADC1_CHANNEL_6
-#define PIN_NH3 ADC1_CHANNEL_7
+#include <BLEDevice.h>
+#include <BLEServer.h>
+#include <BLEUtils.h>
+#include <BLE2902.h>
+
+#include <WiFi.h>
+// #include <FirebaseESP32.h>
+#include "NTPClient.h"
+#include <WiFiUdp.h>
+
+#define PIN_CO 32  // ADC1_CHANNEL_4
+#define PIN_NO2 34 // ADC1_CHANNEL_6
+#define PIN_NH3 35 // ADC1_CHANNEL_7
 
 MICS6814 mics6814(PIN_CO, PIN_NO2, PIN_NH3);
 
@@ -60,12 +70,45 @@ HardwareSerial mySerial(2); // (ESP32 Example) create device to MH-Z19 serial
 
 unsigned long getDataTimer = 0;
 
+char WIFI_SSID[]  = "room 02";  // this is fine
+const char* WIFI_PASSWORD  = "qt2019cpp";  // this is fine
+#define FIREBASE_HOST "pfe-air-quality.firebaseio.com" //Do not include https:// in FIREBASE_HOST
+#define FIREBASE_AUTH "U84MTjtIvoGz7ETqdPcZiibYRoRExLjuk5vdTDtv"
+// FirebaseData firebaseData;
+// FirebaseJson json;
+// Define NTP Client to get time
+// WiFiUDP ntpUDP;
+// NTPClient timeClient(ntpUDP);
+void setupWiFi()
+{
+   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.print("Connecting to Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.print(".");
+    delay(300);
+  }
+  Serial.println();
+  Serial.print("Connected with IP: ");
+  Serial.println(WiFi.localIP());
+  Serial.println();
+
+  // Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+  // Firebase.reconnectWiFi(true);
+  // Firebase.setReadTimeout(firebaseData, 1000 * 3);
+  // Firebase.setwriteSizeLimit(firebaseData, "small");
+  // timeClient.begin();
+  // timeClient.setTimeOffset(3600);
+}
+
 void setup()
 {
   Serial.begin(115200);
   // Device to serial monitor feedback
   while (!Serial)
     ;
+    setupWiFi();
+  Serial.println(F("MICS6814 calibrate"));
   mics6814.calibrate();
   // if (!mics6814_init())
   // {
@@ -159,7 +202,7 @@ void setup()
 void loop()
 {
 
-  // display_DHT22();
+  display_DHT22();
   delay(100);
 
   display_MICS6814();
