@@ -1,4 +1,8 @@
+// https://arduinojson.org/v6/assistant/
+
 #include <Arduino.h>
+#include "mynetwork.h"
+String proccessData(String data);
 #include "MHZ19.h"
 #include <SoftwareSerial.h> // Remove if using HardwareSerial or Arduino package without SoftwareSerial support
 
@@ -26,6 +30,10 @@
 // #include <FirebaseESP32.h>
 #include "NTPClient.h"
 #include <WiFiUdp.h>
+
+#include <ArduinoJson.h>
+#include <HTTPClient.h>
+#include <ESP32Ping.h>
 
 #define PIN_CO 32  // ADC1_CHANNEL_4
 #define PIN_NO2 34 // ADC1_CHANNEL_6
@@ -70,18 +78,24 @@ HardwareSerial mySerial(2); // (ESP32 Example) create device to MH-Z19 serial
 
 unsigned long getDataTimer = 0;
 
-char WIFI_SSID[]  = "room 02";  // this is fine
-const char* WIFI_PASSWORD  = "qt2019cpp";  // this is fine
-#define FIREBASE_HOST "pfe-air-quality.firebaseio.com" //Do not include https:// in FIREBASE_HOST
-#define FIREBASE_AUTH "U84MTjtIvoGz7ETqdPcZiibYRoRExLjuk5vdTDtv"
+// char WIFI_SSID[] = "room 02";                          // this is fine
+// char WIFI_SSID[] = "idoomAdsl01"; // this is fine
+char WIFI_SSID[] = "R6"; // this is fine
+// const char *WIFI_PASSWORD = "qt2019cpp";               // this is fine
+// const char *WIFI_PASSWORD = "builder2019cpp";          // this is fine
+const char *WIFI_PASSWORD = "qt2019cpp";          // this is fine
+
+// #define FIREBASE_HOST "pfe-air-quality.firebaseio.com" //Do not include https:// in FIREBASE_HOST
+// #define FIREBASE_AUTH "U84MTjtIvoGz7ETqdPcZiibYRoRExLjuk5vdTDtv"
 // FirebaseData firebaseData;
 // FirebaseJson json;
 // Define NTP Client to get time
 // WiFiUDP ntpUDP;
 // NTPClient timeClient(ntpUDP);
+void sendToFirebase();
 void setupWiFi()
 {
-   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -89,25 +103,25 @@ void setupWiFi()
     delay(300);
   }
   Serial.println();
+  Serial.println(WIFI_PASSWORD);
   Serial.print("Connected with IP: ");
   Serial.println(WiFi.localIP());
   Serial.println();
-
-  // Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
-  // Firebase.reconnectWiFi(true);
-  // Firebase.setReadTimeout(firebaseData, 1000 * 3);
-  // Firebase.setwriteSizeLimit(firebaseData, "small");
-  // timeClient.begin();
-  // timeClient.setTimeOffset(3600);
 }
 
+// char jsonOutput[2048];
+String jsonOutput;
+//  StaticJsonDocument<512> doc;
+// const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + 2 * JSON_OBJECT_SIZE(3);
+// DynamicJsonDocument doc(capacity);
+DynamicJsonDocument doc(2048);
 void setup()
 {
   Serial.begin(115200);
   // Device to serial monitor feedback
   while (!Serial)
     ;
-    setupWiFi();
+
   Serial.println(F("MICS6814 calibrate"));
   mics6814.calibrate();
   // if (!mics6814_init())
@@ -197,46 +211,99 @@ void setup()
   Serial.print(sensor.resolution);
   Serial.println(F("%"));
   Serial.println(F("------------------------------------"));
+
+  setupWiFi();
 }
 
 void loop()
 {
-
+  //clear RAM
+  doc.clear();
+  jsonOutput.clear();
+  doc["GPS"]["latitude"]["value"] = 35.6935229;
+  doc["GPS"]["longitude"]["value"] = -0.6140395;
+  // getting data and convert it into JSON
   display_DHT22();
   delay(100);
 
   display_MICS6814();
   delay(100);
 
-  // display_SGP30();
+  display_SGP30();
   delay(100);
 
-  // display_BME680();
+  display_BME680();
   delay(100);
 
-  // display_MHZ19();
+  display_MHZ19();
   delay(100);
 
+  //print data in serial port
+  serializeJsonPretty(doc, Serial);
+
+  // bool success = Ping.ping("8.8.8.8", 3);
+
+  // if (!success)
+  // {
+  //   Serial.println("Ping failed");
+  //   // return;
+  // }
+
+  // Serial.println("Ping succesful.");
+
+  // send data
+  sendToFirebase();
+
+  delay(10 * 60 * 1000);
+}
+
+void sendToFirebase()
+{
+
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    HTTPClient clientHTTP;
+    // clientHTTP.begin("http://192.168.1.103:5001/food-delivery-2020/us-central1/webApi/api/v1/postData");
+    clientHTTP.begin("https://us-central1-pfe-air-quality.cloudfunctions.net/webApi/api/v1/postData");
+    clientHTTP.addHeader("Content-Type", "application/json");
+
+    // const size_t CAPACITY = JSON_OBJECT_SIZE(1);
+    // StaticJsonDocument<200> doc;
+
+    serializeJson(doc, jsonOutput);
+    int httpCode = clientHTTP.POST(String(jsonOutput));
+
+    if (httpCode > 0)
+    {
+      String payload = clientHTTP.getString();
+      Serial.println("Status code : " + String(httpCode));
+      Serial.println(payload);
+      clientHTTP.end();
+    }
+    else
+    {
+      Serial.println("Error on HTTP request");
+    }
+  }
+  else
+  {
+    Serial.println("Connection lost");
+  }
   delay(1000);
 }
 
 void display_MHZ19()
 {
+
   Serial.println("");
   Serial.println("============= MHZ19 =============");
-
-  int CO2;
-  CO2 = myMHZ19.getCO2(); // Request CO2 (as ppm)
-  Serial.print("CO2 (ppm): ");
-  Serial.println(CO2);
-
-  double adjustedCO2 = myMHZ19.getCO2Raw();
-
+  Serial.println("00");
+  double CO2RAW = myMHZ19.getCO2Raw(); // issue
   Serial.println("----------------");
   Serial.print("Raw CO2 : ");
-  Serial.println(adjustedCO2, 0);
+  Serial.println(CO2RAW, 0);
 
-  adjustedCO2 = 6.60435861e+15 * exp(-8.78661228e-04 * adjustedCO2); // Exponential equation for Raw & CO2 relationship
+  double adjustedCO2 = 6.60435861e+15 * exp(-8.78661228e-04 * CO2RAW); // Exponential equation for Raw & CO2 relationship
   Serial.print("Adjusted CO2 (ppm) : ");
   Serial.println(adjustedCO2, 2);
 
@@ -244,12 +311,24 @@ void display_MHZ19()
   Temp = myMHZ19.getTemperature(); // Request Temperature (as Celsius)
   Serial.print("Temperature (C): ");
   Serial.println(Temp);
+
+  doc["MHZ19"]["Temperature"]["value"] = String(Temp);
+  doc["MHZ19"]["Temperature"]["type"] = "°C";
+  doc["MHZ19"]["Temperature"]["isCalibrated"] = true;
+
+  doc["MHZ19"]["Adjusted CO2"]["value"] = String(adjustedCO2);
+  doc["MHZ19"]["Adjusted CO2"]["type"] = "ppm";
+  doc["MHZ19"]["Adjusted CO2"]["isCalibrated"] = true;
+
+  doc["MHZ19"]["Raw CO2"]["value"] = String(CO2RAW);
 }
 
 void display_BME680()
 {
   Serial.println("");
   Serial.println("============= BME680 =============");
+  // const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + 2 * JSON_OBJECT_SIZE(3);
+  // DynamicJsonDocument doc(capacity);
   // Tell BME680 to begin measurement.
   unsigned long endTime = bme.beginReading();
   if (endTime == 0)
@@ -267,20 +346,53 @@ void display_BME680()
     return;
   }
 
-  Serial.print(F("Temperature  (°C) : "));
-  Serial.println(bme.temperature);
+  // Serial.print(F("Temperature  (°C) : "));
+  // Serial.println(bme.temperature);
+  doc["BME680"]["Temperature"]["value"] = bme.temperature;
+  doc["BME680"]["Temperature"]["type"] = "°C";
+  doc["BME680"]["Temperature"]["isCalibrated"] = true;
 
-  Serial.print(F("Pressure (hPa) : "));
-  Serial.println(bme.pressure / 100.0);
+  // Serial.print(F("Pressure (hPa) : "));
+  // Serial.println(bme.pressure / 100.0);
+  doc["BME680"]["Pressure"]["value"] = bme.pressure / 100.0;
+  doc["BME680"]["Pressure"]["type"] = "hPa";
+  doc["BME680"]["Pressure"]["isCalibrated"] = true;
 
-  Serial.print(F("Humidity (%) : "));
-  Serial.println(bme.humidity);
+  // Serial.print(F("Humidity (%) : "));
+  // Serial.println(bme.humidity);
+  doc["BME680"]["Humidity"]["value"] = bme.humidity;
+  doc["BME680"]["Humidity"]["type"] = "%";
+  doc["BME680"]["Humidity"]["isCalibrated"] = true;
 
-  Serial.print(F("Gas (KOhms) : "));
-  Serial.println(bme.gas_resistance / 1000.0);
+  // Serial.print(F("Gas (KOhms) : "));
+  // Serial.println(bme.gas_resistance / 1000.0);
+  doc["BME680"]["Temperature"]["value"] = bme.temperature;
+  doc["BME680"]["Temperature"]["type"] = "°C";
+  doc["BME680"]["Temperature"]["isCalibrated"] = true;
 
-  Serial.print(F("Approx. Altitude (m) : "));
-  Serial.println(bme.readAltitude(SEALEVELPRESSURE_HPA));
+  // Serial.print(F("Approx. Altitude (m) : "));
+  // Serial.println(bme.readAltitude(SEALEVELPRESSURE_HPA));
+  doc["BME680"]["Approx. Altitude"]["value"] = bme.readAltitude(SEALEVELPRESSURE_HPA);
+  doc["BME680"]["Approx. Altitude"]["type"] = "m";
+  doc["BME680"]["Approx. Altitude"]["isCalibrated"] = true;
+
+  // JsonObject MHZ19 = doc.createNestedObject("MHZ19");
+  // JsonObject MHZ19_Temperature = MHZ19.createNestedObject("Temperature");
+  // // MHZ19_Temperature["value"] =  String(Temp);
+  // MHZ19_Temperature["type"] = "°C";
+  // MHZ19_Temperature["isCalibrated"] = true;
+  // JsonObject MHZ19_Adjusted_CO2 = MHZ19.createNestedObject("Adjusted CO2");
+  // // MHZ19_Adjusted_CO2["value"] = String(adjustedCO2);
+  // MHZ19_Adjusted_CO2["type"] = "PPM";
+  // MHZ19_Adjusted_CO2["isCalibrated"] = true;
+
+  // serializeJsonPretty(doc, Serial);
+
+  // doc["BME680_Temperature"] = String(bme.temperature);
+  // doc["BME680_Pressure_CO2"] = String(bme.pressure / 100.0);
+  // doc["BME680_Humidity"] = String(bme.humidity);
+  // doc["BME680_Gas (KOhms)"] = String(bme.gas_resistance / 1000.0);
+  // doc["BME680_Approx. Altitude (m)"] = String(bme.readAltitude(SEALEVELPRESSURE_HPA));
 }
 
 void display_SGP30()
@@ -293,20 +405,31 @@ void display_SGP30()
     Serial.println("Measurement failed");
     return;
   }
-  Serial.print("TVOC (ppb) : ");
-  Serial.println(sgp.TVOC);
-  Serial.print("eCO2 (ppm) : ");
-  Serial.println(sgp.eCO2);
+  // Serial.print("TVOC (ppb) : ");
+  // Serial.println(sgp.TVOC);
+  doc["SGP30"]["TVOC"]["value"] = sgp.TVOC;
+  doc["SGP30"]["TVOC"]["type"] = "PPB";
+  doc["SGP30"]["TVOC"]["isCalibrated"] = true;
+
+  // Serial.print("eCO2 (ppm) : ");
+  // Serial.println(sgp.eCO2);
+  doc["SGP30"]["eCO2"]["value"] = sgp.eCO2;
+  doc["SGP30"]["eCO2"]["type"] = "PPM";
+  doc["SGP30"]["eCO2"]["isCalibrated"] = true;
+  // HERE <=================================
 
   if (!sgp.IAQmeasureRaw())
   {
     Serial.println("Raw Measurement failed");
     return;
   }
-  Serial.print("Raw H2 : ");
-  Serial.println(sgp.rawH2);
-  Serial.print("Raw Ethanol : ");
-  Serial.println(sgp.rawEthanol);
+  // Serial.print("Raw H2 : ");
+  // Serial.println(sgp.rawH2);
+  doc["SGP30"]["Raw H2"]["value"] = sgp.rawH2;
+
+  // Serial.print("Raw Ethanol : ");
+  // Serial.println(sgp.rawEthanol);
+  doc["SGP30"]["Raw Ethanol"]["value"] = sgp.rawEthanol;
 }
 
 void display_MICS6814()
@@ -314,45 +437,56 @@ void display_MICS6814()
   Serial.println("");
   Serial.println("============= MICS6814 =============");
 
-  Serial.print("NH3: ");
-  Serial.print(mics6814.getResistance(CH_NH3));
-  Serial.print("/");
-  Serial.print(mics6814.getBaseResistance(CH_NH3));
-  Serial.print(" = ");
-  Serial.print(mics6814.getCurrentRatio(CH_NH3));
-  Serial.print(" => ");
-  Serial.print(mics6814.measure(NH3));
-  Serial.println("ppm");
-  delay(50);
+  // Serial.print("NH3: ");
+  // Serial.print(mics6814.getResistance(CH_NH3));
+  // Serial.print("/");
+  // Serial.print(mics6814.getBaseResistance(CH_NH3));
+  // Serial.print(" = ");
+  // Serial.print(mics6814.getCurrentRatio(CH_NH3));
+  // Serial.print(" => ");
+  // Serial.print(mics6814.measure(NH3));
+  // Serial.println("ppm");
+  // delay(50);
 
-  Serial.print("CO: ");
-  Serial.print(mics6814.getResistance(CH_CO));
-  Serial.print("/");
-  Serial.print(mics6814.getBaseResistance(CH_CO));
-  Serial.print(" = ");
-  Serial.print(mics6814.getCurrentRatio(CH_CO));
-  Serial.print(" => ");
-  Serial.print(mics6814.measure(CO));
-  Serial.println("ppm");
-  delay(50);
+  // Serial.print("CO: ");
+  // Serial.print(mics6814.getResistance(CH_CO));
+  // Serial.print("/");
+  // Serial.print(mics6814.getBaseResistance(CH_CO));
+  // Serial.print(" = ");
+  // Serial.print(mics6814.getCurrentRatio(CH_CO));
+  // Serial.print(" => ");
+  // Serial.print(mics6814.measure(CO));
+  // Serial.println("ppm");
+  // delay(50);
 
-  Serial.print("NO2: ");
-  Serial.print(mics6814.getResistance(CH_NO2));
-  Serial.print("/");
-  Serial.print(mics6814.getBaseResistance(CH_NO2));
-  Serial.print(" = ");
-  Serial.print(mics6814.getCurrentRatio(CH_NO2));
-  Serial.print(" => ");
-  Serial.print(mics6814.measure(NO2));
-  Serial.println("ppm");
-  delay(50);
+  // Serial.print("NO2: ");
+  // Serial.print(mics6814.getResistance(CH_NO2));
+  // Serial.print("/");
+  // Serial.print(mics6814.getBaseResistance(CH_NO2));
+  // Serial.print(" = ");
+  // Serial.print(mics6814.getCurrentRatio(CH_NO2));
+  // Serial.print(" => ");
+  // Serial.print(mics6814.measure(NO2));
+  // Serial.println("ppm");
+  // delay(50);
 
-  Serial.print("NO2 (PPM) : ");
-  Serial.println(mics6814.measure(NO2));
-  Serial.print("NH3 (PPM) : ");
-  Serial.println(mics6814.measure(NH3));
-  Serial.print("CO (PPM) : ");
-  Serial.println(mics6814.measure(CO));
+  // Serial.print("NO2 (PPM) : ");
+  // Serial.println(mics6814.measure(NO2));
+  doc["MICS6814"]["NO2"]["value"] = mics6814.measure(NO2);
+  doc["MICS6814"]["NO2"]["type"] = "PPM";
+  doc["MICS6814"]["NO2"]["isCalibrated"] = true;
+
+  // Serial.print("NH3 (PPM) : ");
+  // Serial.println(mics6814.measure(NH3));
+  doc["MICS6814"]["NH3"]["value"] = mics6814.measure(NH3);
+  doc["MICS6814"]["NH3"]["type"] = "PPM";
+  doc["MICS6814"]["NH3"]["isCalibrated"] = true;
+
+  // Serial.print("CO (PPM) : ");
+  // Serial.println(mics6814.measure(CO));
+  doc["MICS6814"]["CO"]["value"] = mics6814.measure(CO);
+  doc["MICS6814"]["CO"]["type"] = "PPM";
+  doc["MICS6814"]["CO"]["isCalibrated"] = true;
 }
 
 void display_DHT22()
@@ -368,8 +502,11 @@ void display_DHT22()
   }
   else
   {
-    Serial.print(F("Temperature (°C) : "));
-    Serial.println(event.temperature);
+    // Serial.print(F("Temperature (°C) : "));
+    // Serial.println(event.temperature);
+    doc["DHT22"]["Temperature"]["value"] = event.temperature;
+    doc["DHT22"]["Temperature"]["type"] = "°C";
+    doc["DHT22"]["Temperature"]["isCalibrated"] = true;
   }
   // Get humidity event and print its value.
   dht.humidity().getEvent(&event);
@@ -379,7 +516,10 @@ void display_DHT22()
   }
   else
   {
-    Serial.print(F("Humidity (%) : "));
-    Serial.println(event.relative_humidity);
+    // Serial.print(F("Humidity (%) : "));
+    // Serial.println(event.relative_humidity);
+    doc["DHT22"]["Humidity"]["value"] = event.relative_humidity;
+    doc["DHT22"]["Humidity"]["type"] = "%";
+    doc["DHT22"]["Humidity"]["isCalibrated"] = true;
   }
 }
