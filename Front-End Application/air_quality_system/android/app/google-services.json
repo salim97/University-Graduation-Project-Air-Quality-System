@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "356995025213",
+    "firebase_url": "https://pfe-air-quality.firebaseio.com",
+    "project_id": "pfe-air-quality",
+    "storage_bucket": "pfe-air-quality.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:356995025213:android:5d0bf743e20a3c9d805d54",
+        "android_client_info": {
+          "package_name": "com.example.air_quality_system"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "356995025213-brbjcrv7den3k2tquq3dalqvjl9sh8vd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6b6ONTyIr9BW1GrkH9zn09rrfpjEwxv8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "356995025213-brbjcrv7den3k2tquq3dalqvjl9sh8vd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

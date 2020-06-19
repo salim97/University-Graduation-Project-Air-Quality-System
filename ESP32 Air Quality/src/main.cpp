@@ -79,11 +79,11 @@ HardwareSerial mySerial(2); // (ESP32 Example) create device to MH-Z19 serial
 unsigned long getDataTimer = 0;
 
 // char WIFI_SSID[] = "room 02";                          // this is fine
-// char WIFI_SSID[] = "idoomAdsl01"; // this is fine
-char WIFI_SSID[] = "R6"; // this is fine
+char WIFI_SSID[] = "idoomAdsl01"; // this is fine
+// char WIFI_SSID[] = "R6"; // this is fine
 // const char *WIFI_PASSWORD = "qt2019cpp";               // this is fine
-// const char *WIFI_PASSWORD = "builder2019cpp";          // this is fine
-const char *WIFI_PASSWORD = "qt2019cpp";          // this is fine
+const char *WIFI_PASSWORD = "builder2019cpp"; // this is fine
+// const char *WIFI_PASSWORD = "qt2019cpp";          // this is fine
 
 // #define FIREBASE_HOST "pfe-air-quality.firebaseio.com" //Do not include https:// in FIREBASE_HOST
 // #define FIREBASE_AUTH "U84MTjtIvoGz7ETqdPcZiibYRoRExLjuk5vdTDtv"
@@ -164,6 +164,7 @@ void setup()
   mySerial.begin(BAUDRATE);  // (Uno example) device to MH-Z19 serial start
   myMHZ19.begin(mySerial);   // *Serial(Stream) refence must be passed to library begin().
   myMHZ19.autoCalibration(); // Turn auto calibration ON (OFF autoCalibration(false))
+  // myMHZ19.autoCalibration(false); // Turn auto calibration ON (OFF autoCalibration(false))
 
   dht.begin();
   // if (!dht.begin())
@@ -283,11 +284,13 @@ void sendToFirebase()
     else
     {
       Serial.println("Error on HTTP request");
+      ESP.restart();
     }
   }
   else
   {
     Serial.println("Connection lost");
+    ESP.restart();
   }
   delay(1000);
 }
@@ -297,20 +300,33 @@ void display_MHZ19()
 
   Serial.println("");
   Serial.println("============= MHZ19 =============");
-  Serial.println("00");
+
   double CO2RAW = myMHZ19.getCO2Raw(); // issue
-  Serial.println("----------------");
-  Serial.print("Raw CO2 : ");
-  Serial.println(CO2RAW, 0);
+  // Serial.print("Raw CO2 : ");
+  // Serial.println(CO2RAW, 0);
 
   double adjustedCO2 = 6.60435861e+15 * exp(-8.78661228e-04 * CO2RAW); // Exponential equation for Raw & CO2 relationship
-  Serial.print("Adjusted CO2 (ppm) : ");
-  Serial.println(adjustedCO2, 2);
+  // Serial.print("Adjusted CO2 (ppm) : ");
+  // Serial.println(adjustedCO2, 2);
 
-  int8_t Temp;
-  Temp = myMHZ19.getTemperature(); // Request Temperature (as Celsius)
-  Serial.print("Temperature (C): ");
-  Serial.println(Temp);
+  int8_t Temp = myMHZ19.getTemperature(); // Request Temperature (as Celsius)
+                                          // Serial.print("Temperature (C): ");
+                                          // Serial.println(Temp);
+
+  // /* get sensor readings as signed integer */
+  int16_t CO2Unlimited = myMHZ19.getCO2(true, true);
+  int16_t CO2limited = myMHZ19.getCO2(false, true);
+  int16_t CO2background = myMHZ19.getBackgroundCO2();
+  if (myMHZ19.errorCode != RESULT_OK)
+  {
+    Serial.println("Error found in communication ");
+    return;
+  }
+  // Serial.print("CO2 PPM Unlim: ");
+  // Serial.println(CO2Unlimited);
+
+  // Serial.print("CO2 PPM Lim: ");
+  // Serial.println(CO2limited);
 
   doc["MHZ19"]["Temperature"]["value"] = String(Temp);
   doc["MHZ19"]["Temperature"]["type"] = "°C";
@@ -319,6 +335,18 @@ void display_MHZ19()
   doc["MHZ19"]["Adjusted CO2"]["value"] = String(adjustedCO2);
   doc["MHZ19"]["Adjusted CO2"]["type"] = "ppm";
   doc["MHZ19"]["Adjusted CO2"]["isCalibrated"] = true;
+
+  doc["MHZ19"]["Unlimited CO2"]["value"] = String(CO2Unlimited);
+  doc["MHZ19"]["Unlimited CO2"]["type"] = "ppm";
+  doc["MHZ19"]["Unlimited CO2"]["isCalibrated"] = true;
+
+  doc["MHZ19"]["limited CO2"]["value"] = String(CO2limited);
+  doc["MHZ19"]["limited CO2"]["type"] = "ppm";
+  doc["MHZ19"]["limited CO2"]["isCalibrated"] = true;
+
+  doc["MHZ19"]["background CO2"]["value"] = String(CO2background);
+  doc["MHZ19"]["background CO2"]["type"] = "ppm";
+  doc["MHZ19"]["background CO2"]["isCalibrated"] = true;
 
   doc["MHZ19"]["Raw CO2"]["value"] = String(CO2RAW);
 }
@@ -366,9 +394,9 @@ void display_BME680()
 
   // Serial.print(F("Gas (KOhms) : "));
   // Serial.println(bme.gas_resistance / 1000.0);
-  doc["BME680"]["Temperature"]["value"] = bme.temperature;
-  doc["BME680"]["Temperature"]["type"] = "°C";
-  doc["BME680"]["Temperature"]["isCalibrated"] = true;
+  doc["BME680"]["Gas"]["value"] = bme.gas_resistance / 1000.0;
+  doc["BME680"]["Gas"]["type"] = "KOhms";
+  doc["BME680"]["Gas"]["isCalibrated"] = true;
 
   // Serial.print(F("Approx. Altitude (m) : "));
   // Serial.println(bme.readAltitude(SEALEVELPRESSURE_HPA));
