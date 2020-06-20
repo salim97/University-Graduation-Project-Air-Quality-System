@@ -20,7 +20,6 @@ class MyFirebaseAuth {
     // notifyListeners();
   }
 
-
   Future signIn() async {
     // GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
     // GoogleSignInAuthentication googleSignInAuthentication = await googleSignInAccount.authentication;
@@ -33,17 +32,16 @@ class MyFirebaseAuth {
     // notifyListeners();
   }
 
- Future signInAnonymously() async {
+  Future signInAnonymously() async {
+    print("=================== signInAnonymously ");
 
     try {
       AuthResult authResult = await FirebaseAuth.instance.signInAnonymously();
       firebaseUser = authResult.user;
     } catch (e) {
+      print("=================== catch (e) { ");
       print(e); // TODO: show dialog with error
     }
     // notifyListeners();
   }
-
-
-
 }

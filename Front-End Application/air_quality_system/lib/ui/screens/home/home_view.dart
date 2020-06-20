@@ -1,62 +1,86 @@
+import 'dart:ui';
+
+import 'package:air_quality_system/datamodels/all_sensors_model.dart';
 import 'package:air_quality_system/ui/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:provider/provider.dart';
 import 'package:stacked/stacked.dart';
 import 'home_model.dart';
 import 'package:latlong/latlong.dart';
 
 class HomeView extends StatelessWidget {
-
-
   @override
   Widget build(BuildContext context) {
     final ThemeData _theme = Theme.of(context);
     return ViewModelBuilder<HomeViewModel>.reactive(
-      builder: (context, model, child) =>  Scaffold(
+      builder: (context, model, child) => Scaffold(
         resizeToAvoidBottomPadding: false,
-      drawer: AppDrawer(),
-      body: SafeArea(
-        child: Stack(
-          children: <Widget>[
-            FlutterMap(
-              options: MapOptions(
-                center: LatLng(35.691124, -0.618778),
-                zoom: 14.0,
-              ),
-              layers: [
-                TileLayerOptions(
-                  urlTemplate:
-                      "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
-                  subdomains: ['a', 'b', 'c'],
+        drawer: AppDrawer(),
+        body: SafeArea(
+          child: Stack(
+            children: <Widget>[
+              FlutterMap(
+                options: MapOptions(
+                  center: LatLng(35.691124, -0.618778),
+                  zoom: 14.0,
                 ),
-                MarkerLayerOptions(markers: model.markers)
-              ],
-            ),
-            Builder(
-              builder: (BuildContext context) {
-                return IconButton(
-                  icon: Icon(
-                    Icons.menu,
-                    size: 35.0,
+                layers: [
+                  TileLayerOptions(
+                    urlTemplate:
+                        "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+                    subdomains: ['a', 'b', 'c'],
                   ),
-                  onPressed: () {
-                    Scaffold.of(context).openDrawer();
-                  },
-                );
-              },
-            ),
-           Positioned(
-             bottom:0,
-             left:0,
-                          //  height: MediaQuery.of(context).size.height * 0.50,
-             width: MediaQuery.of(context).size.width * 0.25,
+                  MarkerLayerOptions(markers: model.markers)
+                ],
+              ),
+              Builder(
+                builder: (BuildContext context) {
+                  return IconButton(
+                    icon: Icon(
+                      Icons.menu,
+                      size: 35.0,
+                    ),
+                    onPressed: () {
+                      Scaffold.of(context).openDrawer();
+                    },
+                  );
+                },
+              ),
+              Positioned(
+                  top: 0,
+                  left: MediaQuery.of(context).size.width * 0.5,
+                  child: RaisedButton(
+                    child: Text("refresh"),
+                    onPressed: model.refresh,
+                  )),
+              Positioned(
+                  top: 450,
+                  left: MediaQuery.of(context).size.width * 0.3,
+                  child: Container(
+                    height: 200,
+                    width: 20,
+                    decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                            end : Alignment.topCenter,
+                            begin: Alignment.bottomCenter,
+                            colors: [
+                          Colors.blue,
+                          // Colors.lightBlueAccent,
+                          Colors.green,
+                          Colors.yellow,
+                          Colors.red
+                        ])),
+                  )),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                //  height: MediaQuery.of(context).size.height * 0.50,
+                width: MediaQuery.of(context).size.width * 0.25,
                 child: Image.asset(
                   "assets/images/chrome_2020-06-12_10-00-09.png",
-    
                 ),
-           ),
-           /*  Positioned(
+              ),
+              /*  Positioned(
               bottom: 0,
               left: 0,
               right: 0,
@@ -85,17 +109,17 @@ class HomeView extends StatelessWidget {
                     scrollDirection: Axis.horizontal,
                   )),
             ) */
-          
-          ],
+            ],
+          ),
         ),
       ),
-    
-      ),
       viewModelBuilder: () => HomeViewModel(),
-      onModelReady: (model) => model.initState(), // TODO: khrebch fiha apre, prc initstate ta3 fluter w hadi custom je pense pas 3andhom meme behavior
+      onModelReady: (model) => model
+          .initState(), // TODO: khrebch fiha apre, prc initstate ta3 fluter w hadi custom je pense pas 3andhom meme behavior
     );
   }
- List<Widget> getTechniciansInArea() {
+
+  List<Widget> getTechniciansInArea() {
     List<Technician> techies = getTechies();
     List<Widget> cards = [];
     for (Technician techy in techies) {
