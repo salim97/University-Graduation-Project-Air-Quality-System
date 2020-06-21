@@ -53,23 +53,34 @@ class HomeView extends StatelessWidget {
                     child: Text("refresh"),
                     onPressed: model.refresh,
                   )),
+              // Positioned(
+              //     top: 450,
+              //     left: MediaQuery.of(context).size.width * 0.3,
+              //     child: Container(
+              //       height: 200,
+              //       width: 20,
+              //       decoration: BoxDecoration(
+              //           gradient: LinearGradient(
+              //               end: Alignment.topCenter,
+              //               begin: Alignment.bottomCenter,
+              //               colors: [
+              //             Colors.blue,
+              //             // Colors.lightBlueAccent,
+              //             Colors.green,
+              //             Colors.yellow,
+              //             Colors.red
+              //           ])),
+              //     )),
               Positioned(
-                  top: 450,
-                  left: MediaQuery.of(context).size.width * 0.3,
+                  bottom: 0,
+                  left: MediaQuery.of(context).size.width * 0.25,
                   child: Container(
-                    height: 200,
-                    width: 20,
-                    decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                            end : Alignment.topCenter,
-                            begin: Alignment.bottomCenter,
-                            colors: [
-                          Colors.blue,
-                          // Colors.lightBlueAccent,
-                          Colors.green,
-                          Colors.yellow,
-                          Colors.red
-                        ])),
+                    decoration: BoxDecoration(color: Colors.white),
+                    child: DropdownButton(
+                      value: model.currentGas,
+                      items: model.dropDownMenuItems,
+                      onChanged: model.changedDropDownItem,
+                    ),
                   )),
               Positioned(
                 bottom: 0,
@@ -77,7 +88,8 @@ class HomeView extends StatelessWidget {
                 //  height: MediaQuery.of(context).size.height * 0.50,
                 width: MediaQuery.of(context).size.width * 0.25,
                 child: Image.asset(
-                  "assets/images/chrome_2020-06-12_10-00-09.png",
+                  // "assets/images/legend_Temperature.png",
+                  model.currentGasLegend
                 ),
               ),
               /*  Positioned(

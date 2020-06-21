@@ -66,7 +66,8 @@ class HomeViewModel extends BaseViewModel {
 
   final MyFirebaseAuth firebaseAuthService = locator<MyFirebaseAuth>();
   final MyFirestoreDB myFirestoreDBservice = locator<MyFirestoreDB>();
-  // final DialogService _dialogService = locator<DialogService>();
+  final DialogService _dialogService = locator<DialogService>();
+  // final SnackbarService _snackbarService = locator<SnackbarService>();
   // final NavigationService _navigationService = locator<NavigationService>();
 
   // @override
@@ -79,6 +80,10 @@ class HomeViewModel extends BaseViewModel {
     print(firebaseAuthService.firebaseUser.uid);
     print(firebaseAuthService.isUserConnectedToFirebase);
 
+    dropDownMenuItems = getDropDownMenuItems();
+    currentGas = _gas.keys.first;
+    currentGasLegend = _gas.values.first;
+
     notifyListeners();
   }
 
@@ -88,18 +93,23 @@ class HomeViewModel extends BaseViewModel {
     markers.clear();
     print(tmp.dht22.temperature.value);
 
-    print(legendTemperature(25));
 
     markers.add(addMarker(
         point: LatLng(tmp.gps.latitude, tmp.gps.longitude),
-        // color: legendTemperature(double.parse(tmp.dht22.temperature.value).toInt())));
-        color: legendTemperature(-20)));
+        color: legendTemperature(double.parse(tmp.dht22.temperature.value).toInt())));
 
     print(Colors.blue);
     print(Colors.green);
     print(Colors.yellow);
     print(Colors.red);
 
+    // await _dialogService.showDialog(
+    //   title: 'Test Dialog Title',
+    //   description: 'Test Dialog Description',
+    //   dialogPlatform: DialogPlatform.Material,
+    // );
+
+// _snackbarService.showSnackbar(title: "khra", message: "zbel", iconData: Icons.ac_unit);
     notifyListeners();
   }
 
@@ -127,9 +137,11 @@ class HomeViewModel extends BaseViewModel {
 
   addMarker({point, color}) {
     return Marker(
+      
       width: 60.0,
       height: 60.0,
       point: point,
+      
       builder: (ctx) => Container(
         child: Opacity(
           opacity: 0.6,
@@ -143,6 +155,31 @@ class HomeViewModel extends BaseViewModel {
       ),
     );
   }
+
+  var _gas = {
+    'Temperature': 'assets/images/legend_Temperature.png',
+    'Humidity': 'assets/images/legend_Humidity.png',
+    'Pressure': 'assets/images/legend_Pressure.png',
+    'AQI': 'assets/images/legend_AQI.png',
+  };
+  List<DropdownMenuItem<String>> dropDownMenuItems;
+  String currentGas, currentGasLegend;
+
+  void changedDropDownItem(String selectedGas) {
+    // print("Selected city $selectedCity, we are going to refresh the UI");
+    currentGas = selectedGas;
+    currentGasLegend = _gas[selectedGas];
+    notifyListeners();
+  }
+
+  List<DropdownMenuItem<String>> getDropDownMenuItems() {
+    List<DropdownMenuItem<String>> items = new List();
+    for (String g in _gas.keys) {
+      items.add(new DropdownMenuItem(value: g, child: new Text(g)));
+    }
+    return items;
+  }
+
   // @override
   // Future<void> futureToRun()  {
   //     getDataFromServer();
