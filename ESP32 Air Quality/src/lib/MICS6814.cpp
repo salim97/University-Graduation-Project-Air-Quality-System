@@ -65,7 +65,6 @@ void MICS6814 :: calibrate ()
 	do
 	{
 		delay (1000);
-
 		unsigned long rs = 0;
 
 		delay (50);
@@ -247,3 +246,5 @@ float MICS6814 :: getCurrentRatio (channel_t channel) const
 
 	return -1.0;
 }
+
+

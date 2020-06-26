@@ -1,22 +1,14 @@
 // https://arduinojson.org/v6/assistant/
 
 #include <Arduino.h>
-
-#include <WiFi.h>
-#include "NTPClient.h"
-#include <WiFiUdp.h>
-
-#include <ArduinoJson.h>
-#include <HTTPClient.h>
-#include <ESP32Ping.h>
+#include <ESP8266WIFI.h>
+#include <ESP8266HTTPClient.h>
+#include <WiFiClient.h>
 
 #include <Ticker.h> //Ticker Library
 
-#include "sensors/DHT22.h"
-#include "sensors/BME680.h"
-#include "sensors/MHZ19.h"
-#include "sensors/MICS6814.h"
-#include "sensors/SGP30.h"
+#include "sensors/DHT11.h"
+
 
 #include "mynetwork.h"
 
@@ -44,14 +36,11 @@ void setup()
 
   setupWiFi();
 
-  // pinMode(BUILTIN_LED, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
 
-  BME680_init();
-  DHT22_init();
-  MHZ19_init();
-  MICS6814_init();
-  SGP30_init();
+
+  DHT11_init();
+
 
   timer0.start();
   timer1.start();
@@ -86,7 +75,6 @@ void loop()
 
 void blink_LED()
 {
-  // digitalWrite(BUILTIN_LED, !(digitalRead(BUILTIN_LED))); //Invert Current State of LED
   digitalWrite(LED_BUILTIN, !(digitalRead(LED_BUILTIN))); //Invert Current State of LED
 }
 
@@ -99,19 +87,7 @@ void sendDataToLocalNetwork()
   doc["GPS"]["longitude"]["value"] = -0.6140395;
 
   // getting data and convert it into JSON
-  DHT22_measure(doc);
-  delay(10);
-
-  MICS6814_measure(doc);
-  delay(10);
-
-  SGP30_measure(doc);
-  delay(10);
-
-  BME680_measure(doc);
-  delay(10);
-
-  MHZ19_measure(doc);
+  DHT11_measure(doc);
   delay(10);
 
   //print data in serial port
@@ -126,27 +102,15 @@ void sendDataToFirebase()
   jsonOutput.clear();
   doc["GPS"]["latitude"]["value"] = 35.6935229;
   doc["GPS"]["longitude"]["value"] = -0.6140395;
-  // getting data and convert it into JSON
-  DHT22_measure(doc);
-  delay(10);
-
-  MICS6814_measure(doc);
-  delay(10);
-
-  SGP30_measure(doc);
-  delay(10);
-
-  BME680_measure(doc);
-  delay(10);
-
-  MHZ19_measure(doc);
+   // getting data and convert it into JSON
+  DHT11_measure(doc);
   delay(10);
 
   if (WiFi.status() == WL_CONNECTED)
   {
     HTTPClient clientHTTP;
     // clientHTTP.begin("http://192.168.1.103:5001/food-delivery-2020/us-central1/webApi/api/v1/postData");
-    clientHTTP.begin("https://us-central1-pfe-air-quality.cloudfunctions.net/webApi/api/v1/postData");
+    clientHTTP.begin("http://us-central1-pfe-air-quality.cloudfunctions.net/webApi/api/v1/postData");
     clientHTTP.addHeader("Content-Type", "application/json");
 
     // const size_t CAPACITY = JSON_OBJECT_SIZE(1);
