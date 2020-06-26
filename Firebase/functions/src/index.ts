@@ -1,6 +1,7 @@
 // to compile ts file into js file
 // npm run build 
 // npm install --save express body-parser firebase-functions-helper
+// firebase deploy --only functions
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as firebaseHelper from 'firebase-functions-helper/dist';
@@ -18,7 +19,6 @@ main.use(bodyParser.urlencoded({ extended: false }));
 main.use('/api/v1', app);
 
 const contactsCollection = 'contacts';
-
 export const webApi = functions.https.onRequest(main);
 
 // interface Contact {
@@ -26,6 +26,44 @@ export const webApi = functions.https.onRequest(main);
 //     lastName: String
 //     email: String
 // }
+// exports.sendWelcomeEmail = functions.auth.user().onCreate((user) => {
+//     const email = user.email; // The email of the user.
+//     const displayName = user.displayName; // The display name of the user.
+//     const phone = user.phoneNumber; // The email of the user.
+
+//     console.log(email);
+//     console.log(displayName);
+//     console.log(phone);
+//     console.log(user.toJSON());
+//     // const newDoc = await firebaseHelper.firestore
+//      firebaseHelper.firestore
+//             .createNewDocument(db, usersCollection, user.toJSON()).then(doc => console.log(doc));
+// });
+
+export const accountCreate = functions.auth.user().onCreate((user) => {
+    console.log(user.toJSON());
+    if (user.phoneNumber == null) {
+        console.log("User Phone Number is empty!");
+        return;
+    }
+    
+    admin.firestore().collection('users').doc(user.uid)
+        .set(user.toJSON()).then(writeResult => {
+            console.log('User Created result:', writeResult);
+            return;
+        }).catch(err => {
+            console.log(err);
+            return;
+        });
+});
+
+// // exports.sendCouponOnPurchase = functions.analytics.event('login').onLog((event) => {
+// export const loginEvent = functions.analytics.event('login').onLog((event) => {
+//     // const user = event.user;
+//     // const uid = user?.userId; // The user ID set via the setUserId API.
+//     console.log(event) ;
+
+//   });
 
 app.post('/postData', async (req, res) => {
     try {
@@ -33,7 +71,7 @@ app.post('/postData', async (req, res) => {
 
         // let dateTime = new Date().toLocaleString();
         var date = new Date();
-var timestamp = date.getTime();
+        var timestamp = date.getTime();
         // console.log(timestamp);
         req.body["timestamp"] = timestamp;
 
@@ -43,7 +81,7 @@ var timestamp = date.getTime();
         res.status(201).send(`data inserted ${req.body["timestamp"]}`);
     } catch (error) {
         res.status(400).send(`Error inserting data`)
-    }        
+    }
 })
 
 /* // Add new contact

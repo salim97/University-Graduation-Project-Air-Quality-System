@@ -39,6 +39,18 @@ String proccessData(String data);
 #define PIN_NO2 34 // ADC1_CHANNEL_6
 #define PIN_NH3 35 // ADC1_CHANNEL_7
 
+#include <Ticker.h> //Ticker Library
+
+void blink_builin_LED();
+
+
+Ticker timer0(blink_builin_LED, 1000);
+//=======================================================================
+void blink_builin_LED()
+{
+  digitalWrite(BUILTIN_LED, !(digitalRead(BUILTIN_LED))); //Invert Current State of LED
+}
+
 MICS6814 mics6814(PIN_CO, PIN_NO2, PIN_NH3);
 
 #define DHTPIN 4      // Digital pin connected to the DHT sensor
@@ -121,6 +133,11 @@ void setup()
   // Device to serial monitor feedback
   while (!Serial)
     ;
+
+  pinMode(BUILTIN_LED, OUTPUT);
+
+
+  timer0.start();
 
   Serial.println(F("MICS6814 calibrate"));
   mics6814.calibrate();
@@ -218,6 +235,7 @@ void setup()
 
 void loop()
 {
+    timer0.update();
   //clear RAM
   doc.clear();
   jsonOutput.clear();

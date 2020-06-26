@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:air_quality_system/datamodels/all_sensors_model.dart';
 import 'package:air_quality_system/ui/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';

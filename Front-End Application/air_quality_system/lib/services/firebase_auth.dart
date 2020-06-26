@@ -34,10 +34,11 @@ class MyFirebaseAuth {
 
   Future signInAnonymously() async {
     print("=================== signInAnonymously ");
-
+await FirebaseAuth.instance.signOut();
     try {
       AuthResult authResult = await FirebaseAuth.instance.signInAnonymously();
       firebaseUser = authResult.user;
+      print(firebaseUser.toString());
     } catch (e) {
       print("=================== catch (e) { ");
       print(e); // TODO: show dialog with error

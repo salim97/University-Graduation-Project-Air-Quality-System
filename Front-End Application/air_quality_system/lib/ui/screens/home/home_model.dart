@@ -77,6 +77,7 @@ class HomeViewModel extends BaseViewModel {
     print(firebaseAuthService.firebaseUser?.uid);
     print(firebaseAuthService.isUserConnectedToFirebase);
     await firebaseAuthService.signInAnonymously();
+    
     print(firebaseAuthService.firebaseUser.uid);
     print(firebaseAuthService.isUserConnectedToFirebase);
 
@@ -88,15 +89,18 @@ class HomeViewModel extends BaseViewModel {
   }
 
   refresh() async {
+    //     await firebaseAuthService.signInAnonymously();
+    // return ;
     List<All_Sensors> list = await myFirestoreDBservice.getLastdata();
     All_Sensors tmp = list.first;
     markers.clear();
     print(tmp.dht22.temperature.value);
 
-
     markers.add(addMarker(
+      text: tmp.dht22.temperature.value,
         point: LatLng(tmp.gps.latitude, tmp.gps.longitude),
-        color: legendTemperature(double.parse(tmp.dht22.temperature.value).toInt())));
+        color: legendTemperature(
+            double.parse(tmp.dht22.temperature.value).toInt())));
 
     print(Colors.blue);
     print(Colors.green);
@@ -135,22 +139,25 @@ class HomeViewModel extends BaseViewModel {
     return Color.lerp(a, b, temp / 20);
   }
 
-  addMarker({point, color}) {
+  addMarker({point, color, text}) {
     return Marker(
-      
       width: 60.0,
       height: 60.0,
       point: point,
-      
       builder: (ctx) => Container(
-        child: Opacity(
-          opacity: 0.6,
-          child: Image.asset(
-            "assets/images/shape_hexagon.png",
-            width: 60.0,
-            height: 60.0,
-            color: color,
-          ),
+        child: Stack(
+          children: <Widget>[
+            Opacity(
+              opacity: 0.6,
+              child: Image.asset(
+                "assets/images/shape_hexagon.png",
+                width: 60.0,
+                height: 60.0,
+                color: color,
+              ),
+            ),
+            Center(child: Text(text),)
+          ],
         ),
       ),
     );
