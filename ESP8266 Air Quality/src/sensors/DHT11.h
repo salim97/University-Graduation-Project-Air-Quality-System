@@ -3,7 +3,7 @@
 #include <DHT_U.h>
 #include <Wire.h>
 
-#define DHTPIN 4      // Digital pin connected to the DHT sensor
+#define DHTPIN 3      // Digital pin connected to the DHT sensor
 // #define DHTTYPE DHT11 // DHT 11 
 DHT_Unified dht11(DHTPIN, DHT11);
 void DHT11_init()
