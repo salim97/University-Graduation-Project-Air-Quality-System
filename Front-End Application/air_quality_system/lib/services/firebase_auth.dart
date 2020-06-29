@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:injectable/injectable.dart';
 
 /// The service responsible for networking requests
-@lazySingleton
+// @lazySingleton
 class MyFirebaseAuth {
   FirebaseUser _firebaseUser = null;
   get firebaseUser => _firebaseUser;

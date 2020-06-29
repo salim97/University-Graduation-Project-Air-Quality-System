@@ -28,7 +28,7 @@ void BME680_init()
   bme.setGasHeater(320, 150); // 320*C for 150 ms
 }
 
-void BME680_measure(DynamicJsonDocument &doc)
+bool BME680_measure(DynamicJsonDocument &doc)
 {
   Serial.println("============= BME680 =============");
 
@@ -37,7 +37,7 @@ void BME680_measure(DynamicJsonDocument &doc)
   if (endTime == 0)
   {
     Serial.println(F("Failed to begin reading bme :("));
-    return;
+    return false;
   }
 
   delay(50);
@@ -45,7 +45,7 @@ void BME680_measure(DynamicJsonDocument &doc)
   if (!bme.endReading())
   {
     Serial.println(F("Failed to complete reading :("));
-    return;
+    return false;
   }
 
   doc["BME680"]["Temperature"]["value"] = bme.temperature;
@@ -68,4 +68,5 @@ void BME680_measure(DynamicJsonDocument &doc)
   doc["BME680"]["Approx. Altitude"]["type"] = "m";
   doc["BME680"]["Approx. Altitude"]["isCalibrated"] = true;
 
+  return true ;
 }

@@ -18,7 +18,7 @@ void MHZ19_init()
   // myMHZ19.autoCalibration(false); // Turn auto calibration ON (OFF autoCalibration(false))
 }
 
-void MHZ19_measure(DynamicJsonDocument &doc)
+bool MHZ19_measure(DynamicJsonDocument &doc)
 {
   Serial.println("============= MHZ19 =============");
 
@@ -33,7 +33,7 @@ void MHZ19_measure(DynamicJsonDocument &doc)
   if (myMHZ19.errorCode != RESULT_OK)
   {
     Serial.println("Error found in communication :(");
-    return;
+    return false;
   }
 
   doc["MHZ19"]["Temperature"]["value"] = String(Temp);
@@ -57,4 +57,6 @@ void MHZ19_measure(DynamicJsonDocument &doc)
   doc["MHZ19"]["background CO2"]["isCalibrated"] = true;
 
   doc["MHZ19"]["Raw CO2"]["value"] = String(CO2RAW);
+
+  return true;
 }

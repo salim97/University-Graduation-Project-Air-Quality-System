@@ -1,14 +1,23 @@
-import 'all_sensors_model.dart';
+import 'sense_model.dart';
 
 class MICS6814 {
-  Sensor no2;
-  Sensor nh3;
-  Sensor co;
+  Sense no2;
+  Sense nh3;
+  Sense co;
 
   fromJson(Map<String, dynamic> json) {
     if (json["MICS6814"] == null) return;
-    no2 = new Sensor.fromJson(json["MICS6814"]["NO2"]);
-    nh3 = new Sensor.fromJson(json["MICS6814"]["NH3"]);
-    co = new Sensor.fromJson(json["MICS6814"]["CO"]);
+    no2 = new Sense.fromJson(json["MICS6814"]["NO2"], "NO2");
+    nh3 = new Sense.fromJson(json["MICS6814"]["NH3"], "NH3");
+    co = new Sense.fromJson(json["MICS6814"]["CO"], "CO");
   }
+
+  List<Sense> toSensors() {
+    List<Sense> tmp = new List<Sense>();
+    tmp.add(no2);
+    tmp.add(nh3);
+    tmp.add(co);
+    return tmp;
+  }
+
 }

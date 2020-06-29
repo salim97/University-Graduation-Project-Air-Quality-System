@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:air_quality_system/app/locator.dart';
 import 'package:air_quality_system/datamodels/all_sensors_model.dart';
 import 'package:air_quality_system/services/firebase_auth.dart';
@@ -9,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:stacked/stacked.dart';
 import 'package:latlong/latlong.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:udp/udp.dart';
 
 // class HomeViewModel extends FutureViewModel<void> {
 class HomeViewModel extends BaseViewModel {
@@ -73,19 +76,23 @@ class HomeViewModel extends BaseViewModel {
   // @override
   void initState() async {
     print("=================== initState ");
+
+
+
     // getMyLocation();
-    print(firebaseAuthService.firebaseUser?.uid);
-    print(firebaseAuthService.isUserConnectedToFirebase);
-    await firebaseAuthService.signInAnonymously();
+    // print(firebaseAuthService.firebaseUser?.uid);
+    // print(firebaseAuthService.isUserConnectedToFirebase);
+    // // await firebaseAuthService.signInAnonymously();
     
-    print(firebaseAuthService.firebaseUser.uid);
-    print(firebaseAuthService.isUserConnectedToFirebase);
+    // print(firebaseAuthService.firebaseUser.uid);
+    // print(firebaseAuthService.isUserConnectedToFirebase);
 
     dropDownMenuItems = getDropDownMenuItems();
     currentGas = _gas.keys.first;
     currentGasLegend = _gas.values.first;
 
     notifyListeners();
+
   }
 
   refresh() async {
@@ -100,7 +107,7 @@ class HomeViewModel extends BaseViewModel {
       text: tmp.dht22.temperature.value,
         point: LatLng(tmp.gps.latitude, tmp.gps.longitude),
         color: legendTemperature(
-            double.parse(tmp.dht22.temperature.value).toInt())));
+            double.parse(tmp.dht22.temperature.value.toString()).toInt())));
 
     print(Colors.blue);
     print(Colors.green);

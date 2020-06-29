@@ -15,9 +15,11 @@ void $initGetIt(GetIt g, {String environment}) {
   final thirdPartyServicesModule = _$ThirdPartyServicesModule();
   g.registerLazySingleton<DialogService>(
       () => thirdPartyServicesModule.dialogService);
-  g.registerLazySingleton<MyFirebaseAuth>(() => MyFirebaseAuth());
-  g.registerLazySingleton<MyFirestoreDB>(() => MyFirestoreDB());
-  g.registerLazySingleton<MyGPS>(() => MyGPS());
+  g.registerLazySingleton<MyFirebaseAuth>(
+      () => thirdPartyServicesModule.myFirebaseAuth);
+  g.registerLazySingleton<MyFirestoreDB>(
+      () => thirdPartyServicesModule.myFirestoreDB);
+  g.registerLazySingleton<MyGPS>(() => thirdPartyServicesModule.myGPS);
   g.registerLazySingleton<NavigationService>(
       () => thirdPartyServicesModule.navigationService);
   g.registerLazySingleton<SnackbarService>(
@@ -27,6 +29,12 @@ void $initGetIt(GetIt g, {String environment}) {
 class _$ThirdPartyServicesModule extends ThirdPartyServicesModule {
   @override
   DialogService get dialogService => DialogService();
+  @override
+  MyFirebaseAuth get myFirebaseAuth => MyFirebaseAuth();
+  @override
+  MyFirestoreDB get myFirestoreDB => MyFirestoreDB();
+  @override
+  MyGPS get myGPS => MyGPS();
   @override
   NavigationService get navigationService => NavigationService();
   @override

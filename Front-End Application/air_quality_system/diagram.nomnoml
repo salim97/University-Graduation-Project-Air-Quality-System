@@ -1,0 +1,391 @@
+[_$ThirdPartyServicesModule
+  |
+  +dialogService: DialogService;
+  +myFirebaseAuth: MyFirebaseAuth;
+  +myFirestoreDB: MyFirestoreDB;
+  +myGPS: MyGPS;
+  +navigationService: NavigationService;
+  +snackbarService: SnackbarService
+]
+
+[_$ThirdPartyServicesModule]o-[DialogService]
+[_$ThirdPartyServicesModule]o-[MyFirebaseAuth]
+[_$ThirdPartyServicesModule]o-[MyFirestoreDB]
+[_$ThirdPartyServicesModule]o-[MyGPS]
+[_$ThirdPartyServicesModule]o-[NavigationService]
+[_$ThirdPartyServicesModule]o-[SnackbarService]
+[<abstract>ThirdPartyServicesModule]<:-[_$ThirdPartyServicesModule]
+
+[$Router
+  |
+  +homeView: HomeView;
+  +phoneAuthView: PhoneAuthView;
+  +unAuth: UnAuth;
+  +localNetworkView: LocalNetworkView
+]
+
+[$Router]o-[HomeView]
+[$Router]o-[PhoneAuthView]
+[$Router]o-[UnAuth]
+[$Router]o-[LocalNetworkView]
+
+[<abstract>Routes
+  |
+  <static>+homeView: String;
+  <static>+phoneAuthView: String;
+  <static>+unAuth: String;
+  <static>+localNetworkView: String;
+  <static>+all: Set<String>
+]
+
+[Router
+  |
+  +allRoutes: Set<String>;
+  <static>+navigator: ExtendedNavigatorState<RouterBase>
+  |
+  +Route onGenerateRoute()
+]
+
+[Router]o-[ExtendedNavigatorState<T>]
+[<abstract>RouterBase]<:-[Router]
+
+[All_Sensors
+  |
+  +dht22: DHT22;
+  +mics6814: MICS6814;
+  +sgp30: SGP30;
+  +mhz19: MHZ19;
+  +bme680: BME680;
+  +gps: GPS;
+  +timestamp: int
+]
+
+[All_Sensors]o-[DHT22]
+[All_Sensors]o-[MICS6814]
+[All_Sensors]o-[SGP30]
+[All_Sensors]o-[MHZ19]
+[All_Sensors]o-[BME680]
+[All_Sensors]o-[GPS]
+
+[BME680
+  |
+  +temperature: Sensor;
+  +pressure: Sensor;
+  +humidity: Sensor;
+  +altitude: Sensor
+  |
+  +dynamic fromJson();
+  +List toSensors()
+]
+
+[BME680]o-[Sensor]
+
+[Device
+  |
+  +name: String;
+  +timestamp: String;
+  +sensors: List<Sensor>;
+  +expanded: bool
+  |
+  +dynamic setCurrentTime()
+]
+
+[DHT22
+  |
+  +temperature: Sensor;
+  +humidity: Sensor
+  |
+  +dynamic fromJson();
+  +List toSensors()
+]
+
+[DHT22]o-[Sensor]
+
+[GPS
+  |
+  +latitude: double;
+  +longitude: double;
+  +altitude: double
+  |
+  +dynamic fromJson()
+]
+
+[MHZ19
+  |
+  +temperature: Sensor;
+  +co2: Sensor;
+  +raw_CO2: String
+  |
+  +dynamic fromJson();
+  +List toSensors()
+]
+
+[MHZ19]o-[Sensor]
+
+[MICS6814
+  |
+  +no2: Sensor;
+  +nh3: Sensor;
+  +co: Sensor
+  |
+  +dynamic fromJson();
+  +List toSensors()
+]
+
+[MICS6814]o-[Sensor]
+
+[Sensor
+  |
+  +metricName: String;
+  +value: String;
+  +type: String;
+  +isCalibrated: bool
+]
+
+[SGP30
+  |
+  +tvoc: Sensor;
+  +eCO2: Sensor;
+  +raw_H2: String;
+  +raw_Ethanol: String
+  |
+  +dynamic fromJson();
+  +List toSensors()
+]
+
+[SGP30]o-[Sensor]
+
+[MyApp
+  |
+  +Widget build()
+]
+
+[<abstract>StatelessWidget]<:-[MyApp]
+
+[MyFirebaseAuth
+  |
+  -_firebaseUser: FirebaseUser;
+  -_isUserConnectedToFirebase: bool;
+  +firebaseUser: dynamic;
+  +isUserConnectedToFirebase: dynamic
+  |
+  +Future signIn();
+  +Future signInAnonymously()
+]
+
+[MyFirebaseAuth]o-[FirebaseUser]
+
+[MyFirestoreDB
+  |
+  +client: dynamic
+  |
+  +Future getLastdata()
+]
+
+[MyGPS
+]
+
+[<abstract>ThirdPartyServicesModule
+  |
+  +navigationService: NavigationService;
+  +dialogService: DialogService;
+  +snackbarService: SnackbarService;
+  +myFirebaseAuth: MyFirebaseAuth;
+  +myFirestoreDB: MyFirestoreDB;
+  +myGPS: MyGPS
+]
+
+[<abstract>ThirdPartyServicesModule]o-[NavigationService]
+[<abstract>ThirdPartyServicesModule]o-[DialogService]
+[<abstract>ThirdPartyServicesModule]o-[SnackbarService]
+[<abstract>ThirdPartyServicesModule]o-[MyFirebaseAuth]
+[<abstract>ThirdPartyServicesModule]o-[MyFirestoreDB]
+[<abstract>ThirdPartyServicesModule]o-[MyGPS]
+
+[PhoneAuthView
+  |
+  +phoneNumberController: TextEditingController
+  |
+  +Widget build();
+  +void showToast()
+]
+
+[PhoneAuthView]o-[TextEditingController]
+[<abstract>StatelessWidget]<:-[PhoneAuthView]
+
+[PhoneOTPView
+  |
+  +countryCode: String;
+  +phoneNumber: String;
+  +onVerificationSuccess: void Function();
+  +onVerificationFailure: void Function();
+  +progressIndicatorColor: Color;
+  +appBar: Widget
+  |
+  +_PhoneOTPViewState createState()
+]
+
+[PhoneOTPView]o-[void Function()]
+[PhoneOTPView]o-[Color]
+[PhoneOTPView]o-[<abstract>Widget]
+[<abstract>StatefulWidget]<:-[PhoneOTPView]
+
+[_PhoneOTPViewState
+  |
+  +showStatus: int;
+  +isSmsCodeSent: bool;
+  +isError: bool;
+  +optText: List<String>;
+  +verificationId: String;
+  +smsCode: String;
+  +controller1: TextEditingController;
+  +controller2: TextEditingController;
+  +controller3: TextEditingController;
+  +controller4: TextEditingController;
+  +controller5: TextEditingController;
+  +controller6: TextEditingController;
+  +controller7: TextEditingController;
+  +currController: TextEditingController
+  |
+  +void dispose();
+  +Future verifyPhone();
+  +dynamic manualVerification();
+  +void initState();
+  +Widget build();
+  +void inputTextToField();
+  +void deleteText();
+  +void matchOtp();
+  +Widget codeStatus()
+]
+
+[_PhoneOTPViewState]o-[TextEditingController]
+[<abstract>State<T>]<:-[_PhoneOTPViewState]
+
+[UnAuth
+  |
+  +Widget build()
+]
+
+[<abstract>StatelessWidget]<:-[UnAuth]
+
+[HomeViewModel
+  |
+  +myLocation: LatLng;
+  +markers: List<Marker>;
+  +firebaseAuthService: MyFirebaseAuth;
+  +myFirestoreDBservice: MyFirestoreDB;
+  -_dialogService: DialogService;
+  -_gas: Map<String, String>;
+  +dropDownMenuItems: List<DropdownMenuItem<String>>;
+  +currentGas: String;
+  +currentGasLegend: String
+  |
+  +void initState();
+  +dynamic refresh();
+  +Color legendTemperature();
+  +dynamic addMarker();
+  +void changedDropDownItem();
+  +List getDropDownMenuItems();
+  +void onError();
+  +Future getMyLocation()
+]
+
+[HomeViewModel]o-[LatLng]
+[HomeViewModel]o-[MyFirebaseAuth]
+[HomeViewModel]o-[MyFirestoreDB]
+[HomeViewModel]o-[DialogService]
+[BaseViewModel]<:-[HomeViewModel]
+
+[HomeView
+  |
+  +Widget build()
+]
+
+[<abstract>StatelessWidget]<:-[HomeView]
+
+[LocalNetworkViewModel
+  |
+  +devices: List<Device>
+  |
+  +void initState();
+  +void onError()
+]
+
+[BaseViewModel]<:-[LocalNetworkViewModel]
+
+[LocalNetworkView
+  |
+  +Widget build()
+]
+
+[<abstract>StatelessWidget]<:-[LocalNetworkView]
+
+[ThemeScheme
+  |
+  <static>+dynamic dark();
+  <static>+ThemeData light()
+]
+
+[AppDrawer
+  |
+  +Widget build()
+]
+
+[<abstract>StatelessWidget]<:-[AppDrawer]
+
+[CustomTextFormField
+  |
+  +hintText: String;
+  +verticalPadding: double;
+  +value: String;
+  +suffixIcon: Icon;
+  +showLabel: bool;
+  +controller: TextEditingController;
+  +keyboardType: TextInputType;
+  +maxLength: int
+  |
+  +Widget build()
+]
+
+[CustomTextFormField]o-[Icon]
+[CustomTextFormField]o-[TextEditingController]
+[CustomTextFormField]o-[TextInputType]
+[<abstract>StatelessWidget]<:-[CustomTextFormField]
+
+[DeviceTile
+  |
+  +device: Device;
+  +onTap: void Function();
+  +onHistoryDataTap: void Function();
+  +expanded: bool
+  |
+  -Widget _buildHeader();
+  -Widget _buildCard();
+  -Widget _buildDataCard();
+  +Widget build()
+]
+
+[DeviceTile]o-[Device]
+[DeviceTile]o-[void Function()]
+[<abstract>StatelessWidget]<:-[DeviceTile]
+
+[DeviceTileList
+  |
+  +expanded: List<bool>;
+  +devices: List<Device>;
+  +onHistoryDataTap: dynamic Function(Device)
+  |
+  +_DeviceTileListState createState()
+]
+
+[DeviceTileList]o-[dynamic Function(Device)]
+[<abstract>StatefulWidget]<:-[DeviceTileList]
+
+[_DeviceTileListState
+  |
+  +selectedIndex: int
+  |
+  +Widget build()
+]
+
+[<abstract>State<T>]<:-[_DeviceTileListState]

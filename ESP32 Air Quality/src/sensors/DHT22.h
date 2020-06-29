@@ -51,7 +51,7 @@ void DHT22_init()
     Serial.println(F("------------------------------------"));
 }
 // DynamicJsonDocument doc(2048);
-void DHT22_measure(DynamicJsonDocument &doc)
+bool DHT22_measure(DynamicJsonDocument &doc)
 {
     Serial.println("============= DHT22 =============");
 
@@ -61,7 +61,7 @@ void DHT22_measure(DynamicJsonDocument &doc)
     if (isnan(event.temperature))
     {
         Serial.println(F("Error reading temperature :("));
-        return;
+        return false;
     }
 
     doc["DHT22"]["Temperature"]["value"] = event.temperature;
@@ -73,10 +73,12 @@ void DHT22_measure(DynamicJsonDocument &doc)
     if (isnan(event.relative_humidity))
     {
         Serial.println(F("Error reading humidity :("));
-        return;
+        return false;
     }
 
     doc["DHT22"]["Humidity"]["value"] = event.relative_humidity;
     doc["DHT22"]["Humidity"]["type"] = "%";
     doc["DHT22"]["Humidity"]["isCalibrated"] = true;
+
+    return true ;
 }

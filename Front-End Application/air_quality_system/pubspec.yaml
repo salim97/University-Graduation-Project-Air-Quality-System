@@ -47,6 +47,9 @@ dependencies:
   provider: ^4.0.3
   flutter_map: ^0.8.2
   geolocator: ^5.2.1
+
+  udp: ^3.0.3
+  material_design_icons_flutter:
  
 
 dev_dependencies:

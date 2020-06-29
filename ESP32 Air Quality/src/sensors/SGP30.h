@@ -20,14 +20,16 @@ void SGP30_init()
   //sgp.setIAQBaseline(0x8E68, 0x8F41);  // Will vary for each sensor!
 }
 
-void SGP30_measure(DynamicJsonDocument &doc)
+bool 
+
+SGP30_measure(DynamicJsonDocument &doc)
 {
   Serial.println("============= SGP30 =============");
 
   if (!sgp.IAQmeasure())
   {
     Serial.println("Measurement failed :(");
-    return;
+    return false;
   }
 
   doc["SGP30"]["TVOC"]["value"] = sgp.TVOC;
@@ -41,9 +43,11 @@ void SGP30_measure(DynamicJsonDocument &doc)
   if (!sgp.IAQmeasureRaw())
   {
     Serial.println("Raw Measurement failed :(");
-    return;
+    return false;
   }
 
   doc["SGP30"]["Raw H2"]["value"] = sgp.rawH2;
   doc["SGP30"]["Raw Ethanol"]["value"] = sgp.rawEthanol;
+
+  return true;
 }

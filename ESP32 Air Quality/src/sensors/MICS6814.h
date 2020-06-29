@@ -11,7 +11,8 @@ void MICS6814_init()
   Serial.println(F("start calibrating MICS6814 ..."));
   mics6814.calibrate();
 }
-void MICS6814_measure(DynamicJsonDocument &doc)
+
+bool MICS6814_measure(DynamicJsonDocument &doc)
 {
   Serial.println("============= MICS6814 =============");
 
@@ -26,4 +27,6 @@ void MICS6814_measure(DynamicJsonDocument &doc)
   doc["MICS6814"]["CO"]["value"] = mics6814.measure(CO);
   doc["MICS6814"]["CO"]["type"] = "PPM";
   doc["MICS6814"]["CO"]["isCalibrated"] = true;
+
+  return true;
 }
