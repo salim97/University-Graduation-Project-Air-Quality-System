@@ -109,7 +109,6 @@ void sendDataToFirebase()
   if (WiFi.status() == WL_CONNECTED)
   {
     HTTPClient clientHTTP;
-    // clientHTTP.begin("http://192.168.1.103:5001/food-delivery-2020/us-central1/webApi/api/v1/postData");
     clientHTTP.begin("http://us-central1-pfe-air-quality.cloudfunctions.net/webApi/api/v1/postData");
     clientHTTP.addHeader("Content-Type", "application/json");
 
