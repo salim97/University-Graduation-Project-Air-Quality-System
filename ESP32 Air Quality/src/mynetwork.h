@@ -6,10 +6,10 @@
 /*---------------*/
 // wifi config
 /*----------------*/
-// const char *WIFI_SSID = "idoomAdsl01";        // this is fine
-const char *WIFI_SSID = "abc";        // this is fine
-// const char *WIFI_PASSWORD = "builder2019cpp"; // this is fine
-const char *WIFI_PASSWORD = "ustousto"; // this is fine
+const char *WIFI_SSID = "idoomAdsl01";        // this is fine
+// const char *WIFI_SSID = "abc";        // this is fine
+const char *WIFI_PASSWORD = "builder2019cpp"; // this is fine
+// const char *WIFI_PASSWORD = "ustousto"; // this is fine
 
 //---------------------------------------------------------
 // UDP/TCP packet handler

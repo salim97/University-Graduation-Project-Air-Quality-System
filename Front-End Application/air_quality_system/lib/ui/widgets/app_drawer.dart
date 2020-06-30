@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'package:air_quality_system/app/router.gr.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 // import '../router.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -8,28 +9,19 @@ class AppDrawer extends StatelessWidget {
     final ThemeData _theme = Theme.of(context);
     final List _drawerMenu = [
       {
-        "icon": Icons.restore,
-        "text": "My rides",
-        // "route": MyRidesRoute,
+        "icon": MdiIcons.accessPoint,
+        "text": "Local Network",
+        "route": Routes.localNetworkView,
       },
       {
-        "icon": Icons.local_activity,
-        "text": "Promotions",
-        // "route": PromotionRoute
+        "icon": MdiIcons.developerBoard,
+        "text": "Contribute",
+        "route": Routes.unAuth,
       },
       {
-        "icon": Icons.star_border,
-        "text": "My favourites",
-        // "route": FavoritesRoute
-      },
-      {
-        "icon": Icons.credit_card,
-        "text": "My payments",
-        // "route": PaymentRoute,
-      },
-      {
-        "icon": Icons.notifications,
-        // "text": "Notification",
+        "icon": MdiIcons.information,
+        "text": "About",
+        // "route": ChatRiderRoute,
       },
       {
         "icon": Icons.chat,
@@ -37,10 +29,10 @@ class AppDrawer extends StatelessWidget {
         // "route": ChatRiderRoute,
       }
     ];
+
     return Container(
       color: Colors.white,
-      width: MediaQuery.of(context).size.width -
-          (MediaQuery.of(context).size.width * 0.2),
+      width: MediaQuery.of(context).size.width - (MediaQuery.of(context).size.width * 0.2),
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -49,20 +41,12 @@ class AppDrawer extends StatelessWidget {
               padding: EdgeInsets.symmetric(
                 horizontal: 25.0,
               ),
-              height: 170.0,
+              height: 100.0,
               color: _theme.primaryColor,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  CircleAvatar(
-                    radius: 30.0,
-                    // backgroundImage: NetworkImage(
-                    //     "https://pbs.twimg.com/profile_images/1214214436283568128/KyumFmOO.jpg"),
-                  ),
-                  SizedBox(
-                    height: 7.0,
-                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[

@@ -131,9 +131,9 @@ class _PhoneOTPViewState extends State<PhoneOTPView> {
     await FirebaseAuth.instance
         .verifyPhoneNumber(
             phoneNumber: "${widget.countryCode}${widget.phoneNumber}",
+            timeout: const Duration(seconds: 5),
             codeAutoRetrievalTimeout: autoRetrieve,
             codeSent: smsCodeSent,
-            timeout: const Duration(seconds: 5),
             verificationCompleted: verifiedSuccess,
             verificationFailed: verfiFailed)
         .catchError((error) {
@@ -358,7 +358,7 @@ class _PhoneOTPViewState extends State<PhoneOTPView> {
                     padding: const EdgeInsets.only(
                         left: 30.0, top: 2.0, right: 30.0),
                     child: Text(
-                      "+91 ${widget.phoneNumber}",
+                      "${widget.countryCode} ${widget.phoneNumber}",
                       style: TextStyle(
                           fontSize: 15.0,
                           fontWeight: FontWeight.bold,

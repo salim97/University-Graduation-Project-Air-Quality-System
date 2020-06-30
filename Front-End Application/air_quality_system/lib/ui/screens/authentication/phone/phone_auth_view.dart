@@ -13,6 +13,7 @@ class PhoneAuthView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData _theme = Theme.of(context);
+
     return Scaffold(
       resizeToAvoidBottomPadding: false,
       appBar: AppBar(
@@ -104,11 +105,13 @@ class PhoneAuthView extends StatelessWidget {
                       MaterialPageRoute(
                           builder: (context) => PhoneOTPView(
                                 countryCode: "+213",
-                                phoneNumber: "666795827",
+                                // phoneNumber: "666795827",
+                                phoneNumber: "662253959",
                                 onVerificationFailure: () {
                                   print("khra");
                                 },
                                 onVerificationSuccess: () {
+                                  Navigator.of(context).pop();
                                   print("nice");
                                 },
                               )));

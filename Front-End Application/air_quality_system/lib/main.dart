@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'app/locator.dart';
 import 'app/router.gr.dart';
+import 'ui/screens/authentication/phone/phone_auth_view.dart';
+import 'ui/screens/authentication/unauth_view.dart';
 import 'ui/screens/home/home_view.dart';
 import 'ui/screens/localNetwork/localNetwork_view.dart';
 import 'ui/styles/theme_data.dart';
@@ -25,7 +27,7 @@ class MyApp extends StatelessWidget {
       navigatorKey: locator<NavigationService>().navigatorKey,
       theme: ThemeScheme.light(),
       // initialRoute: Routes.startupViewRoute,
-      home: LocalNetworkView(),
+      home: PhoneAuthView(),
     );
   }
 }

@@ -44,34 +44,34 @@ class HomeView extends StatelessWidget {
                   );
                 },
               ),
-              // Positioned(
-              //     top: 0,
-              //     left: MediaQuery.of(context).size.width * 0.5,
-              //     child: RaisedButton(
-              //       child: Text("refresh"),
-              //       onPressed: model.refresh,
-              //     )),
-              // Positioned(
-              //     bottom: 0,
-              //     left: MediaQuery.of(context).size.width * 0.25,
-              //     child: Container(
-              //       decoration: BoxDecoration(color: Colors.white),
-              //       child: DropdownButton(
-              //         value: model.currentGas,
-              //         items: model.dropDownMenuItems,
-              //         onChanged: model.changedDropDownItem,
-              //       ),
-              //     )),
-              // Positioned(
-              //   bottom: 0,
-              //   left: 0,
-              //   //  height: MediaQuery.of(context).size.height * 0.50,
-              //   width: MediaQuery.of(context).size.width * 0.25,
-              //   child: Image.asset(
-              //     // "assets/images/legend_Temperature.png",
-              //     model.currentGasLegend
-              //   ),
-              // ),
+              Positioned(
+                  top: 0,
+                  left: MediaQuery.of(context).size.width * 0.5,
+                  child: RaisedButton(
+                    child: Text("refresh"),
+                    onPressed: model.refresh,
+                  )),
+              Positioned(
+                  bottom: 0,
+                  left: MediaQuery.of(context).size.width * 0.25,
+                  child: Container(
+                    decoration: BoxDecoration(color: Colors.white),
+                    child: DropdownButton(
+                      value: model.currentGas,
+                      items: model.dropDownMenuItems,
+                      onChanged: model.changedDropDownItem,
+                    ),
+                  )),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                //  height: MediaQuery.of(context).size.height * 0.50,
+                width: MediaQuery.of(context).size.width * 0.25,
+                child: Image.asset(
+                  // "assets/images/legend_Temperature.png",
+                  model.currentGasLegend
+                ),
+              ),
 
             ],
           ),

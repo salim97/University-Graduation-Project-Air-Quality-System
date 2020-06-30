@@ -40,21 +40,15 @@ export const webApi = functions.https.onRequest(main);
 //             .createNewDocument(db, usersCollection, user.toJSON()).then(doc => console.log(doc));
 // });
 
-export const accountCreate = functions.auth.user().onCreate((user) => {
+export const accountCreate = functions.auth.user().onCreate(async (user) => {
     console.log(user.toJSON());
     if (user.phoneNumber == null) {
         console.log("User Phone Number is empty!");
         return;
     }
     
-    admin.firestore().collection('users').doc(user.uid)
-        .set(user.toJSON()).then(writeResult => {
-            console.log('User Created result:', writeResult);
-            return;
-        }).catch(err => {
-            console.log(err);
-            return;
-        });
+    await firebaseHelper.firestore
+        .createDocumentWithID(db, "Users", user.uid, JSON.parse(JSON.stringify(user))).then(doc => console.log(doc));
 });
 
 // // exports.sendCouponOnPurchase = functions.analytics.event('login').onLog((event) => {

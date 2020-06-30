@@ -96,8 +96,8 @@ class HomeViewModel extends BaseViewModel {
   }
 
   refresh() async {
-    //     await firebaseAuthService.signInAnonymously();
-    // return ;
+        await firebaseAuthService.signInAnonymously();
+    return ;
     List<DeviceDataModel> list = await myFirestoreDBservice.getLastdata();
     DeviceDataModel tmp = list.first;
     markers.clear();

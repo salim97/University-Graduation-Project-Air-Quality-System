@@ -19,7 +19,7 @@ class DeviceTile extends StatelessWidget {
       key: new ValueKey(sensor.timeStamp),
       title: new Text(sensor.name, style: TextStyle(fontWeight: FontWeight.w500)),
       subtitle: new Text(sensor.timeStamp),
-      leading: const Icon(Icons.developer_board, size: 36.0),
+      leading: const Icon(MdiIcons.developerBoard, size: 36.0),
       trailing: new Icon(this.expanded ? Icons.arrow_drop_up : Icons.arrow_drop_down, size: 36.0),
       onTap: this.onTap,
     );

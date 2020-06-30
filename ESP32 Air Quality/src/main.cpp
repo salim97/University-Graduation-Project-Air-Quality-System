@@ -59,7 +59,7 @@ void setup() {
   timer2.start();
 
   sendDataToLocalNetwork();
-  // sendDataToFirebase();
+  sendDataToFirebase();
 }
 
 void loop() {
@@ -90,7 +90,6 @@ void sendDataToLocalNetwork() {
   delay(10);
 
   if (!MICS6814_measure(doc)) networkBroadcatLog("MICS6814 ERROR!", true);
-  MICS6814_measure(doc);
   delay(10);
 
   if (!SGP30_measure(doc)) networkBroadcatLog("SGP30 ERROR!", true);
@@ -109,32 +108,34 @@ void sendDataToLocalNetwork() {
 }
 
 void sendDataToFirebase() {
-  // //clear RAM
-  // doc.clear();
-  // jsonOutput.clear();
-  // doc["GPS"]["latitude"]["value"] = 35.6935229;
-  // doc["GPS"]["longitude"]["value"] = -0.6140395;
-  // // getting data and convert it into JSON
-  // DHT22_measure(doc);
-  // delay(10);
+  // clear RAM
+  doc.clear();
+  jsonOutput.clear();
+  doc["GPS"]["latitude"]["value"] = 35.6935229;
+  doc["GPS"]["longitude"]["value"] = -0.6140395;
+  doc["upTime"] = millis();
+  // getting data and convert it into JSON
+  DHT22_measure(doc);
+  delay(10);
 
-  // MICS6814_measure(doc);
-  // delay(10);
+  MICS6814_measure(doc);
+  delay(10);
 
-  // SGP30_measure(doc);
-  // delay(10);
+  SGP30_measure(doc);
+  delay(10);
 
-  // BME680_measure(doc);
-  // delay(10);
+  BME680_measure(doc);
+  delay(10);
 
-  // MHZ19_measure(doc);
-  // delay(10);
+  MHZ19_measure(doc);
+  delay(10);
 
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient clientHTTP;
     // clientHTTP.begin("http://192.168.1.103:5001/food-delivery-2020/us-central1/webApi/api/v1/postData");
     clientHTTP.begin("https://us-central1-pfe-air-quality.cloudfunctions.net/"
                      "webApi/api/v1/postData");
+
     clientHTTP.addHeader("Content-Type", "application/json");
 
     // const size_t CAPACITY = JSON_OBJECT_SIZE(1);
@@ -142,7 +143,7 @@ void sendDataToFirebase() {
 
     serializeJson(doc, jsonOutput);
     int httpCode = clientHTTP.POST(String(jsonOutput));
-
+    Serial.println("Status code : " + String(httpCode));
     if (httpCode > 0) {
       String payload = clientHTTP.getString();
       Serial.println("Status code : " + String(httpCode));
