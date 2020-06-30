@@ -66,6 +66,8 @@ void loop() {
   timer0.update();
   timer1.update();
   timer2.update();
+  // String command = readAllUDP();
+  if (readAllUDP() == "<refresh>") sendDataToLocalNetwork();
 }
 
 void blink_LED() {

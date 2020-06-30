@@ -6,8 +6,10 @@
 /*---------------*/
 // wifi config
 /*----------------*/
-const char *WIFI_SSID = "idoomAdsl01";        // this is fine
-const char *WIFI_PASSWORD = "builder2019cpp"; // this is fine
+// const char *WIFI_SSID = "idoomAdsl01";        // this is fine
+const char *WIFI_SSID = "abc";        // this is fine
+// const char *WIFI_PASSWORD = "builder2019cpp"; // this is fine
+const char *WIFI_PASSWORD = "ustousto"; // this is fine
 
 //---------------------------------------------------------
 // UDP/TCP packet handler
@@ -65,7 +67,7 @@ String readAllUDP()
 
     for (int i = 0; i < packetSize; i++)
       packetBuffer[i] = 0;
-    // Serial.println("readAllUDP: "+udpBuffer) ;
+     Serial.println("readAllUDP: "+udpBuffer) ;
   }
 
   return udpBuffer;

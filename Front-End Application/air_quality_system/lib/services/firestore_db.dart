@@ -1,4 +1,4 @@
-import 'package:air_quality_system/datamodels/all_sensors_model.dart';
+import 'package:air_quality_system/datamodels/device_dataModel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 
@@ -17,8 +17,8 @@ class MyFirestoreDB {
   //   return User.fromJson(json.decode(response.body));
   // }
 
-  Future<List<All_Sensors>> getLastdata() async {
-    var posts = List<All_Sensors>();
+  Future<List<DeviceDataModel>> getLastdata() async {
+    var posts = List<DeviceDataModel>();
     QuerySnapshot docs = await Firestore.instance
         .collection("contacts")
         .where("timestamp", isGreaterThan: 1592676909333)
@@ -28,16 +28,9 @@ class MyFirestoreDB {
       // print("-----------------------------------");
       //print(element.data);
 
-      var s = new All_Sensors();
-      // s.dht22.temperature =new
-      //     Sensor.fromJson(element.data["DHT22"]["Temperature"]);
-      s.dht22.fromJson(element.data);
-      s.mics6814.fromJson(element.data);
-      s.sgp30.fromJson(element.data);
-      s.mhz19.fromJson(element.data);
-      s.bme680.fromJson(element.data);
-      s.gps.fromJson(element.data);
-      s.timestamp = element.data["timestamp"];
+      DeviceDataModel s;
+      s.fromJson(element.data);
+      s.timeStamp = element.data["timestamp"];
 
       // print(s.dht22.temperature.value);
       posts.add(s);

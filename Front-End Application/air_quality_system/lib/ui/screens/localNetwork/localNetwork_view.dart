@@ -1,6 +1,6 @@
 import 'dart:ui';
-import 'package:air_quality_system/datamodels/Device.dart';
-import 'package:air_quality_system/datamodels/all_sensors_model.dart';
+import 'package:air_quality_system/datamodels/device_dataModel.dart';
+import 'package:air_quality_system/datamodels/sensor_datamodel.dart';
 import 'package:air_quality_system/ui/widgets/DeviceTile.dart';
 import 'package:air_quality_system/ui/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
@@ -15,24 +15,27 @@ class LocalNetworkView extends StatelessWidget {
     final ThemeData _theme = Theme.of(context);
     return ViewModelBuilder<LocalNetworkViewModel>.reactive(
       builder: (context, model, child) => Scaffold(
-      appBar: new AppBar(
-        title: new Text('Local Network Sensors'),
+        appBar: new AppBar(
+          title: new Text('Local Network Sensors'),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.refresh, color: Colors.white,),
+              onPressed: model.refresh,
+            )
+          ],
+        ),
+        body: DeviceTileList(
+          model.devices,
+          onHistoryDataTap: (SensorDataModel device) {
+            // Navigator
+            //     .of(context)
+            //     .push(MaterialPageRoute(builder: (_) => DeviceChartPage(device)));
+          },
+        ),
       ),
-      body: DeviceTileList(
-        model.devices,
-        onHistoryDataTap: (Device device) {
-          // Navigator
-          //     .of(context)
-          //     .push(MaterialPageRoute(builder: (_) => DeviceChartPage(device)));
-        },
-      ),
-    ),
       viewModelBuilder: () => LocalNetworkViewModel(),
-      onModelReady: (model) => model
-          .initState(), // TODO: khrebch fiha apre, prc initstate ta3 fluter w hadi custom je pense pas 3andhom meme behavior
+      onModelReady: (model) =>
+          model.initState(), // TODO: khrebch fiha apre, prc initstate ta3 fluter w hadi custom je pense pas 3andhom meme behavior
     );
   }
-
-
-
 }

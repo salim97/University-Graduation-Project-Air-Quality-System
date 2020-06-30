@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:air_quality_system/app/locator.dart';
-import 'package:air_quality_system/datamodels/all_sensors_model.dart';
+import 'package:air_quality_system/datamodels/device_dataModel.dart';
 import 'package:air_quality_system/services/firebase_auth.dart';
 import 'package:air_quality_system/services/firestore_db.dart';
 import 'package:flutter/material.dart';
@@ -98,16 +98,16 @@ class HomeViewModel extends BaseViewModel {
   refresh() async {
     //     await firebaseAuthService.signInAnonymously();
     // return ;
-    List<All_Sensors> list = await myFirestoreDBservice.getLastdata();
-    All_Sensors tmp = list.first;
+    List<DeviceDataModel> list = await myFirestoreDBservice.getLastdata();
+    DeviceDataModel tmp = list.first;
     markers.clear();
-    print(tmp.dht22.temperature.value);
+    // print(tmp.dht22.temperature.value);
 
-    markers.add(addMarker(
-      text: tmp.dht22.temperature.value,
-        point: LatLng(tmp.gps.latitude, tmp.gps.longitude),
-        color: legendTemperature(
-            double.parse(tmp.dht22.temperature.value.toString()).toInt())));
+    // markers.add(addMarker(
+    //   text: tmp.dht22.temperature.value,
+    //     point: LatLng(tmp.gps.latitude, tmp.gps.longitude),
+    //     color: legendTemperature(
+    //         double.parse(tmp.dht22.temperature.value.toString()).toInt())));
 
     print(Colors.blue);
     print(Colors.green);

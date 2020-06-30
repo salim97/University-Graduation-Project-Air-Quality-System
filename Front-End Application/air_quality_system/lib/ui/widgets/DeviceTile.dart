@@ -1,52 +1,35 @@
-import 'package:air_quality_system/datamodels/Device.dart';
-import 'package:air_quality_system/datamodels/sense_model.dart';
+import 'dart:math';
+
+import 'package:air_quality_system/datamodels/device_dataModel.dart';
+
+import 'package:air_quality_system/datamodels/sensor_datamodel.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class DeviceTile extends StatelessWidget {
-  DeviceTile(this.device, {this.expanded, this.onTap, this.onHistoryDataTap});
+  DeviceTile(this.sensor, {this.expanded, this.onTap, this.onHistoryDataTap});
 
-  final Device device;
+  final SensorDataModel sensor;
   final GestureTapCallback onTap;
   final GestureTapCallback onHistoryDataTap;
   final bool expanded;
 
   Widget _buildHeader() {
     return new ListTile(
-      key: new ValueKey(device.timestamp),
-      title:
-          new Text(device.name, style: TextStyle(fontWeight: FontWeight.w500)),
-      subtitle: new Text(device.timestamp),
+      key: new ValueKey(sensor.timeStamp),
+      title: new Text(sensor.name, style: TextStyle(fontWeight: FontWeight.w500)),
+      subtitle: new Text(sensor.timeStamp),
       leading: const Icon(Icons.developer_board, size: 36.0),
-      trailing: new Icon(
-          this.expanded ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-          size: 36.0),
+      trailing: new Icon(this.expanded ? Icons.arrow_drop_up : Icons.arrow_drop_down, size: 36.0),
       onTap: this.onTap,
     );
   }
 
   Widget _buildCard(Widget child, {Function() onTap}) {
-    return Material(
-        elevation: 4.0,
-        borderRadius: BorderRadius.circular(12.0),
-        shadowColor: Colors.black,
-        child: InkWell(child: child));
+    return Material(elevation: 4.0, borderRadius: BorderRadius.circular(12.0), shadowColor: Colors.black, child: InkWell(child: child));
   }
 
-  Widget _buildDataCard(
-      String metricName, String value, String metric, IconData icon) {
-    icon = MdiIcons.molecule; //white-balance-sunny
-    if (metric == "°C") icon = MdiIcons.whiteBalanceSunny; //white-balance-sunny
-    if (metric == "%") icon = MdiIcons.waterPercent; //white-balance-sunny
-    if (metric.toLowerCase() == "hpa")
-      icon = MdiIcons.arrowCollapseVertical; //white-balance-sunny
-    if (metric.toLowerCase() == "ppm" &&
-        metricName.toLowerCase().contains("co"))
-      icon = MdiIcons.moleculeCo; //white-balance-sunny
-    if (metric.toLowerCase() == "ppm" &&
-        metricName.toLowerCase().contains("co2"))
-      icon = MdiIcons.moleculeCo2; //white-balance-sunny
-
+  Widget _buildDataCard(String metricName, String value, String metric, IconData icon) {
     return Container(
       margin: EdgeInsets.all(2.0),
       child: Padding(
@@ -89,9 +72,8 @@ class DeviceTile extends StatelessWidget {
       _buildHeader(),
     ];
     if (expanded) {
-      device.sensors.forEach((element) {
-        children.add(_buildDataCard(element.name, element.value.toString(),
-            element.unit, Icons.device_unknown));
+      sensor.senses.forEach((element) {
+        children.add(_buildDataCard(element.name, element.value, element.symbol, element.getIcon()));
       });
       children.add(Container(
         alignment: Alignment.center,
@@ -110,10 +92,7 @@ class DeviceTile extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: _buildCard(
-          Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: children),
+          Column(mainAxisAlignment: MainAxisAlignment.spaceAround, crossAxisAlignment: CrossAxisAlignment.start, children: children),
         ),
       ),
     );
@@ -121,15 +100,9 @@ class DeviceTile extends StatelessWidget {
 }
 
 class DeviceTileList extends StatefulWidget {
-  List<bool> expanded = new List<bool>();
-
-  DeviceTileList(this.devices, {this.onHistoryDataTap}) {
-    devices.forEach((element) {
-      expanded.add(true);
-    });
-  }
-  final List<Device> devices;
-  final Function(Device) onHistoryDataTap;
+  DeviceTileList(this.devices, {this.onHistoryDataTap}) {}
+  final DeviceDataModel devices;
+  final Function(SensorDataModel) onHistoryDataTap;
 
   @override
   _DeviceTileListState createState() => new _DeviceTileListState();
@@ -137,28 +110,35 @@ class DeviceTileList extends StatefulWidget {
 
 class _DeviceTileListState extends State<DeviceTileList> {
   int selectedIndex = -1;
+  Map<String, bool> expanded = new Map<String, bool>();
 
-  // void initState() {
-  //   super.initState();
-  // }
+  void initState() {
+    super.initState();
+    setState(() {
+      widget.devices.sensors.forEach((element) {
+        expanded[element.name] = true;
+      });
+    });
+  }
 
   Widget build(BuildContext context) {
     return new ListView.builder(
-      itemCount: this.widget.devices.length,
+      itemCount: this.widget.devices.sensors.length,
       itemBuilder: (BuildContext context, int index) {
-        if (selectedIndex == index) {
-          widget.devices[index].expanded = !widget.devices[index].expanded;
-          selectedIndex = -1;
-        }
-        Device device = this.widget.devices[index];
+        SensorDataModel sensor = this.widget.devices.sensors[index];
+        if (expanded.isEmpty)
+          widget.devices.sensors.forEach((element) {
+            expanded[element.name] = true;
+          });
         return DeviceTile(
-          device,
-          expanded: device.expanded, //widget.expanded[index],
+          sensor,
+          expanded: expanded[sensor.name],
           onHistoryDataTap: () {
-            this.widget.onHistoryDataTap(device);
+            this.widget.onHistoryDataTap(sensor);
           },
           onTap: () {
             setState(() {
+              expanded[sensor.name] = !expanded[sensor.name];
               if (selectedIndex == index) {
                 selectedIndex = -1;
               } else {

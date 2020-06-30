@@ -1,4 +1,3 @@
-import 'package:air_quality_system/datamodels/all_sensors_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:convert';
 
