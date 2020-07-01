@@ -23,7 +23,8 @@ void MICS6814 :: calibrate ()
 	// The number of seconds that must pass before
 	// than we will assume that the calibration is complete
 	// (Less than 64 seconds to avoid overflow)
-	uint8_t seconds = 10;
+	// uint8_t seconds = 10;
+	uint8_t seconds = 1;
 
 	// Tolerance for the average of the current value
 	uint8_t delta = 20;

@@ -35,14 +35,19 @@ Ticker timer2(sendDataToLocalNetwork,
               15 * 1000); // each 15 second send data in local network
 // Ticker timer3(readDataFromSensors, 15 * 1000);  // each 10 second send data
 // in local network
-
+bool configMode = false ;
 void setup() {
   Serial.begin(115200);
   // Device to serial monitor feedback
   while (!Serial)
     ;
 
-  mynetwork_init();
+  if(!mynetwork_init())
+  {
+    // config mode
+    configMode = true ;
+    return ;
+  }
 
   // pinMode(BUILTIN_LED, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -63,6 +68,7 @@ void setup() {
 }
 
 void loop() {
+  if(configMode) return ;
   timer0.update();
   timer1.update();
   timer2.update();
@@ -114,6 +120,7 @@ void sendDataToFirebase() {
   doc["GPS"]["latitude"]["value"] = 35.6935229;
   doc["GPS"]["longitude"]["value"] = -0.6140395;
   doc["upTime"] = millis();
+  // ESP.getch
   // getting data and convert it into JSON
   DHT22_measure(doc);
   delay(10);
@@ -132,9 +139,8 @@ void sendDataToFirebase() {
 
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient clientHTTP;
-    // clientHTTP.begin("http://192.168.1.103:5001/food-delivery-2020/us-central1/webApi/api/v1/postData");
-    clientHTTP.begin("https://us-central1-pfe-air-quality.cloudfunctions.net/"
-                     "webApi/api/v1/postData");
+    clientHTTP.begin("http://192.168.1.33:5001/pfe-air-quality/us-central1/webApi/api/v1/postData");
+    // clientHTTP.begin("https://us-central1-pfe-air-quality.cloudfunctions.net/webApi/api/v1/postData");
 
     clientHTTP.addHeader("Content-Type", "application/json");
 
