@@ -23,7 +23,7 @@ Ticker timer0(blink_LED, 1000);                    // each second blink led
 Ticker timer1(sendDataToFirebase, 10 * 60 * 1000); // each 10 min send data to server
 Ticker timer2(sendDataToLocalNetwork, 15 * 1000);  // each 10 second send data in local network
 
-char WIFI_SSID[] = "idoomAdsl01";             // this is fine
+char WIFI_SSID[] = "idoomAdsl01";             // gonna keep this one
 const char *WIFI_PASSWORD = "builder2019cpp"; // this is fine
 void setupWiFi();
 
