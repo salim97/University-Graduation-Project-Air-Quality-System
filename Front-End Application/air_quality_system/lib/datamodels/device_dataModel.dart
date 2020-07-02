@@ -1,10 +1,12 @@
+import 'package:air_quality_system/datamodels/GPS_dataModel.dart';
+
 import 'sensor_datamodel.dart';
 
 class DeviceDataModel {
   String upTime;
   String timeStamp;
   List<SensorDataModel> sensors = new List<SensorDataModel>();
-
+  GPSDataModel gps;
   fromJson(Map<dynamic, dynamic> json) {
     sensors.clear();
     sensors.add(new SensorDataModel.fromJson(json, "DHT22"));
@@ -12,6 +14,7 @@ class DeviceDataModel {
     sensors.add(new SensorDataModel.fromJson(json, "MHZ19"));
     sensors.add(new SensorDataModel.fromJson(json, "SGP30"));
     sensors.add(new SensorDataModel.fromJson(json, "MICS6814"));
+    gps = new GPSDataModel().fromJson(json);
     sensors.removeWhere((value) => value == null); // remove non existing sensors
   }
 

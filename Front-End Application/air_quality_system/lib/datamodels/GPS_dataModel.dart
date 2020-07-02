@@ -1,4 +1,4 @@
-class GPS {
+class GPSDataModel {
   double latitude;
   double longitude;
   double altitude;

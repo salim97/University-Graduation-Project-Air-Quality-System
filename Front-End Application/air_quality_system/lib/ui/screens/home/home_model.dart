@@ -1,3 +1,4 @@
+
 import 'dart:io';
 
 import 'package:air_quality_system/app/locator.dart';
@@ -77,13 +78,11 @@ class HomeViewModel extends BaseViewModel {
   void initState() async {
     print("=================== initState ");
 
-
-
     // getMyLocation();
     // print(firebaseAuthService.firebaseUser?.uid);
     // print(firebaseAuthService.isUserConnectedToFirebase);
     // // await firebaseAuthService.signInAnonymously();
-    
+
     // print(firebaseAuthService.firebaseUser.uid);
     // print(firebaseAuthService.isUserConnectedToFirebase);
 
@@ -92,22 +91,31 @@ class HomeViewModel extends BaseViewModel {
     currentGasLegend = _gas.values.first;
 
     notifyListeners();
-
   }
 
   refresh() async {
-        await firebaseAuthService.signInAnonymously();
-    return ;
+    // await firebaseAuthService.signInAnonymously();
+    // return;
     List<DeviceDataModel> list = await myFirestoreDBservice.getLastdata();
     DeviceDataModel tmp = list.first;
     markers.clear();
     // print(tmp.dht22.temperature.value);
+    String temperature ; 
 
-    // markers.add(addMarker(
-    //   text: tmp.dht22.temperature.value,
-    //     point: LatLng(tmp.gps.latitude, tmp.gps.longitude),
-    //     color: legendTemperature(
-    //         double.parse(tmp.dht22.temperature.value.toString()).toInt())));
+    tmp.sensors.forEach((sensor) {
+      sensor.senses.forEach((sense) {
+        if(sense.symbol == "°C" )
+        {
+          temperature = sense.value;
+        } 
+
+      });
+    });
+
+    markers.add(addMarker(
+        text: temperature,
+        point: LatLng(tmp.gps.latitude, tmp.gps.longitude),
+        color: legendTemperature(double.parse(temperature).toInt())));
 
     print(Colors.blue);
     print(Colors.green);
@@ -163,7 +171,9 @@ class HomeViewModel extends BaseViewModel {
                 color: color,
               ),
             ),
-            Center(child: Text(text),)
+            Center(
+              child: Text(text),
+            )
           ],
         ),
       ),
@@ -213,8 +223,7 @@ class HomeViewModel extends BaseViewModel {
   }
 
   Future<void> getMyLocation() async {
-    Position position = await Geolocator()
-        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     myLocation = LatLng(position.latitude, position.longitude);
     markers.add(
       Marker(

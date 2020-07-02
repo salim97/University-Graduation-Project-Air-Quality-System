@@ -27,7 +27,7 @@ class MyFirestoreDB {
     docs.documents.forEach((element) {
       // print("-----------------------------------");
       //print(element.data);
-
+    if(element.data == null) return ;
       DeviceDataModel s;
       s.fromJson(element.data);
       s.timeStamp = element.data["timestamp"];
