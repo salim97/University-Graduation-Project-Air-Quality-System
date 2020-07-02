@@ -17,9 +17,7 @@
 #include "sensors/MICS6814.h"
 #include "sensors/SGP30.h"
 
-
 #include "mynetwork.h"
-
 
 String jsonOutput;
 DynamicJsonDocument doc(2048);
@@ -27,6 +25,7 @@ DynamicJsonDocument doc(2048);
 void blink_LED();
 void sendDataToFirebase();
 void sendDataToLocalNetwork();
+void processUDP(String command);
 // void readDataFromSensors();
 
 Ticker timer0(blink_LED, 1000); // each second blink led
@@ -74,10 +73,7 @@ void loop() {
   timer1.update();
   timer2.update();
   // String command = readAllUDP();
-  if (readAllUDP() == "<refresh>") sendDataToLocalNetwork();
-  if (readAllUDP() == "<setWifi>") {
-
-  };
+  processUDP(readAllUDP());
 }
 
 void blink_LED() {
@@ -118,7 +114,9 @@ void sendDataToLocalNetwork() {
 }
 
 void sendDataToFirebase() {
-  if(am_i_the_access_point()) return ; // if the esp is the access point, that mean there is no internet connection ....
+  if (am_i_the_access_point())
+    return; // if the esp is the access point, that mean there is no internet
+            // connection ....
   // clear RAM
   doc.clear();
   jsonOutput.clear();
@@ -172,4 +170,19 @@ void sendDataToFirebase() {
                    // ....
   }
   delay(1000);
+}
+
+void processUDP(String command) {
+  DynamicJsonDocument _doc(1024);
+  deserializeJson(_doc, command);
+  if (doc["command"] == "getData") {
+    sendDataToLocalNetwork();
+    return;
+  }
+  if (doc["command"] == "setWiFi") {
+    clearEPPROM();
+    setSSID(doc["ssid"]);
+    setPASS(doc["pass"]);
+    ESP.restart();
+  }
 }
