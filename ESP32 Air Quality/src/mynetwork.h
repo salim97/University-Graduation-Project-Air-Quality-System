@@ -1,8 +1,10 @@
 
-#include "myEPPROM.h"
+// #include "myEPPROM.h"
 #include <IPAddress.h>
 #include <WiFi.h>
 #include <WiFiUDP.h>
+
+#include "myEEPROM.h"
 
 /*---------------*/
 // wifi config
