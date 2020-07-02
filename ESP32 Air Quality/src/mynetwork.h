@@ -1,4 +1,5 @@
 
+#include "myEPPROM.h"
 #include <IPAddress.h>
 #include <WiFi.h>
 #include <WiFiUDP.h>
@@ -6,10 +7,8 @@
 /*---------------*/
 // wifi config
 /*----------------*/
-const char *WIFI_SSID = "idoomAdsl01"; // this is fine
-// const char *WIFI_SSID = "abc";        // this is fine
-const char *WIFI_PASSWORD = "builder2019cpp"; // this is fine
-// const char *WIFI_PASSWORD = "ustousto"; // this is fine
+const char *WIFI_AP_SSID = "HNA FI HNA"; // this is fine
+const char *WIFI_AP_PASSWORD = NULL;     // NULL = AP with no password
 
 //---------------------------------------------------------
 // UDP/TCP packet handler
@@ -28,44 +27,35 @@ String udpBuffer;
 
 String _jsonOutput;
 DynamicJsonDocument _doc(2048);
+bool testWiFi(String ssid, String pass);
+bool am_i_the_access_point();
 
 bool mynetwork_init() {
-  {
-
-    WiFi.softAP("HNA FI HNA", NULL);
-
-    IPAddress IP = WiFi.softAPIP();
-    Serial.print("AP IP address: ");
-    Serial.println(IP);
-    Serial.print("ESP Board MAC Address:  ");
-    Serial.println(WiFi.macAddress());
-     return false;
-  }
-
-  // start connecting to wifi....
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  int counter = 0;
-  // wait untill esp8266 connected to wifi...
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(500);
-    counter++;
-    if (counter == 10) {
-
-      WiFi.softAP("HNA FI HNA", NULL);
-
-      IPAddress IP = WiFi.softAPIP();
-      Serial.print("AP IP address: ");
-      Serial.println(IP);
-      return false;
+  EEPROM.begin(512);
+  String essid = getSSID();
+  String epass = getPASS();
+  if (essid.length() > 1) {
+    if (testWiFi(essid, epass)) {
+      // debuging ...
+      Serial.println("");
+      Serial.print("IP Address: ");
+      Serial.println(WiFi.localIP()); // todo: config ip broadcast
+      ipBroadCast = WiFi.localIP();
     }
   }
-  // debuging ...
-  Serial.println("");
-  Serial.print("IP Address: ");
-  Serial.println(WiFi.localIP()); // todo: config ip broadcast
 
-  ipBroadCast = WiFi.localIP();
+  if (am_i_the_access_point()) {
+    // unable to connect into the wifi
+    // start config mode
+    WiFi.softAP(WIFI_AP_SSID, WIFI_AP_PASSWORD);
+
+    Serial.print("AP IP address: ");
+    Serial.println( WiFi.softAPIP());
+    Serial.print("ESP Board MAC Address:  ");
+    Serial.println(WiFi.macAddress());
+    ipBroadCast =  WiFi.softAPIP();
+  }
+
   ipBroadCast[3] = 255;
   udp.begin(udpPort); // set udp port for listen...
   localIP += String(WiFi.localIP()[0]);
@@ -74,6 +64,28 @@ bool mynetwork_init() {
   localIP += +"." + String(WiFi.localIP()[3]);
 
   return true;
+}
+
+bool testWiFi(String ssid, String pass) {
+  // start connecting to wifi....
+  WiFi.begin(ssid.c_str(), pass.c_str());
+  int counter = 0;
+  // wait untill esp8266 connected to wifi...
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+    counter++;
+    if (counter == 10) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool am_i_the_access_point() {
+  // WL_CONNECTED: assigned when connected to a WiFi network;
+  
+  return WiFi.status() != WL_CONNECTED; // false = conencted to another router, true = not connected to WiFi
 }
 
 String readAllUDP() {

@@ -1,9 +1,8 @@
 // https://arduinojson.org/v6/assistant/
 
+// #include "NTPClient.h"
 #include <Arduino.h>
-
-#include "NTPClient.h"
-#include <WiFi.h>
+// #include <WiFi.h>
 #include <WiFiUdp.h>
 
 #include <ArduinoJson.h>
@@ -19,6 +18,7 @@
 #include "sensors/SGP30.h"
 
 #include "mynetwork.h"
+#include "myEPPROM.h"
 
 String jsonOutput;
 DynamicJsonDocument doc(2048);
@@ -35,18 +35,18 @@ Ticker timer2(sendDataToLocalNetwork,
               15 * 1000); // each 15 second send data in local network
 // Ticker timer3(readDataFromSensors, 15 * 1000);  // each 10 second send data
 // in local network
-bool configMode = false ;
+bool configMode = false;
 void setup() {
+
   Serial.begin(115200);
   // Device to serial monitor feedback
   while (!Serial)
     ;
 
-  if(!mynetwork_init())
-  {
+  if (!mynetwork_init()) {
     // config mode
-    configMode = true ;
-    return ;
+    configMode = true;
+    return;
   }
 
   // pinMode(BUILTIN_LED, OUTPUT);
@@ -68,12 +68,15 @@ void setup() {
 }
 
 void loop() {
-  if(configMode) return ;
+  if (configMode) return;
   timer0.update();
   timer1.update();
   timer2.update();
   // String command = readAllUDP();
   if (readAllUDP() == "<refresh>") sendDataToLocalNetwork();
+  if (readAllUDP() == "<setWifi>") {
+
+  };
 }
 
 void blink_LED() {
@@ -114,6 +117,7 @@ void sendDataToLocalNetwork() {
 }
 
 void sendDataToFirebase() {
+  if(am_i_the_access_point()) return ; // if the esp is the access point, that mean there is no internet connection ....
   // clear RAM
   doc.clear();
   jsonOutput.clear();
@@ -139,7 +143,8 @@ void sendDataToFirebase() {
 
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient clientHTTP;
-    clientHTTP.begin("http://192.168.1.33:5001/pfe-air-quality/us-central1/webApi/api/v1/postData");
+    clientHTTP.begin("http://192.168.1.33:5001/pfe-air-quality/us-central1/"
+                     "webApi/api/v1/postData");
     // clientHTTP.begin("https://us-central1-pfe-air-quality.cloudfunctions.net/webApi/api/v1/postData");
 
     clientHTTP.addHeader("Content-Type", "application/json");
