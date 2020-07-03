@@ -7,6 +7,7 @@ import 'home_model.dart';
 import 'package:latlong/latlong.dart';
 
 class HomeView extends StatelessWidget {
+ 
   @override
   Widget build(BuildContext context) {
     final ThemeData _theme = Theme.of(context);
@@ -18,6 +19,7 @@ class HomeView extends StatelessWidget {
           child: Stack(
             children: <Widget>[
               FlutterMap(
+                mapController: model.mapController,
                 options: MapOptions(
                   center: LatLng(35.691124, -0.618778),
                   zoom: 14.0,
@@ -51,7 +53,7 @@ class HomeView extends StatelessWidget {
                     child: Text("refresh"),
                     onPressed: model.refresh,
                   )),
-              Positioned(
+        /*       Positioned(
                   bottom: 0,
                   left: MediaQuery.of(context).size.width * 0.25,
                   child: Container(
@@ -71,7 +73,7 @@ class HomeView extends StatelessWidget {
                   // "assets/images/legend_Temperature.png",
                   model.currentGasLegend
                 ),
-              ),
+              ), */
 
             ],
           ),

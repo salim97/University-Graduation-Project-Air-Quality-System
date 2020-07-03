@@ -5,6 +5,7 @@ class SensorDataModel {
   String name;
   List<MetricDataModel> senses = new List<MetricDataModel>();
   String timeStamp;
+  
   SensorDataModel({this.name, this.senses});
 
   SensorDataModel.fromJson(Map<String, dynamic> json, String name) {
@@ -12,7 +13,7 @@ class SensorDataModel {
     this.timeStamp = DateFormat('kk:mm:ss').format(DateTime.now());
     if (json[name] == null) return;
     senses.clear();
-    Map<String, dynamic> t = json[name];
+    Map<dynamic, dynamic> t = json[name];
     t.forEach((key, value) {
       if (value["isCalibrated"] == null) return;
       if (value["type"] == null) return;

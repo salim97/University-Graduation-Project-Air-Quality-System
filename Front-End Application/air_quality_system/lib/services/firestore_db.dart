@@ -18,7 +18,7 @@ class MyFirestoreDB {
   // }
 
   Future<List<DeviceDataModel>> getLastdata() async {
-    var posts = List<DeviceDataModel>();
+    List<DeviceDataModel> posts = List<DeviceDataModel>();
     QuerySnapshot docs = await Firestore.instance
         .collection("contacts")
         .where("timestamp", isGreaterThan: 1592676909333)
@@ -27,14 +27,26 @@ class MyFirestoreDB {
     docs.documents.forEach((element) {
       // print("-----------------------------------");
       //print(element.data);
-    if(element.data == null) return ;
-      DeviceDataModel s;
+      if (element.data == null) return;
+      DeviceDataModel s = new DeviceDataModel();
+
       s.fromJson(element.data);
       s.timeStamp = element.data["timestamp"];
 
       // print(s.dht22.temperature.value);
       posts.add(s);
     });
-    return posts;
+    posts.removeWhere((value) => value.sensors.isEmpty); // remove devices with no sensor connect on it
+    List<DeviceDataModel> unDuplicatedList = List<DeviceDataModel>();
+    bool alreadyExist ;
+    posts.forEach((post) {
+      alreadyExist = false ;
+      unDuplicatedList.forEach((element) {
+          if(element.gps.toString() == post.gps.toString() ) alreadyExist = true;
+      });
+      if(!alreadyExist)unDuplicatedList.add(post);
+    });
+    print(unDuplicatedList.length);
+    return unDuplicatedList;
   }
 }

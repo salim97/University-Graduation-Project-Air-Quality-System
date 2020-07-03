@@ -45,7 +45,7 @@ void setup() {
   if (!mynetwork_init()) {
     // config mode
     configMode = true;
-    return;
+    // return;
   }
 
   // pinMode(BUILTIN_LED, OUTPUT);
@@ -63,11 +63,11 @@ void setup() {
   timer2.start();
 
   sendDataToLocalNetwork();
-  sendDataToFirebase();
+  // sendDataToFirebase();
 }
 
 void loop() {
-  if (configMode) return;
+  // if (configMode) return;
   timer0.update();
   timer1.update();
   timer2.update();
@@ -175,6 +175,7 @@ void processUDP(String command) {
   DynamicJsonDocument _doc(1024);
   deserializeJson(_doc, command);
   if (doc["command"] == "getData") {
+  // if ("<refresh>"== "getData") {
     sendDataToLocalNetwork();
     return;
   }

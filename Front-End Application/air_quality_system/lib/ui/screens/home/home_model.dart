@@ -1,4 +1,3 @@
-
 import 'dart:io';
 
 import 'package:air_quality_system/app/locator.dart';
@@ -73,6 +72,7 @@ class HomeViewModel extends BaseViewModel {
   final DialogService _dialogService = locator<DialogService>();
   // final SnackbarService _snackbarService = locator<SnackbarService>();
   // final NavigationService _navigationService = locator<NavigationService>();
+  MapController mapController = new MapController();
 
   // @override
   void initState() async {
@@ -97,38 +97,22 @@ class HomeViewModel extends BaseViewModel {
     // await firebaseAuthService.signInAnonymously();
     // return;
     List<DeviceDataModel> list = await myFirestoreDBservice.getLastdata();
-    DeviceDataModel tmp = list.first;
+
     markers.clear();
-    // print(tmp.dht22.temperature.value);
-    String temperature ; 
+    List<LatLng> points = new List<LatLng>();
 
-    tmp.sensors.forEach((sensor) {
-      sensor.senses.forEach((sense) {
-        if(sense.symbol == "°C" )
-        {
-          temperature = sense.value;
-        } 
-
-      });
+    list.forEach((element) {
+      points.add(LatLng(element.gps.latitude, element.gps.longitude));
+      markers.add(addMarker(
+          text: element.getTemperature().first.value,
+          point: points.last,
+          color: legendTemperature(double.parse(element.getTemperature().first.value).toInt())));
     });
 
-    markers.add(addMarker(
-        text: temperature,
-        point: LatLng(tmp.gps.latitude, tmp.gps.longitude),
-        color: legendTemperature(double.parse(temperature).toInt())));
+    LatLngBounds llb = new LatLngBounds.fromPoints(points);
 
-    print(Colors.blue);
-    print(Colors.green);
-    print(Colors.yellow);
-    print(Colors.red);
+    mapController.fitBounds(llb, options: FitBoundsOptions(padding: EdgeInsets.all(50.0)));
 
-    // await _dialogService.showDialog(
-    //   title: 'Test Dialog Title',
-    //   description: 'Test Dialog Description',
-    //   dialogPlatform: DialogPlatform.Material,
-    // );
-
-// _snackbarService.showSnackbar(title: "khra", message: "zbel", iconData: Icons.ac_unit);
     notifyListeners();
   }
 
@@ -220,6 +204,13 @@ class HomeViewModel extends BaseViewModel {
     // error thrown above will be sent here
     // We can show a dialog, set the error message to show on the UI
     // the UI will be rebuilt after this is called so you can set properties.
+    // await _dialogService.showDialog(
+    //   title: 'Test Dialog Title',
+    //   description: 'Test Dialog Description',
+    //   dialogPlatform: DialogPlatform.Material,
+    // );
+
+// _snackbarService.showSnackbar(title: "khra", message: "zbel", iconData: Icons.ac_unit);
   }
 
   Future<void> getMyLocation() async {
