@@ -6,7 +6,6 @@
 #include <WiFiUdp.h>
 
 #include <ArduinoJson.h>
-#include <ESP32Ping.h>
 #include <HTTPClient.h>
 
 #include <Ticker.h> //Ticker Library
