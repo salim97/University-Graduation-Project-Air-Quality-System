@@ -16,56 +16,7 @@ import 'package:udp/udp.dart';
 // class HomeViewModel extends FutureViewModel<void> {
 class HomeViewModel extends BaseViewModel {
   LatLng myLocation;
-  List<Marker> markers = [
-    Marker(
-      width: 60.0,
-      height: 60.0,
-      point: LatLng(35.693938, -0.627546),
-      builder: (ctx) => Container(
-        child: Opacity(
-          opacity: 0.6,
-          child: Image.asset(
-            "assets/images/shape_hexagon.png",
-            width: 60.0,
-            height: 60.0,
-            color: Colors.red,
-          ),
-        ),
-      ),
-    ),
-    Marker(
-      width: 60.0,
-      height: 60.0,
-      point: LatLng(35.691960, -0.622479),
-      builder: (ctx) => Container(
-        child: Opacity(
-          opacity: 0.6,
-          child: Image.asset(
-            "assets/images/shape_hexagon.png",
-            width: 60.0,
-            height: 60.0,
-            color: Colors.red,
-          ),
-        ),
-      ),
-    ),
-    Marker(
-      width: 60.0,
-      height: 60.0,
-      point: LatLng(35.689407, -0.625174),
-      builder: (ctx) => Container(
-        child: Opacity(
-          opacity: 0.6,
-          child: Image.asset(
-            "assets/images/shape_hexagon.png",
-            width: 60.0,
-            height: 60.0,
-            color: Colors.red,
-          ),
-        ),
-      ),
-    )
-  ];
+  List<Marker> markers = List<Marker>();
 
   final MyFirebaseAuth firebaseAuthService = locator<MyFirebaseAuth>();
   final MyFirestoreDB myFirestoreDBservice = locator<MyFirestoreDB>();
@@ -89,7 +40,7 @@ class HomeViewModel extends BaseViewModel {
     dropDownMenuItems = getDropDownMenuItems();
     currentGas = _gas.keys.first;
     currentGasLegend = _gas.values.first;
-
+refresh();
     notifyListeners();
   }
 
