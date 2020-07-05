@@ -54,7 +54,8 @@ class HomeViewModel extends BaseViewModel {
 
   onCurrentSearchChanged(String item) {
     print(item);
-    refresh(sensor: item);
+    if(item == "Temperature") refresh(sensor: item);
+    if(item == "Humidity") refresh(sensor: item);
   }
 
   refresh({String sensor = "Temperature"}) async {
@@ -127,7 +128,7 @@ class HomeViewModel extends BaseViewModel {
               ),
             ),
             Center(
-              child: Text(text, style: TextStyle( fontSize: 14.0)),
+              child: Text(text, style: TextStyle( fontSize: 14.0,color: Colors.white)),
             )
           ],
         ),
