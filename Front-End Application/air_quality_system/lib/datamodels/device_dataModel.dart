@@ -34,6 +34,20 @@ class DeviceDataModel {
     return metricDataModel;
   }
 
+  List<MetricDataModel> getHumidity() {
+    List<MetricDataModel> metricDataModel = new List<MetricDataModel>();
+    
+    sensors.forEach((sensor) {
+      sensor.senses.forEach((sense) {
+        if (sense.symbol == "%") {
+          metricDataModel.add(sense);
+        }
+      });
+    });
+
+    return metricDataModel;
+  }
+
 // system_get_chip_id()
 // ESP.getChipId()
   // String name;

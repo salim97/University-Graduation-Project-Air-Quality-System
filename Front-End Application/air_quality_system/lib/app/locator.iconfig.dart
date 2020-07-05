@@ -9,6 +9,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:air_quality_system/services/firebase_auth.dart';
 import 'package:air_quality_system/services/firestore_db.dart';
 import 'package:air_quality_system/services/gps.dart';
+import 'package:air_quality_system/services/Rest_API.dart';
 import 'package:get_it/get_it.dart';
 
 void $initGetIt(GetIt g, {String environment}) {
@@ -22,6 +23,7 @@ void $initGetIt(GetIt g, {String environment}) {
   g.registerLazySingleton<MyGPS>(() => thirdPartyServicesModule.myGPS);
   g.registerLazySingleton<NavigationService>(
       () => thirdPartyServicesModule.navigationService);
+  g.registerLazySingleton<RestAPI>(() => thirdPartyServicesModule.restAPI);
   g.registerLazySingleton<SnackbarService>(
       () => thirdPartyServicesModule.snackbarService);
 }
@@ -37,6 +39,8 @@ class _$ThirdPartyServicesModule extends ThirdPartyServicesModule {
   MyGPS get myGPS => MyGPS();
   @override
   NavigationService get navigationService => NavigationService();
+  @override
+  RestAPI get restAPI => RestAPI();
   @override
   SnackbarService get snackbarService => SnackbarService();
 }

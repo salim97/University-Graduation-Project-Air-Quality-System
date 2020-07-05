@@ -1,5 +1,5 @@
 import 'package:air_quality_system/app/router.gr.dart';
-import 'package:air_quality_system/ui/widgets/custom_text_form_field.dart';
+import 'package:air_quality_system/ui/widgets/authentication/custom_text_form_field.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';

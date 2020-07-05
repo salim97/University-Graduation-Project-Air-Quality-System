@@ -7,6 +7,7 @@ import 'package:air_quality_system/services/firestore_db.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:stacked/stacked.dart';
 import 'package:latlong/latlong.dart';
@@ -25,6 +26,13 @@ class HomeViewModel extends BaseViewModel {
   // final NavigationService _navigationService = locator<NavigationService>();
   MapController mapController = new MapController();
 
+  var gas = {
+    'Temperature': MdiIcons.whiteBalanceSunny,
+    'Humidity': MdiIcons.waterPercent,
+    'Pressure': MdiIcons.arrowCollapseVertical,
+    'AQI': MdiIcons.molecule,
+  };
+
   // @override
   void initState() async {
     print("=================== initState ");
@@ -40,11 +48,16 @@ class HomeViewModel extends BaseViewModel {
     dropDownMenuItems = getDropDownMenuItems();
     currentGas = _gas.keys.first;
     currentGasLegend = _gas.values.first;
-refresh();
+    refresh();
     notifyListeners();
   }
 
-  refresh() async {
+  onCurrentSearchChanged(String item) {
+    print(item);
+    refresh(sensor: item);
+  }
+
+  refresh({String sensor = "Temperature"}) async {
     // await firebaseAuthService.signInAnonymously();
     // return;
     List<DeviceDataModel> list = await myFirestoreDBservice.getLastdata();
@@ -54,10 +67,17 @@ refresh();
 
     list.forEach((element) {
       points.add(LatLng(element.gps.latitude, element.gps.longitude));
-      markers.add(addMarker(
-          text: element.getTemperature().first.value,
-          point: points.last,
-          color: legendTemperature(double.parse(element.getTemperature().first.value).toInt())));
+      String value = "NULL";
+      String symbol = "" ;
+      if (sensor == "Temperature") {
+        value = element.getTemperature().first.value ;
+        symbol = element.getTemperature().first.symbol ;
+      }
+      if (sensor == "Humidity") {
+        value = element.getHumidity().first.value;
+        symbol = element.getHumidity().first.symbol;
+      }
+      markers.add(addMarker(text: value+symbol, point: points.last, color: legendTemperature(double.parse(value).toInt())));
     });
 
     LatLngBounds llb = new LatLngBounds.fromPoints(points);
@@ -107,7 +127,7 @@ refresh();
               ),
             ),
             Center(
-              child: Text(text),
+              child: Text(text, style: TextStyle( fontSize: 14.0)),
             )
           ],
         ),

@@ -51,7 +51,12 @@ dependencies:
   udp: ^3.0.3
   material_design_icons_flutter:
   get_ip: ^0.4.0
- 
+
+  # weather
+  queries: "^0.0.15"
+  intl: ^0.16.1
+  http:
+
 
 dev_dependencies:
   flutter_test:
@@ -73,6 +78,8 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - assets/img/
+
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -86,15 +93,7 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  fonts:
-    - family: SFUIDisplay
-      fonts:
-        - asset: assets/fonts/SF_UI_Display_Regular.otf
-          weight: 400
-        - asset: assets/fonts/SF_UI_Display_SemiBold.otf
-          weight: 700
-        - asset: assets/fonts/SF_UI_Display_Thin.otf
-          weight: 200
+
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

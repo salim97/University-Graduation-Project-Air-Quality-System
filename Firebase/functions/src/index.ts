@@ -1,44 +1,193 @@
 // to compile ts file into js file
 // npm run build 
 // npm install --save express body-parser firebase-functions-helper
+// npm install express body-parser jsonschema
 // firebase deploy --only functions
+
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as firebaseHelper from 'firebase-functions-helper/dist';
-import * as express from 'express';
-import * as bodyParser from "body-parser";
+
+var jsonValidator = require('jsonschema').Validator;
+var validator = new jsonValidator();
+
+// https://jsonschema.net/home
+var recordSchema = {
+    "type": "object",
+    "title": "The root schema",
+    "description": "The root schema comprises the entire JSON document.",
+    "default": {},
+    "examples": [
+        {
+            "uid": "789312354",
+            "GPS": {
+                "latitude": 5.5,
+                "longitude": 10.5
+            },
+            "Sensors": [
+                {
+                    "name": "DHT22",
+                    "value": "27.5",
+                    "metric": "C°",
+                    "isCalibrated": true
+                }
+            ]
+        }
+    ],
+    "required": [
+        "uid",
+        "GPS",
+        "Sensors"
+    ],
+    "additionalProperties": true,
+    "properties": {
+        "uid": {
+            "$id": "#/properties/uid",
+            "type": "string",
+            "title": "The uid schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "789312354"
+            ]
+        },
+        "GPS": {
+            "$id": "#/properties/GPS",
+            "type": "object",
+            "title": "The GPS schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "examples": [
+                {
+                    "latitude": 5.5,
+                    "longitude": 10.5
+                }
+            ],
+            "required": [
+                "latitude",
+                "longitude"
+            ],
+            "additionalProperties": true,
+            "properties": {
+                "latitude": {
+                    "$id": "#/properties/GPS/properties/latitude",
+                    "type": "number",
+                    "title": "The latitude schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": 0.0,
+                    "examples": [
+                        5.5
+                    ]
+                },
+                "longitude": {
+                    "$id": "#/properties/GPS/properties/longitude",
+                    "type": "number",
+                    "title": "The longitude schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": 0.0,
+                    "examples": [
+                        10.5
+                    ]
+                }
+            }
+        },
+        "Sensors": {
+            "$id": "#/properties/Sensors",
+            "type": "array",
+            "title": "The Sensors schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": [],
+            "examples": [
+                [
+                    {
+                        "name": "DHT22",
+                        "value": "27.5",
+                        "metric": "C°",
+                        "isCalibrated": true
+                    }
+                ]
+            ],
+            "additionalItems": true,
+            "items": {
+                "anyOf": [
+                    {
+                        "$id": "#/properties/Sensors/items/anyOf/0",
+                        "type": "object",
+                        "title": "The first anyOf schema",
+                        "description": "An explanation about the purpose of this instance.",
+                        "default": {},
+                        "examples": [
+                            {
+                                "name": "DHT22",
+                                "value": "27.5",
+                                "metric": "C°",
+                                "isCalibrated": true
+                            }
+                        ],
+                        "required": [
+                            "name",
+                            "value",
+                            // "metric",
+                            "isCalibrated"
+                        ],
+                        "additionalProperties": true,
+                        "properties": {
+                            "name": {
+                                "$id": "#/properties/Sensors/items/anyOf/0/properties/name",
+                                "type": "string",
+                                "title": "The name schema",
+                                "description": "An explanation about the purpose of this instance.",
+                                "default": "",
+                                "examples": [
+                                    "DHT22"
+                                ]
+                            },
+                            "value": {
+                                "$id": "#/properties/Sensors/items/anyOf/0/properties/value",
+                                "type": "string",
+                                "title": "The value schema",
+                                "description": "An explanation about the purpose of this instance.",
+                                "default": "",
+                                "examples": [
+                                    "27.5"
+                                ]
+                            },
+                            "metric": {
+                                "$id": "#/properties/Sensors/items/anyOf/0/properties/metric",
+                                "type": "string",
+                                "title": "The metric schema",
+                                "description": "An explanation about the purpose of this instance.",
+                                "default": "",
+                                "examples": [
+                                    "C°"
+                                ]
+                            },
+                            "isCalibrated": {
+                                "$id": "#/properties/Sensors/items/anyOf/0/properties/isCalibrated",
+                                "type": "boolean",
+                                "title": "The isCalibrated schema",
+                                "description": "An explanation about the purpose of this instance.",
+                                "default": false,
+                                "examples": [
+                                    true
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "$id": "#/properties/Sensors/items"
+            }
+        }
+    }
+};
+
 
 admin.initializeApp(functions.config().firebase);
 const db = admin.firestore();
 
-const app = express();
-const main = express();
 
-main.use(bodyParser.json());
-main.use(bodyParser.urlencoded({ extended: false }));
-main.use('/api/v1', app);
-
-const contactsCollection = 'contacts';
-export const webApi = functions.https.onRequest(main);
-
-// interface Contact {
-//     firstName: String
-//     lastName: String
-//     email: String
-// }
-// exports.sendWelcomeEmail = functions.auth.user().onCreate((user) => {
-//     const email = user.email; // The email of the user.
-//     const displayName = user.displayName; // The display name of the user.
-//     const phone = user.phoneNumber; // The email of the user.
-
-//     console.log(email);
-//     console.log(displayName);
-//     console.log(phone);
-//     console.log(user.toJSON());
-//     // const newDoc = await firebaseHelper.firestore
-//      firebaseHelper.firestore
-//             .createNewDocument(db, usersCollection, user.toJSON()).then(doc => console.log(doc));
-// });
+const recordsCollection = "Records";
+const usersCollection = "Users";
 
 export const accountCreate = functions.auth.user().onCreate(async (user) => {
     console.log(user.toJSON());
@@ -46,93 +195,55 @@ export const accountCreate = functions.auth.user().onCreate(async (user) => {
         console.log("User Phone Number is empty!");
         return;
     }
-    
+
     await firebaseHelper.firestore
-        .createDocumentWithID(db, "Users", user.uid, JSON.parse(JSON.stringify(user))).then(doc => console.log(doc));
+        .createDocumentWithID(db, usersCollection, user.uid, JSON.parse(JSON.stringify(user))).then(doc => console.log(doc));
 });
 
-// // exports.sendCouponOnPurchase = functions.analytics.event('login').onLog((event) => {
-// export const loginEvent = functions.analytics.event('login').onLog((event) => {
-//     // const user = event.user;
-//     // const uid = user?.userId; // The user ID set via the setUserId API.
-//     console.log(event) ;
+export const addRecord = functions.https.onRequest(async (req, res) => {
+    if (req.method != "POST") {
+        res.status(401).send("Accept POST Request only");
+        return;
+    }
 
-//   });
+    if (req.get('Content-Type') != 'application/json') {
+        res.status(401).send('Invalid header format, (application/json)');
+        return;
+    }
 
-app.post('/postData', async (req, res) => {
+    try {
+        validator.validate(req.body, recordSchema, {
+            throwError: true
+        });
+    } catch (error) {
+        res.status(401).end('Invalid body format: ' + error.message);
+        return;
+    }
+
     try {
         console.log(req.body);
 
         // let dateTime = new Date().toLocaleString();
-        var date = new Date();
-        var timestamp = date.getTime();
+        const date = new Date();
+        const timestamp = date.getTime();
         // console.log(timestamp);
         req.body["timestamp"] = timestamp;
 
         // const newDoc = await firebaseHelper.firestore
         await firebaseHelper.firestore
-            .createNewDocument(db, contactsCollection, req.body).then(doc => console.log(doc));
+            .createNewDocument(db, recordsCollection, req.body).then(doc => console.log(doc));
         res.status(201).send(`data inserted ${req.body["timestamp"]}`);
     } catch (error) {
         res.status(400).send(`Error inserting data`)
     }
-})
+});
 
-/* // Add new contact
-app.post('/contacts', async (req, res) => {
-    try {
-        const contact: Contact = {
-            firstName: req.body['firstName'],
-            lastName: req.body['lastName'],
-            email: req.body['email']
-        }
 
-        const newDoc = await firebaseHelper.firestore
-            .createNewDocument(db, contactsCollection, contact).then(doc => console.log(doc));
-        res.status(201).send(`Created a new contact: ${newDoc}`);
-    } catch (error) {
-        res.status(400).send(`Contact should only contains firstName, lastName and email!!!`)
-    }        
-})
+export const currentTimeStamp = functions.https.onRequest(async (req, res) => {
+    const date = new Date();
+    const timestamp = date.getTime();
+    // console.log(timestamp);
+    res.status(201).send({ "timestamp": timestamp });
+});
 
-// Update new contact
-app.patch('/contacts/:contactId', async (req, res) => {
-    const updatedDoc = await firebaseHelper.firestore
-        .updateDocument(db, contactsCollection, req.params.contactId, req.body);
-    res.status(204).send(`Update a new contact: ${updatedDoc}`);
-})
 
-// View a contact
-app.get('/contacts/:contactId', (req, res) => {
-    firebaseHelper.firestore
-        .getDocument(db, contactsCollection, req.params.contactId)
-        .then(doc => res.status(200).send(doc))
-        .catch(error => res.status(400).send(`Cannot get contact: ${error}`));
-})
-
-// View all contacts
-app.get('/contacts', (req, res) => {
-    firebaseHelper.firestore
-        .backup(db, contactsCollection)
-        .then(data => res.status(200).send(data))
-        .catch(error => res.status(400).send(`Cannot get contacts: ${error}`));
-firebaseHelper.firebase
-    .getAllUsers()    
-    .then(users => console.log(users));
-    // res.send("Hello from Firebase!");
-})
-
-// Delete a contact 
-app.delete('/contacts/:contactId', async (req, res) => {
-    const deletedContact = await firebaseHelper.firestore
-        .deleteDocument(db, contactsCollection, req.params.contactId);
-    res.status(204).send(`Contact is deleted: ${deletedContact}`);
-}) */
-
-export { app };
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
-//
-// export const helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
-// });

@@ -1,8 +1,7 @@
 import 'dart:ui';
 import 'package:air_quality_system/datamodels/device_dataModel.dart';
 import 'package:air_quality_system/datamodels/sensor_datamodel.dart';
-import 'package:air_quality_system/ui/widgets/DeviceTile.dart';
-import 'package:air_quality_system/ui/widgets/app_drawer.dart';
+import 'package:air_quality_system/ui/widgets/localNetwork/DeviceTile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:stacked/stacked.dart';
@@ -12,7 +11,7 @@ import 'package:latlong/latlong.dart';
 class LocalNetworkView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final ThemeData _theme = Theme.of(context);
+    // final ThemeData _theme = Theme.of(context);
     return ViewModelBuilder<LocalNetworkViewModel>.reactive(
       builder: (context, model, child) => Scaffold(
         appBar: new AppBar(
