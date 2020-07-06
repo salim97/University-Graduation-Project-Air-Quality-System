@@ -128,7 +128,7 @@ class HomeViewModel extends BaseViewModel {
               ),
             ),
             Center(
-              child: Text(text, style: TextStyle( fontSize: 14.0)),
+              child: Text(text, style: TextStyle( fontSize: 14.0,color: Colors.white)),
             )
           ],
         ),
