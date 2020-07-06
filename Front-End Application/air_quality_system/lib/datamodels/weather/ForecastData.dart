@@ -1,28 +1,29 @@
-
 import 'dart:convert';
 
 import 'Condition.dart';
 
 class ForecastData {
-
   List<ForecastWeather> forecastList;
 
   ForecastData(this.forecastList);
 
   static ForecastData fromJson(String json) {
-    JsonDecoder decoder = new JsonDecoder();
-    var map = decoder.convert(json);
+    try {
+      JsonDecoder decoder = new JsonDecoder();
+      var map = decoder.convert(json);
 
-    var list = map["list"];
-    List<ForecastWeather> forecast = [];
+      var list = map["list"];
+      List<ForecastWeather> forecast = [];
 
-    for (var weatherMap in list) {
-      forecast.add(ForecastWeather._fromJson(weatherMap));
+      for (var weatherMap in list) {
+        forecast.add(ForecastWeather._fromJson(weatherMap));
+      }
+
+      return new ForecastData(forecast);
+    } catch (e) {
+      return null;
     }
-
-    return new ForecastData(forecast);
   }
-
 }
 
 class ForecastWeather {
@@ -46,10 +47,9 @@ class ForecastWeather {
     double humidity = map["main"]["humidity"].toDouble();
     double pressure = map["main"]["pressure"].toDouble();
     double wind = map["wind"]["speed"].toDouble();
-    int epochTimeMs = map["dt"]*1000;
+    int epochTimeMs = map["dt"] * 1000;
     DateTime dateTime = new DateTime.fromMillisecondsSinceEpoch(epochTimeMs);
 
     return new ForecastWeather(temperature.toStringAsFixed(1), condition, dateTime, pressure, humidity, wind);
   }
-
 }

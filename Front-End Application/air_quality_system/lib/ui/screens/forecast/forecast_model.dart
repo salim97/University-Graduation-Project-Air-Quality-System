@@ -41,8 +41,9 @@ class ForecastModel extends FutureViewModel<List<List<ForecastWeather>>> {
   @override
   Future<List<List<ForecastWeather>>> futureToRun() async {
     await Future.delayed(const Duration(seconds: 1));
-    await restAPIService.getForecast().then((content) {
-      ForecastData forecastData = content;
+    ForecastData forecastData;
+    try {
+      forecastData = await restAPIService.getForecast();
       this.forecastByDay = groupForecastListByDay(forecastData);
       pageCount = forecastByDay != null ? forecastByDay.length : 0;
 
@@ -52,17 +53,25 @@ class ForecastModel extends FutureViewModel<List<List<ForecastWeather>>> {
         }
       }
 
-       notifyListeners();
-    }).catchError((e) {
+      notifyListeners();
+    } catch (e) {
       print(e);
-      throw Exception(e.toString());
+      errorMSG = error.toString();
+      notifyListeners();
+      // throw Exception(e.toString());
+      return Future.error(e.toString());
       // throw UnimplementedError();
-    });
+    }
+
     return forecastByDay;
   }
 
+  String errorMSG = "";
   @override
   void onError(error) {
+    print("  void onError(error) {" + error.toString());
+    errorMSG = error.toString();
+    notifyListeners();
     // error thrown above will be sent here
     // We can show a dialog, set the error message to show on the UI
     // the UI will be rebuilt after this is called so you can set properties.

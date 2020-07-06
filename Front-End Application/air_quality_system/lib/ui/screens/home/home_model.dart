@@ -54,7 +54,8 @@ class HomeViewModel extends BaseViewModel {
 
   onCurrentSearchChanged(String item) {
     print(item);
-    refresh(sensor: item);
+    if(item == "Temperature") refresh(sensor: item);
+    if(item == "Humidity") refresh(sensor: item);
   }
 
   refresh({String sensor = "Temperature"}) async {

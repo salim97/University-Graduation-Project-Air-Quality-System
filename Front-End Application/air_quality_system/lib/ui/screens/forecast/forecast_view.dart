@@ -19,14 +19,35 @@ class ForecastView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<ForecastModel>.reactive(
       builder: (context, model, child) => model.isBusy
-          ?  Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : model.hasError
               ? Container(
                   color: Colors.red,
                   alignment: Alignment.center,
-                  child: Text(
-                    'An error has occered while getting data from server, rest api end point',
-                    style: TextStyle(color: Colors.white),
+                  child: Column(
+                    children: <Widget>[
+                      SizedBox(
+                        height: 15,
+                      ),
+                      Text(
+                        'An error has occered while getting data from server, rest api end point',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      SizedBox(
+                        height: 15,
+                      ),
+                      Text(
+                        model.errorMSG,
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      SizedBox(
+                        height: 15,
+                      ),
+                      RaisedButton(
+                        child: Text("try again"),
+                        onPressed: () => model.futureToRun(),
+                      )
+                    ],
                   ),
                 )
               : Stack(
@@ -68,7 +89,7 @@ class ForecastView extends StatelessWidget {
 
       viewModelBuilder: () => ForecastModel(),
       // TODO: khrebch fiha apre, prc initstate ta3 fluter w hadi custom je pense pas 3andhom meme behavior
-      // onModelReady: (model) =>  model.initState(), 
+      // onModelReady: (model) =>  model.initState(),
     );
   }
 }
@@ -96,7 +117,6 @@ class _ForecastWeekTabs extends StatelessWidget {
     // }
 
     String dd = DateFormat(' d MMM').format(DateTime.now());
- 
 
     return new Container(
       child: new Container(
@@ -168,7 +188,7 @@ class _ForecastListItem extends StatelessWidget {
                 new Positioned(
                   child: new Row(
                     children: <Widget>[
-                       Container(
+                      Container(
                         width: 80.0,
                         alignment: FractionalOffset.centerRight,
                         child: new Text(
@@ -176,8 +196,10 @@ class _ForecastListItem extends StatelessWidget {
                           style: new TextStyle(fontSize: 20.0, color: Colors.white),
                         ),
                       ),
-                      SizedBox(width: 10,),
-                       Container(
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Container(
                         child: new Image.asset(
                           weather.condition.getAssetString(),
                           height: 46.0,
