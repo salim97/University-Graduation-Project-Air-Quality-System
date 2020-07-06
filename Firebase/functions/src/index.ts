@@ -144,7 +144,7 @@ var recordSchema = {
                             },
                             "value": {
                                 "$id": "#/properties/Sensors/items/anyOf/0/properties/value",
-                                "type": "string",
+                                "type":  ["number", "string"],
                                 "title": "The value schema",
                                 "description": "An explanation about the purpose of this instance.",
                                 "default": "",
