@@ -9,7 +9,6 @@
 
 #include "sensors/DHT11.h"
 
-
 #include "mynetwork.h"
 
 String jsonOutput;
@@ -23,7 +22,7 @@ Ticker timer0(blink_LED, 1000);                    // each second blink led
 Ticker timer1(sendDataToFirebase, 10 * 60 * 1000); // each 10 min send data to server
 Ticker timer2(sendDataToLocalNetwork, 15 * 1000);  // each 10 second send data in local network
 
-char WIFI_SSID[] = "LTE4G-B310-302E5";             // gonna keep this one
+char WIFI_SSID[] = "LTE4G-B310-302E5";     // gonna keep this one
 const char *WIFI_PASSWORD = "MA0DA2Q6BE8"; // this is fine
 void setupWiFi();
 
@@ -38,9 +37,7 @@ void setup()
 
   pinMode(LED_BUILTIN, OUTPUT);
 
-
   DHT11_init();
-
 
   timer0.start();
   timer1.start();
@@ -80,14 +77,16 @@ void blink_LED()
 
 void sendDataToLocalNetwork()
 {
+  return;
   //clear RAM
   doc.clear();
   jsonOutput.clear();
   doc["GPS"]["latitude"]["value"] = 35.62101;
   doc["GPS"]["longitude"]["value"] = -0.725109;
 
+  JsonArray Sensors = doc.createNestedArray("Sensors");
   // getting data and convert it into JSON
-  DHT11_measure(doc);
+  DHT11_measure(Sensors);
   delay(10);
 
   //print data in serial port
@@ -100,28 +99,34 @@ void sendDataToFirebase()
   //clear RAM
   doc.clear();
   jsonOutput.clear();
-  doc["GPS"]["latitude"]["value"] = 35.62101;
-  doc["GPS"]["longitude"]["value"] = -0.725109;
-   // getting data and convert it into JSON
-  DHT11_measure(doc);
+  doc["GPS"]["latitude"] = 35.62101;
+  doc["GPS"]["longitude"] = -0.725109;
+  // getting data and convert it into JSON
+  doc["uid"] = "L7tf0KusN9g2buXf21rQ46qmDRB3";
+  JsonArray Sensors = doc.createNestedArray("Sensors");
+  // getting data and convert it into JSON
+  DHT11_measure(Sensors);
   delay(10);
 
   if (WiFi.status() == WL_CONNECTED)
   {
     HTTPClient clientHTTP;
-    clientHTTP.begin("http://us-central1-pfe-air-quality.cloudfunctions.net/webApi/api/v1/postData");
+    clientHTTP.begin("http://us-central1-pfe-air-quality.cloudfunctions.net/addRecord");
     clientHTTP.addHeader("Content-Type", "application/json");
 
     // const size_t CAPACITY = JSON_OBJECT_SIZE(1);
     // StaticJsonDocument<200> doc;
 
     serializeJson(doc, jsonOutput);
+    serializeJsonPretty(doc, Serial);
+
     int httpCode = clientHTTP.POST(String(jsonOutput));
 
     if (httpCode > 0)
     {
       String payload = clientHTTP.getString();
       Serial.println("Status code : " + String(httpCode));
+      //print response body
       Serial.println(payload);
       clientHTTP.end();
     }

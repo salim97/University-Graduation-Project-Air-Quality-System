@@ -3,13 +3,13 @@
 #include <DHT_U.h>
 #include <Wire.h>
 
-#define DHTPIN 3      // Digital pin connected to the DHT sensor
-// #define DHTTYPE DHT11 // DHT 11 
+#define DHTPIN D3 // Digital pin connected to the DHT sensor
+// #define DHTTYPE DHT11 // DHT 11
 DHT_Unified dht11(DHTPIN, DHT11);
 void DHT11_init()
 {
     dht11.begin();
-        Serial.println(F("DHT11"));
+    Serial.println(F("DHT11"));
     sensor_t sensor;
     // Print temperature sensor details.
     dht11.temperature().getSensor(&sensor);
@@ -52,7 +52,8 @@ void DHT11_init()
     Serial.println(F("------------------------------------"));
 }
 // DynamicJsonDocument doc(2048);
-void DHT11_measure(DynamicJsonDocument &doc)
+
+void DHT11_measure(JsonArray &Sensors)
 {
     Serial.println("============= DHT11 =============");
 
@@ -64,11 +65,13 @@ void DHT11_measure(DynamicJsonDocument &doc)
         Serial.println(F("Error reading temperature :("));
         return;
     }
-
-    doc["DHT11"]["Temperature"]["value"] = event.temperature;
-    doc["DHT11"]["Temperature"]["type"] = "°C";
-    doc["DHT11"]["Temperature"]["isCalibrated"] = true;
-
+    else{
+    JsonObject Sensors_0 = Sensors.createNestedObject();
+    Sensors_0["name"] = "DHT11";
+    Sensors_0["value"] = event.temperature;
+    Sensors_0["metric"] = "°C";
+    Sensors_0["isCalibrated"] = true;
+    }
     // Get humidity event
     dht11.humidity().getEvent(&event);
     if (isnan(event.relative_humidity))
@@ -76,8 +79,13 @@ void DHT11_measure(DynamicJsonDocument &doc)
         Serial.println(F("Error reading humidity :("));
         return;
     }
+    else{
 
-    doc["DHT11"]["Humidity"]["value"] = event.relative_humidity;
-    doc["DHT11"]["Humidity"]["type"] = "%";
-    doc["DHT11"]["Humidity"]["isCalibrated"] = true;
+        JsonObject Sensors_0 = Sensors.createNestedObject();
+
+        Sensors_0["name"] = "DHT11";
+        Sensors_0["value"] = event.relative_humidity;
+        Sensors_0["metric"] = "%";
+        Sensors_0["isCalibrated"] = true;
+    }
 }
