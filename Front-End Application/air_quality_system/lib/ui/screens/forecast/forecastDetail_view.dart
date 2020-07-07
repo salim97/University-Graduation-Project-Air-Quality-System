@@ -1,4 +1,4 @@
-import 'package:air_quality_system/datamodels/weather/ForecastData.dart';
+import 'package:air_quality_system/datamodels/Forecast_dataModel.dart';
 import 'package:air_quality_system/ui/styles/Res.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -6,11 +6,11 @@ import 'package:intl/intl.dart';
 final monthFormat = new DateFormat('MMMM');
 
 class ForecastDetailView extends StatelessWidget {
-  final ForecastWeather weather;
+  final ForecastWeatherDataModel weather;
 
   ForecastDetailView(this.weather);
 
-  static MaterialPageRoute getRoute(ForecastWeather forecastWeather) {
+  static MaterialPageRoute getRoute(ForecastWeatherDataModel forecastWeather) {
     return new MaterialPageRoute(builder: (BuildContext context) {
       return new ForecastDetailView(forecastWeather);
     });

@@ -1,6 +1,5 @@
 import 'package:air_quality_system/datamodels/GPS_dataModel.dart';
 
-import 'metric_datamodel.dart';
 import 'sensor_datamodel.dart';
 
 class DeviceDataModel {
@@ -10,39 +9,33 @@ class DeviceDataModel {
   GPSDataModel gps;
   fromJson(Map<dynamic, dynamic> json) {
     sensors.clear();
-    sensors.add(new SensorDataModel.fromJson(json, "DHT11"));
-    sensors.add(new SensorDataModel.fromJson(json, "DHT22"));
-    sensors.add(new SensorDataModel.fromJson(json, "BME680"));
-    sensors.add(new SensorDataModel.fromJson(json, "MHZ19"));
-    sensors.add(new SensorDataModel.fromJson(json, "SGP30"));
-    sensors.add(new SensorDataModel.fromJson(json, "MICS6814"));
+    List<dynamic> list = json["Sensors"];
+    list.forEach((element) {
+      sensors.add(new SensorDataModel.fromJson(element));
+    });
     gps = new GPSDataModel.fromJson(json);
-    sensors.removeWhere((value) => value.senses.isEmpty); // remove non existing sensors
+    // sensors.removeWhere((value) => value.senses.isEmpty); // remove non existing sensors
   }
 
-  List<MetricDataModel> getTemperature() {
-    List<MetricDataModel> metricDataModel = new List<MetricDataModel>();
-    
+  List<SensorDataModel> getTemperature() {
+    List<SensorDataModel> metricDataModel = new List<SensorDataModel>();
+
     sensors.forEach((sensor) {
-      sensor.senses.forEach((sense) {
-        if (sense.symbol == "°C") {
-          metricDataModel.add(sense);
-        }
-      });
+      if (sensor.metric == "°C") {
+        metricDataModel.add(sensor);
+      }
     });
 
     return metricDataModel;
   }
 
-  List<MetricDataModel> getHumidity() {
-    List<MetricDataModel> metricDataModel = new List<MetricDataModel>();
-    
+  List<SensorDataModel> getHumidity() {
+    List<SensorDataModel> metricDataModel = new List<SensorDataModel>();
+
     sensors.forEach((sensor) {
-      sensor.senses.forEach((sense) {
-        if (sense.symbol == "%") {
-          metricDataModel.add(sense);
-        }
-      });
+      if (sensor.metric == "%") {
+        metricDataModel.add(sensor);
+      }
     });
 
     return metricDataModel;

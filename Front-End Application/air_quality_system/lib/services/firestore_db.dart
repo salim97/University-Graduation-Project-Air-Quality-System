@@ -20,7 +20,7 @@ class MyFirestoreDB {
   Future<List<DeviceDataModel>> getLastdata() async {
     List<DeviceDataModel> posts = List<DeviceDataModel>();
     QuerySnapshot docs = await Firestore.instance
-        .collection("contacts")
+        .collection("Records")
         .where("timestamp", isGreaterThan: 1592676909333)
         .orderBy('timestamp', descending: true)
         .getDocuments();
