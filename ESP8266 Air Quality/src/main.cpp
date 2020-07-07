@@ -101,10 +101,10 @@ void sendDataToFirebase()
   jsonOutput.clear();
   doc["GPS"]["latitude"] = 35.62101;
   doc["GPS"]["longitude"] = -0.725109;
-  // getting data and convert it into JSON
   doc["uid"] = "L7tf0KusN9g2buXf21rQ46qmDRB3";
-  JsonArray Sensors = doc.createNestedArray("Sensors");
+
   // getting data and convert it into JSON
+  JsonArray Sensors = doc.createNestedArray("Sensors");
   DHT11_measure(Sensors);
   delay(10);
 
