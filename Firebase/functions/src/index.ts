@@ -1,3 +1,4 @@
+// https://github.com/dalenguyen/firebase-functions-helper/blob/master/docs/firestore.md
 // to compile ts file into js file
 // npm run build 
 // npm install --save express body-parser firebase-functions-helper
@@ -144,7 +145,7 @@ var recordSchema = {
                             },
                             "value": {
                                 "$id": "#/properties/Sensors/items/anyOf/0/properties/value",
-                                "type":  ["number", "string"],
+                                "type": ["number", "string"],
                                 "title": "The value schema",
                                 "description": "An explanation about the purpose of this instance.",
                                 "default": "",
@@ -188,6 +189,7 @@ const db = admin.firestore();
 
 const recordsCollection = "Records";
 const usersCollection = "Users";
+const wirteLimiteRate = (10 * 60) * 1000; // in ms
 
 export const accountCreate = functions.auth.user().onCreate(async (user) => {
     console.log(user.toJSON());
@@ -195,12 +197,23 @@ export const accountCreate = functions.auth.user().onCreate(async (user) => {
         console.log("User Phone Number is empty!");
         return;
     }
-
+    const date = new Date();
+    var timestamp = date.getTime();
+    timestamp = timestamp - wirteLimiteRate;
+    var data = JSON.parse(JSON.stringify(user));
+    data["lastRecordTimeStamp"] = timestamp;
     await firebaseHelper.firestore
-        .createDocumentWithID(db, usersCollection, user.uid, JSON.parse(JSON.stringify(user))).then(doc => console.log(doc));
+        .createDocumentWithID(db, usersCollection, user.uid, data).then(doc => console.log(doc));
 });
 
 export const addRecord = functions.https.onRequest(async (req, res) => {
+    // 1) check if request is POST
+    // 2) check if request body is json
+    // 3) check if request body json is valid
+    // 5) check if request body uid (user id) existe in user collection
+    // 6) check delay between current date and last time user write data, if delay between allowed or not
+
+
     if (req.method != "POST") {
         res.status(401).send("Accept POST Request only");
         return;
@@ -222,17 +235,67 @@ export const addRecord = functions.https.onRequest(async (req, res) => {
 
     try {
         console.log(req.body);
-
+        const _uid = req.body["uid"];
         // let dateTime = new Date().toLocaleString();
         const date = new Date();
         const timestamp = date.getTime();
         // console.log(timestamp);
         req.body["timestamp"] = timestamp;
 
-        // const newDoc = await firebaseHelper.firestore
+        var userExists = false;
+        var user_lastRecordTimeStamp = 0;
+        await firebaseHelper.firestore
+            .checkDocumentExists(db, usersCollection, _uid)
+            .then(result => {
+                // Boolean value of the result 
+                console.log("checkDocumentExists " + usersCollection + " / " + _uid); // will return true or false
+                console.log(result.exists); // will return true or false
+                userExists = result.exists;
+                if (userExists) {
+                    user_lastRecordTimeStamp = result.data["lastRecordTimeStamp"];
+                }
+                // If the document exist, you can get the document content 
+                // console.log(JSON.stringify(result.data)); // return an object of or document
+            });
+        if (!userExists) {
+            res.status(400).send("User with uid = " + _uid + " doesn't exists ");
+            return;
+        }
+        if (user_lastRecordTimeStamp + wirteLimiteRate > timestamp) {
+            var replyMSG = "you can't write data to DB until ";
+            replyMSG += new Date(user_lastRecordTimeStamp + wirteLimiteRate).toUTCString();
+
+            var delayBetween = user_lastRecordTimeStamp + wirteLimiteRate - timestamp;
+            var date2 = new Date(delayBetween);
+            // Hours part from the timestamp
+            var hours = date2.getHours();
+            // Minutes part from the timestamp
+            var minutes = "0" + date2.getMinutes();
+            // Seconds part from the timestamp
+            var seconds = "0" + date2.getSeconds();
+            // Will display time in 10:30:23 format
+            var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+            replyMSG += " ( you need to wait "+formattedTime+" to be able to write ) "
+
+            res.status(400).send(replyMSG);
+            return;
+        }
+
+
+        // await firebaseHelper.firestore
+        // .getDocument(db, usersCollection, _uid)
+        // .then(doc => console.log(doc));
+
+
+
+        //update user last time data was inserted
+        await firebaseHelper.firestore
+            .updateDocument(db, usersCollection, _uid, { "lastRecordTimeStamp": timestamp });
+        // write data
         await firebaseHelper.firestore
             .createNewDocument(db, recordsCollection, req.body).then(doc => console.log(doc));
-        res.status(201).send(`data inserted ${req.body["timestamp"]}`);
+
+        res.status(201).send("data inserted at "+date.toUTCString());
     } catch (error) {
         res.status(400).send(`Error inserting data`)
     }
@@ -245,5 +308,6 @@ export const currentTimeStamp = functions.https.onRequest(async (req, res) => {
     // console.log(timestamp);
     res.status(201).send({ "timestamp": timestamp });
 });
+
 
 

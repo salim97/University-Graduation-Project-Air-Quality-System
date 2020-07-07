@@ -7,8 +7,8 @@ class GPSDataModel {
 
   GPSDataModel.fromJson(Map<String, dynamic> json) {
     if (json["GPS"] == null) return;
-    latitude = json["GPS"]["latitude"]["value"];
-    longitude = json["GPS"]["longitude"]["value"];
+    latitude = json["GPS"]["latitude"];
+    longitude = json["GPS"]["longitude"];
     // altitude = json["GPS"]["altitude"]["value"];
   }
 

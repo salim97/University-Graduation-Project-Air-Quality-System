@@ -1,12 +1,12 @@
 import 'package:air_quality_system/app/locator.dart';
-import 'package:air_quality_system/datamodels/weather/ForecastData.dart';
+import 'package:air_quality_system/datamodels/Forecast_dataModel.dart';
 import 'package:air_quality_system/services/Rest_API.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
-class ForecastModel extends FutureViewModel<List<List<ForecastWeather>>> {
+class ForecastModel extends FutureViewModel<List<List<ForecastWeatherDataModel>>> {
   final RestAPI restAPIService = locator<RestAPI>();
-  List<List<ForecastWeather>> forecastByDay = List<List<ForecastWeather>>();
+  List<List<ForecastWeatherDataModel>> forecastByDay = List<List<ForecastWeatherDataModel>>();
 
   int currentPage = 0;
   int pageCount = 0;
@@ -14,14 +14,14 @@ class ForecastModel extends FutureViewModel<List<List<ForecastWeather>>> {
   // @override
   void initState() async {}
 
-  List<List<ForecastWeather>> groupForecastListByDay(ForecastData forecastData) {
+  List<List<ForecastWeatherDataModel>> groupForecastListByDay(ForecastDataModel forecastData) {
     if (forecastData == null) return null;
 
-    List<List<ForecastWeather>> forecastListByDay = [];
+    List<List<ForecastWeatherDataModel>> forecastListByDay = [];
     final forecastList = forecastData.forecastList;
 
     int currentDay = forecastList[0].dateTime.day;
-    List<ForecastWeather> intermediateList = [];
+    List<ForecastWeatherDataModel> intermediateList = [];
 
     for (var forecast in forecastList) {
       if (currentDay == forecast.dateTime.day) {
@@ -39,9 +39,9 @@ class ForecastModel extends FutureViewModel<List<List<ForecastWeather>>> {
   }
 
   @override
-  Future<List<List<ForecastWeather>>> futureToRun() async {
+  Future<List<List<ForecastWeatherDataModel>>> futureToRun() async {
     await Future.delayed(const Duration(seconds: 1));
-    ForecastData forecastData;
+    ForecastDataModel forecastData;
     try {
       forecastData = await restAPIService.getForecast();
       this.forecastByDay = groupForecastListByDay(forecastData);

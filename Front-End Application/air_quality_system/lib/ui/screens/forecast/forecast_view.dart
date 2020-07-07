@@ -1,7 +1,7 @@
 import 'package:air_quality_system/ui/screens/forecast/forecast_model.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:air_quality_system/datamodels/weather/ForecastData.dart';
+import 'package:air_quality_system/datamodels/Forecast_dataModel.dart';
 import 'package:air_quality_system/ui/styles/Res.dart';
 import 'package:air_quality_system/ui/widgets/forecast/DotPageIndicator.dart';
 import 'package:air_quality_system/ui/widgets/forecast/TextWithExponent.dart';
@@ -148,7 +148,7 @@ class _ForecastWeekTabs extends StatelessWidget {
 }
 
 class ForecastList extends StatelessWidget {
-  final List<ForecastWeather> _forecast;
+  final List<ForecastWeatherDataModel> _forecast;
 
   ForecastList(this._forecast);
 
@@ -162,7 +162,7 @@ class ForecastList extends StatelessWidget {
 }
 
 class _ForecastListItem extends StatelessWidget {
-  final ForecastWeather weather;
+  final ForecastWeatherDataModel weather;
 
   _ForecastListItem(this.weather);
 

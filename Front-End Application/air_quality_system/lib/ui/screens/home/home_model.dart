@@ -72,11 +72,11 @@ class HomeViewModel extends BaseViewModel {
       String symbol = "" ;
       if (sensor == "Temperature") {
         value = element.getTemperature().first.value ;
-        symbol = element.getTemperature().first.symbol ;
+        symbol = element.getTemperature().first.metric ;
       }
       if (sensor == "Humidity") {
         value = element.getHumidity().first.value;
-        symbol = element.getHumidity().first.symbol;
+        symbol = element.getHumidity().first.metric;
       }
       markers.add(addMarker(text: value+symbol, point: points.last, color: legendTemperature(double.parse(value).toInt())));
     });

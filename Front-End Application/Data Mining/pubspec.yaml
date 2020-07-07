@@ -1,0 +1,11 @@
+name: dataMining
+description: read data from firestore and make use of it
+
+version: 1.0.0+1
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+
+  firebase: ^7.3.0
+  html:

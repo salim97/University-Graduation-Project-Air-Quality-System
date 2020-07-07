@@ -1,5 +1,4 @@
-import 'package:air_quality_system/datamodels/weather/ForecastData.dart';
-import 'package:air_quality_system/datamodels/weather/WeatherData.dart';
+import 'package:air_quality_system/datamodels/Forecast_dataModel.dart';
 import 'package:http/http.dart' as http;
 
 import 'dart:async';
@@ -14,13 +13,8 @@ class RestAPI {
     return _instance;
   }
 
-  Future<WeatherData> getWeather() async {
-    http.Response response = await http.get(Uri.encodeFull(Endpoints.WEATHER_BY_CITY_ID), headers: {"Accept": "application/json"});
 
-    return WeatherData.fromJson(response.body);
-  }
-
-  Future<ForecastData> getForecast() async {
+  Future<ForecastDataModel> getForecast() async {
     http.Response response;
     try {
       response = await http.get(Uri.encodeFull(Endpoints.FORECAST_BY_CITY_ID), headers: {"Accept": "application/json"});
@@ -28,7 +22,7 @@ class RestAPI {
       return Future.error(e.toString());
     }
 
-    ForecastData forecastData = ForecastData.fromJson(response.body);
+    ForecastDataModel forecastData = ForecastDataModel.fromJson(response.body);
     if (forecastData == null) return Future.error(response.body);
     return forecastData;
   }

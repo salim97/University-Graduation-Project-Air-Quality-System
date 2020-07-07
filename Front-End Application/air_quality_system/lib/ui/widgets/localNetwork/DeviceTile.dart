@@ -72,9 +72,10 @@ class DeviceTile extends StatelessWidget {
       _buildHeader(),
     ];
     if (expanded) {
-      sensor.senses.forEach((element) {
-        children.add(_buildDataCard(element.name, element.value, element.symbol, element.getIcon()));
-      });
+        children.add(_buildDataCard(sensor.name, sensor.value, sensor.metric, sensor.getIcon()));
+      // sensor.senses.forEach((element) {
+      //   children.add(_buildDataCard(element.name, element.value, element.symbol, element.getIcon()));
+      // });
       children.add(Container(
         alignment: Alignment.center,
         margin: EdgeInsets.all(4.0),
