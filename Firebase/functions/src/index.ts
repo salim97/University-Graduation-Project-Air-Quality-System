@@ -101,7 +101,8 @@ var recordSchema = {
             "examples": [
                 [
                     {
-                        "name": "DHT22",
+                        "sensor": "DHT22",
+                        "name": "Temperature",
                         "value": "27.5",
                         "metric": "C°",
                         "isCalibrated": true
@@ -114,7 +115,7 @@ var recordSchema = {
                     {
                         "$id": "#/properties/Sensors/items/anyOf/0",
                         "type": "object",
-                        "title": "The first anyOf schema",
+                        "title": "error in sensors schema format",
                         "description": "An explanation about the purpose of this instance.",
                         "default": {},
                         "examples": [
@@ -126,6 +127,7 @@ var recordSchema = {
                             }
                         ],
                         "required": [
+                            "sensor",
                             "name",
                             "value",
                             // "metric",
@@ -133,6 +135,16 @@ var recordSchema = {
                         ],
                         "additionalProperties": true,
                         "properties": {
+                            "sensor": {
+                                "$id": "#/properties/Sensors/items/anyOf/0/properties/sensor",
+                                "type": "string",
+                                "title": "The sensor schema",
+                                "description": "An explanation about the purpose of this instance.",
+                                "default": "",
+                                "examples": [
+                                    "DHT22"
+                                ]
+                            },
                             "name": {
                                 "$id": "#/properties/Sensors/items/anyOf/0/properties/name",
                                 "type": "string",
@@ -140,7 +152,7 @@ var recordSchema = {
                                 "description": "An explanation about the purpose of this instance.",
                                 "default": "",
                                 "examples": [
-                                    "DHT22"
+                                    "Temperature"
                                 ]
                             },
                             "value": {
