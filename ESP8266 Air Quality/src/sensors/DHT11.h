@@ -65,12 +65,13 @@ void DHT11_measure(JsonArray &Sensors) {
 
   {
     JsonObject Sensors_0 = Sensors.createNestedObject();
-    Sensors_0["name"] = "DHT11";
+    Sensors_0["sensor"] = "DHT11";
+    Sensors_0["name"] = "Temperature";
     Sensors_0["value"] = event.temperature;
     Sensors_0["metric"] = "°C";
     Sensors_0["isCalibrated"] = true;
   }
-  
+
   // Get humidity event
   dht11.humidity().getEvent(&event);
   if (isnan(event.relative_humidity)) {
@@ -80,7 +81,8 @@ void DHT11_measure(JsonArray &Sensors) {
 
   {
     JsonObject Sensors_0 = Sensors.createNestedObject();
-    Sensors_0["name"] = "DHT11";
+    Sensors_0["sensor"] = "DHT11";
+    Sensors_0["name"] = "Humidity";
     Sensors_0["value"] = event.relative_humidity;
     Sensors_0["metric"] = "%";
     Sensors_0["isCalibrated"] = true;
