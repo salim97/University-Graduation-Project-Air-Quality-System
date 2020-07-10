@@ -18,45 +18,53 @@ void MHZ19_init()
   // myMHZ19.autoCalibration(false); // Turn auto calibration ON (OFF autoCalibration(false))
 }
 
-bool MHZ19_measure(DynamicJsonDocument &doc)
+bool MHZ19_measure( JsonArray &Sensors)
 {
   Serial.println("============= MHZ19 =============");
 
   double CO2RAW = myMHZ19.getCO2Raw(); // issue
-  double adjustedCO2 = 6.60435861e+15 * exp(-8.78661228e-04 * CO2RAW); // Exponential equation for Raw & CO2 relationship
+  // double adjustedCO2 = 6.60435861e+15 * exp(-8.78661228e-04 * CO2RAW); // Exponential equation for Raw & CO2 relationship
   int8_t Temp = myMHZ19.getTemperature(); // Request Temperature (as Celsius)
 
   // /* get sensor readings as signed integer */
   int16_t CO2Unlimited = myMHZ19.getCO2(true, true);
-  int16_t CO2limited = myMHZ19.getCO2(false, true);
-  int16_t CO2background = myMHZ19.getBackgroundCO2();
+  // int16_t CO2limited = myMHZ19.getCO2(false, true);
+  // int16_t CO2background = myMHZ19.getBackgroundCO2();
   if (myMHZ19.errorCode != RESULT_OK)
   {
     Serial.println("Error found in communication :(");
     return false;
   }
 
-  doc["MHZ19"]["Temperature"]["value"] = String(Temp);
-  doc["MHZ19"]["Temperature"]["type"] = "°C";
-  doc["MHZ19"]["Temperature"]["isCalibrated"] = true;
+  {
+    JsonObject Sensors_0 = Sensors.createNestedObject();
+    Sensors_0["sensor"] = "MHZ19";
+    Sensors_0["name"] = "Temperature";
+    Sensors_0["value"] =  Temp;
+    Sensors_0["metric"] = "°C";
+    Sensors_0["isCalibrated"] = true;
+  }
 
-  doc["MHZ19"]["Adjusted CO2"]["value"] = String(adjustedCO2);
-  doc["MHZ19"]["Adjusted CO2"]["type"] = "ppm";
-  doc["MHZ19"]["Adjusted CO2"]["isCalibrated"] = true;
+  {
+    JsonObject Sensors_0 = Sensors.createNestedObject();
+    Sensors_0["sensor"] = "MHZ19";
+    Sensors_0["name"] = "CO2";
+    Sensors_0["value"] =  CO2Unlimited;
+    Sensors_0["metric"] = "ppm";
+    Sensors_0["isCalibrated"] = true;
+  }
 
-  doc["MHZ19"]["Unlimited CO2"]["value"] = String(CO2Unlimited);
-  doc["MHZ19"]["Unlimited CO2"]["type"] = "ppm";
-  doc["MHZ19"]["Unlimited CO2"]["isCalibrated"] = true;
 
-  doc["MHZ19"]["limited CO2"]["value"] = String(CO2limited);
-  doc["MHZ19"]["limited CO2"]["type"] = "ppm";
-  doc["MHZ19"]["limited CO2"]["isCalibrated"] = true;
 
-  doc["MHZ19"]["background CO2"]["value"] = String(CO2background);
-  doc["MHZ19"]["background CO2"]["type"] = "ppm";
-  doc["MHZ19"]["background CO2"]["isCalibrated"] = true;
+  {
+    JsonObject Sensors_0 = Sensors.createNestedObject();
+    Sensors_0["sensor"] = "MHZ19";
+    Sensors_0["name"] = "Raw CO2";
+    Sensors_0["value"] =  CO2RAW;
+    Sensors_0["isCalibrated"] = true;
+  }
 
-  doc["MHZ19"]["Raw CO2"]["value"] = String(CO2RAW);
+
 
   return true;
 }

@@ -8,9 +8,12 @@ import 'dart:convert';
 class LocalNetworkViewModel extends BaseViewModel {
   DeviceDataModel devices = new DeviceDataModel();
   RawDatagramSocket socket;
+  String phoneIPaddress ;
   // @override
   void initState() async {
     print("=================== initState ");
+    
+    phoneIPaddress = await GetIp.ipAddress;
     RawDatagramSocket.bind(InternetAddress.anyIPv4, 9876).then((RawDatagramSocket socket) {
       print('Datagram socket ready to receive');
       print('${socket.address.address}:${socket.port}');
@@ -25,9 +28,10 @@ class LocalNetworkViewModel extends BaseViewModel {
         print('Datagram from ${d.address.address}:${d.port}: ${message}');
         if (!isJSON(message)) return;
         Map<String, dynamic> _json = json.decode(message);
+        if (phoneIPaddress == d.address.address ) return ;
 
         devices.fromJson(_json);
-
+        devices.removeNULLmetric();
         notifyListeners();
       });
     });
@@ -43,13 +47,17 @@ class LocalNetworkViewModel extends BaseViewModel {
   }
 
   refresh() async {
-    String ipAddress = await GetIp.ipAddress;
-    List<String> split = ipAddress.split(".");
+    // String ipAddress = await GetIp.ipAddress;
+
+    List<String> split = phoneIPaddress.split(".");
     split[3] = "255";
-    ipAddress = split[0] + "." + split[1] + "." + split[2] + "." + split[3];
-    print(ipAddress);
+    String boradcastAddress = split[0] + "." + split[1] + "." + split[2] + "." + split[3];
+    print(boradcastAddress);
     // socket.send('<refresh>'.codeUnits, InternetAddress.anyIPv4, 9876);
-    socket.send("<refresh>".codeUnits, InternetAddress(ipAddress), 9876);
+    var json = jsonEncode({
+      "command": "getData",
+    });
+    socket.send(json.codeUnits, InternetAddress(boradcastAddress), 9876);
   }
 
   bool isJSON(String msg) {

@@ -28,7 +28,7 @@ void BME680_init()
   bme.setGasHeater(320, 150); // 320*C for 150 ms
 }
 
-bool BME680_measure(DynamicJsonDocument &doc)
+bool BME680_measure( JsonArray &Sensors)
 {
   Serial.println("============= BME680 =============");
 
@@ -48,25 +48,64 @@ bool BME680_measure(DynamicJsonDocument &doc)
     return false;
   }
 
-  doc["BME680"]["Temperature"]["value"] = bme.temperature;
-  doc["BME680"]["Temperature"]["type"] = "°C";
-  doc["BME680"]["Temperature"]["isCalibrated"] = true;
 
-  doc["BME680"]["Pressure"]["value"] = bme.pressure / 100.0;
-  doc["BME680"]["Pressure"]["type"] = "hPa";
-  doc["BME680"]["Pressure"]["isCalibrated"] = true;
+  // {
+  //   JsonObject Sensors_0 = Sensors.createNestedObject();
+  //   Sensors_0["sensor"] = "BME680";
+  //   Sensors_0["name"] = "Temperature";
+  //   Sensors_0["value"] = bme.temperature;
+  //   Sensors_0["metric"] = "°C";
+  //   Sensors_0["isCalibrated"] = true;
+  // }
 
-  doc["BME680"]["Humidity"]["value"] = bme.humidity;
-  doc["BME680"]["Humidity"]["type"] = "%";
-  doc["BME680"]["Humidity"]["isCalibrated"] = true;
 
-  doc["BME680"]["Gas"]["value"] = bme.gas_resistance / 1000.0;
-  doc["BME680"]["Gas"]["type"] = "KOhms";
-  doc["BME680"]["Gas"]["isCalibrated"] = true;
+  {
+    JsonObject Sensors_0 = Sensors.createNestedObject();
+    Sensors_0["sensor"] = "BME680";
+    Sensors_0["name"] = "Pressure";
+    Sensors_0["value"] = bme.pressure / 100.0;
+    Sensors_0["metric"] = "hPa";
+    Sensors_0["isCalibrated"] = true;
+  }
+  // doc["BME680"]["Pressure"]["value"] = bme.pressure / 100.0;
+  // doc["BME680"]["Pressure"]["type"] = "hPa";
+  // doc["BME680"]["Pressure"]["isCalibrated"] = true;
 
-  doc["BME680"]["Approx. Altitude"]["value"] = bme.readAltitude(SEALEVELPRESSURE_HPA);
-  doc["BME680"]["Approx. Altitude"]["type"] = "m";
-  doc["BME680"]["Approx. Altitude"]["isCalibrated"] = true;
+  // {
+  //   JsonObject Sensors_0 = Sensors.createNestedObject();
+  //   Sensors_0["sensor"] = "BME680";
+  //   Sensors_0["name"] = "Humidity";
+  //   Sensors_0["value"] = bme.humidity;
+  //   Sensors_0["metric"] ="%";
+  //   Sensors_0["isCalibrated"] = true;
+  // }
+  // doc["BME680"]["Humidity"]["value"] = bme.humidity;
+  // doc["BME680"]["Humidity"]["type"] = "%";
+  // doc["BME680"]["Humidity"]["isCalibrated"] = true;
+
+  {
+    JsonObject Sensors_0 = Sensors.createNestedObject();
+    Sensors_0["sensor"] = "BME680";
+    Sensors_0["name"] = "Gas";
+    Sensors_0["value"] = bme.gas_resistance / 1000.0;
+    Sensors_0["metric"] = "KOhms";
+    Sensors_0["isCalibrated"] = true;
+  }
+  // doc["BME680"]["Gas"]["value"] = bme.gas_resistance / 1000.0;
+  // doc["BME680"]["Gas"]["type"] = "KOhms";
+  // doc["BME680"]["Gas"]["isCalibrated"] = true;
+
+  // {
+  //   JsonObject Sensors_0 = Sensors.createNestedObject();
+  //   Sensors_0["sensor"] = "BME680";
+  //   Sensors_0["name"] = "Temperature";
+  //   Sensors_0["value"] = bme.temperature;
+  //   Sensors_0["metric"] = "°C";
+  //   Sensors_0["isCalibrated"] = true;
+  // }
+  // doc["BME680"]["Approx. Altitude"]["value"] = bme.readAltitude(SEALEVELPRESSURE_HPA);
+  // doc["BME680"]["Approx. Altitude"]["type"] = "m";
+  // doc["BME680"]["Approx. Altitude"]["isCalibrated"] = true;
 
   return true ;
 }

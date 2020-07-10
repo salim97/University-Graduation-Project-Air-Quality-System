@@ -16,7 +16,10 @@ class DeviceDataModel {
     gps = new GPSDataModel.fromJson(json);
     // sensors.removeWhere((value) => value.senses.isEmpty); // remove non existing sensors
   }
-
+  removeNULLmetric()
+  {
+    sensors.removeWhere((value) => value.metric == null); // remove non existing sensors
+  }
   List<SensorDataModel> getTemperature() {
     List<SensorDataModel> metricDataModel = new List<SensorDataModel>();
 

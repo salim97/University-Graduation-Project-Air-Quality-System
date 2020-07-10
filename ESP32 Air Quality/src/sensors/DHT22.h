@@ -51,7 +51,7 @@ void DHT22_init()
     Serial.println(F("------------------------------------"));
 }
 // DynamicJsonDocument doc(2048);
-bool DHT22_measure(DynamicJsonDocument &doc)
+bool DHT22_measure(JsonArray &Sensors)
 {
     Serial.println("============= DHT22 =============");
 
@@ -64,10 +64,14 @@ bool DHT22_measure(DynamicJsonDocument &doc)
         return false;
     }
 
-    doc["DHT22"]["Temperature"]["value"] = event.temperature;
-    doc["DHT22"]["Temperature"]["type"] = "°C";
-    doc["DHT22"]["Temperature"]["isCalibrated"] = true;
-
+  {
+    JsonObject Sensors_0 = Sensors.createNestedObject();
+    Sensors_0["sensor"] = "DHT22";
+    Sensors_0["name"] = "Temperature";
+    Sensors_0["value"] = event.temperature;
+    Sensors_0["metric"] = "°C";
+    Sensors_0["isCalibrated"] = true;
+  }
     // Get humidity event
     dht.humidity().getEvent(&event);
     if (isnan(event.relative_humidity))
@@ -76,9 +80,13 @@ bool DHT22_measure(DynamicJsonDocument &doc)
         return false;
     }
 
-    doc["DHT22"]["Humidity"]["value"] = event.relative_humidity;
-    doc["DHT22"]["Humidity"]["type"] = "%";
-    doc["DHT22"]["Humidity"]["isCalibrated"] = true;
-
+  {
+    JsonObject Sensors_0 = Sensors.createNestedObject();
+    Sensors_0["sensor"] = "DHT22";
+    Sensors_0["name"] = "Humidity";
+    Sensors_0["value"] = event.relative_humidity;
+    Sensors_0["metric"] = "%";
+    Sensors_0["isCalibrated"] = true;
+  }
     return true ;
 }

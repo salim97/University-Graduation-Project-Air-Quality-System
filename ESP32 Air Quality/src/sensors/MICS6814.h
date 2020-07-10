@@ -12,21 +12,45 @@ void MICS6814_init()
   mics6814.calibrate();
 }
 
-bool MICS6814_measure(DynamicJsonDocument &doc)
+bool MICS6814_measure( JsonArray &Sensors)
 {
   Serial.println("============= MICS6814 =============");
 
-  doc["MICS6814"]["NO2"]["value"] = mics6814.measure(NO2);
-  doc["MICS6814"]["NO2"]["type"] = "PPM";
-  doc["MICS6814"]["NO2"]["isCalibrated"] = true;
+  {
+    JsonObject Sensors_0 = Sensors.createNestedObject();
+    Sensors_0["sensor"] = "MICS6814";
+    Sensors_0["name"] = "NO2";
+    Sensors_0["value"] = mics6814.measure(NO2);
+    Sensors_0["metric"] = "PPM";
+    Sensors_0["isCalibrated"] = true;
+  }
+  // doc["MICS6814"]["NO2"]["value"] = mics6814.measure(NO2);
+  // doc["MICS6814"]["NO2"]["type"] = "PPM";
+  // doc["MICS6814"]["NO2"]["isCalibrated"] = true;
 
-  doc["MICS6814"]["NH3"]["value"] = mics6814.measure(NH3);
-  doc["MICS6814"]["NH3"]["type"] = "PPM";
-  doc["MICS6814"]["NH3"]["isCalibrated"] = true;
+  {
+    JsonObject Sensors_0 = Sensors.createNestedObject();
+    Sensors_0["sensor"] = "MICS6814";
+    Sensors_0["name"] = "NH3";
+    Sensors_0["value"] = mics6814.measure(NH3);
+    Sensors_0["metric"] = "PPM";
+    Sensors_0["isCalibrated"] = true;
+  }
+  // doc["MICS6814"]["NH3"]["value"] = mics6814.measure(NH3);
+  // doc["MICS6814"]["NH3"]["type"] = "PPM";
+  // doc["MICS6814"]["NH3"]["isCalibrated"] = true;
 
-  doc["MICS6814"]["CO"]["value"] = mics6814.measure(CO);
-  doc["MICS6814"]["CO"]["type"] = "PPM";
-  doc["MICS6814"]["CO"]["isCalibrated"] = true;
+  {
+    JsonObject Sensors_0 = Sensors.createNestedObject();
+    Sensors_0["sensor"] = "MICS6814";
+    Sensors_0["name"] = "CO";
+    Sensors_0["value"] = mics6814.measure(CO);
+    Sensors_0["metric"] = "PPM";
+    Sensors_0["isCalibrated"] = true;
+  }
+  // doc["MICS6814"]["CO"]["value"] = mics6814.measure(CO);
+  // doc["MICS6814"]["CO"]["type"] = "PPM";
+  // doc["MICS6814"]["CO"]["isCalibrated"] = true;
 
   return true;
 }

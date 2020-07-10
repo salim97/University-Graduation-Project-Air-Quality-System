@@ -18,36 +18,89 @@
 
 #include "mynetwork.h"
 
-String jsonOutput;
-DynamicJsonDocument doc(2048);
+#include <WiFi.h>
+
+// needed for library
+#include <ESPAsyncWebServer.h>
+#include <ESPAsyncWiFiManager.h> //https://github.com/tzapu/WiFiManager
+#include <esp_wifi.h>
+
+// String jsonOutput;
+// DynamicJsonDocument doc(2048);
 
 void blink_LED();
 void sendDataToFirebase();
 void sendDataToLocalNetwork();
 void processUDP(String command);
-// void readDataFromSensors();
+String readDataFromSensors();
 
-Ticker timer0(blink_LED, 1000); // each second blink led
-Ticker timer1(sendDataToFirebase,
-              10 * 60 * 1000); // each 10 min send data to server
-Ticker timer2(sendDataToLocalNetwork,
-              15 * 1000); // each 15 second send data in local network
-// Ticker timer3(readDataFromSensors, 15 * 1000);  // each 10 second send data
-// in local network
+// each second blink led
+Ticker timer0(blink_LED, 1000);
+// each 10 min send data to server
+Ticker timer1(sendDataToFirebase, 10 * 60 * 1000);
+// each 15 second send data in local network
+Ticker timer2(sendDataToLocalNetwork, 15 * 1000);
+// each 10 second read Data From Sensors
+// Ticker timer3(readDataFromSensors, 10 * 1000);
+
 bool configMode = false;
+void configModeCallback(AsyncWiFiManager *myWiFiManager) {
+  Serial.println("Entered config mode");
+  Serial.println(WiFi.softAPIP());
+  // if you used auto generated SSID, print it
+  Serial.println(myWiFiManager->getConfigPortalSSID());
+  configMode = true;
+}
+void saveConfigCallback() {
+  Serial.println("-----------------------------------------------------");
+  Serial.println("Should save config");
+  configMode = false;
+}
+
+AsyncWebServer server(80);
+DNSServer dns;
+
 void setup() {
 
   Serial.begin(115200);
   // Device to serial monitor feedback
   while (!Serial)
     ;
+  // WiFiManager
+  // Local intialization. Once its business is done, there is no need to keep it
+  // around
+  AsyncWiFiManager wifiManager(&server, &dns);
+  // reset settings - for testing
+  //  wifiManager.resetSettings();
+  // WiFi.disconnect(true, true);
 
-  if (!mynetwork_init()) {
-    // config mode
-    configMode = true;
-    // return;
+  // set callback that gets called when connecting to previous WiFi fails, and
+  // enters Access Point mode
+  wifiManager.setAPCallback(configModeCallback);
+  wifiManager.setSaveConfigCallback(saveConfigCallback);
+
+  // fetches ssid and pass and tries to connect
+  // if it does not connect it starts an access point with the specified name
+  // here  "AutoConnectAP"
+  // and goes into a blocking loop awaiting configuration
+  if (!wifiManager.autoConnect()) {
+    Serial.println("failed to connect and hit timeout");
+    // reset and try again, or maybe put it to deep sleep
+    ESP.restart();
+    delay(1000);
   }
 
+  // if you get here you have connected to the WiFi
+  // WiFi.disconnect(true, true);
+  wifi_config_t conf;
+  esp_wifi_get_config(WIFI_IF_STA, &conf);
+  Serial.println("SSID: " +
+                 String(reinterpret_cast<const char *>(conf.sta.ssid)));
+  Serial.println("PASS: " +
+                 String(reinterpret_cast<const char *>(conf.sta.password)));
+  if (configMode) return;
+
+  init_udp();
   // pinMode(BUILTIN_LED, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
   blink_LED();
@@ -61,16 +114,20 @@ void setup() {
   timer0.start();
   timer1.start();
   timer2.start();
+  // timer3.start();
 
-  sendDataToLocalNetwork();
-  // sendDataToFirebase();
+  readDataFromSensors();
+  // sendDataToLocalNetwork();
+  sendDataToFirebase();
+  // delay(60 * 1000);
 }
 
 void loop() {
-  // if (configMode) return;
+  if (configMode) return;
   timer0.update();
   timer1.update();
   timer2.update();
+  // timer3.update();
   // String command = readAllUDP();
   processUDP(readAllUDP());
 }
@@ -82,107 +139,109 @@ void blink_LED() {
                !(digitalRead(LED_BUILTIN))); // Invert Current State of LED
 }
 
-void sendDataToLocalNetwork() {
-  // clear RAM
-  doc.clear();
-  jsonOutput.clear();
-  doc["GPS"]["latitude"]["value"] = 35.6935229;
-  doc["GPS"]["longitude"]["value"] = -0.6140395;
-  doc["upTime"] = millis();
-
-  // getting data and convert it into JSON
-  if (!DHT22_measure(doc)) networkBroadcatLog("DHT22 ERROR!", true);
-  delay(10);
-
-  if (!MICS6814_measure(doc)) networkBroadcatLog("MICS6814 ERROR!", true);
-  delay(10);
-
-  if (!SGP30_measure(doc)) networkBroadcatLog("SGP30 ERROR!", true);
-  delay(10);
-
-  if (!BME680_measure(doc)) networkBroadcatLog("BME680 ERROR!", true);
-  delay(10);
-
-  if (!MHZ19_measure(doc)) networkBroadcatLog("MHZ19 ERROR!", true);
-  delay(10);
-
-  // print data in serial port
-  serializeJsonPretty(doc, Serial);
-  serializeJson(doc, jsonOutput);
-  sendUDP(jsonOutput);
+void sendDataToLocalNetwork() {   sendUDP(readDataFromSensors()); 
 }
 
 void sendDataToFirebase() {
-  if (am_i_the_access_point())
-    return; // if the esp is the access point, that mean there is no internet
-            // connection ....
-  // clear RAM
-  doc.clear();
-  jsonOutput.clear();
-  doc["GPS"]["latitude"]["value"] = 35.6935229;
-  doc["GPS"]["longitude"]["value"] = -0.6140395;
-  doc["upTime"] = millis();
-  // ESP.getch
-  // getting data and convert it into JSON
-  DHT22_measure(doc);
-  delay(10);
-
-  MICS6814_measure(doc);
-  delay(10);
-
-  SGP30_measure(doc);
-  delay(10);
-
-  BME680_measure(doc);
-  delay(10);
-
-  MHZ19_measure(doc);
-  delay(10);
 
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient clientHTTP;
-    clientHTTP.begin("http://192.168.1.33:5001/pfe-air-quality/us-central1/"
-                     "webApi/api/v1/postData");
-    // clientHTTP.begin("https://us-central1-pfe-air-quality.cloudfunctions.net/webApi/api/v1/postData");
-
-    clientHTTP.addHeader("Content-Type", "application/json");
-
-    // const size_t CAPACITY = JSON_OBJECT_SIZE(1);
-    // StaticJsonDocument<200> doc;
-
-    serializeJson(doc, jsonOutput);
-    int httpCode = clientHTTP.POST(String(jsonOutput));
-    Serial.println("Status code : " + String(httpCode));
-    if (httpCode > 0) {
-      String payload = clientHTTP.getString();
-      Serial.println("Status code : " + String(httpCode));
-      Serial.println(payload);
-      clientHTTP.end();
+    String url =
+        "https://us-central1-pfe-air-quality.cloudfunctions.net/addRecord";
+    // String abc = readDataFromSensors();
+    //  clientHTTP.setTimeout(12 * 1000) ;
+    if (clientHTTP.begin(url)) {
+      clientHTTP.addHeader("Content-Type", "application/json");
+      // clientHTTP.addHeader("Connection", "keep-alive");
+      // clientHTTP.addHeader("Content-Length", String(abc.length()));
+      // Serial.println("abc = " + abc);
+      // clientHTTP.setReuse(true);
+      int httpCode = clientHTTP.POST(readDataFromSensors());
+      if (httpCode > 0) {
+        String payload = clientHTTP.getString();
+        Serial.println("Status code : " + String(httpCode));
+        Serial.println(payload);
+        clientHTTP.end();
+        if (httpCode > 400) {
+          delay(15 * 1000);
+          ESP.restart();
+        }
+      } else {
+        Serial.println("Error on HTTP request");
+        Serial.println(clientHTTP.errorToString(httpCode));
+        ESP.restart(); // TODO: send msg + err in local network before
+        // restarting
+        // ....
+      }
     } else {
-      Serial.println("Error on HTTP request");
-      ESP.restart(); // TODO: send msg + err in local network before restarting
-                     // ....
+      Serial.printf("[HTTP] Unable to connect");
+      Serial.printf(url.c_str());
+      ESP.restart();
     }
+
   } else {
-    Serial.println("Connection lost");
+    Serial.println("WiFi.status() == WL_CONNECTED, no WiFi");
     ESP.restart(); // TODO: send msg + err in local network before restarting
                    // ....
   }
   delay(1000);
 }
 
+String readDataFromSensors() {
+  int a = millis();
+  String jsonOutput;
+  DynamicJsonDocument doc(2048);
+
+  // clear RAM
+  doc.clear();
+  jsonOutput.clear();
+  doc["uid"] = "Lf7gh5IDYxZgOmUXKhtaHSk6j9y2";
+  doc["GPS"]["latitude"] = 35.6935229;
+  doc["GPS"]["longitude"] = -0.6140395;
+  doc["upTime"] = millis();
+
+  // getting data and convert it into JSON
+  JsonArray Sensors = doc.createNestedArray("Sensors");
+  // getting data and convert it into JSON
+  if (!DHT22_measure(Sensors)) networkBroadcatLog("DHT22 ERROR!", true);
+  delay(10);
+
+  if (!MICS6814_measure(Sensors)) networkBroadcatLog("MICS6814 ERROR!", true);
+  delay(10);
+
+  if (!SGP30_measure(Sensors)) networkBroadcatLog("SGP30 ERROR!", true);
+  delay(10);
+
+  if (!BME680_measure(Sensors)) networkBroadcatLog("BME680 ERROR!", true);
+  delay(10);
+
+  if (!MHZ19_measure(Sensors)) networkBroadcatLog("MHZ19 ERROR!", true);
+  delay(10);
+
+  // print data in serial port
+  // serializeJsonPretty(doc, Serial);
+  serializeJson(doc, jsonOutput);
+  int b = millis();
+  Serial.println("");
+  Serial.println("start at : " + String(a));
+  Serial.println("end at : " + String(b));
+  Serial.println(b - a);
+  Serial.println(upTimeToString());
+  Serial.println(jsonOutput.length());
+  return jsonOutput;
+}
+
 void processUDP(String command) {
-  DynamicJsonDocument _doc(1024);
+  DynamicJsonDocument _doc(2048);
   deserializeJson(_doc, command);
-  if (doc["command"] == "getData") {
-  // if ("<refresh>"== "getData") {
+  if (_doc["command"] == "getData") {
     sendDataToLocalNetwork();
     return;
   }
-  if (doc["command"] == "setWiFi") {
-    clearEPPROM();
-    setSSID(doc["ssid"]);
-    setPASS(doc["pass"]);
-    ESP.restart();
-  }
+  // if (_doc["command"] == "setWiFi") {
+  //   clearEPPROM();
+  //   setSSID(doc["ssid"]);
+  //   setPASS(doc["pass"]);
+  //   ESP.restart();
+  // }
 }

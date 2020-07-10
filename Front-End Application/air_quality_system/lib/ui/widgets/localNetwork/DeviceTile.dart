@@ -17,7 +17,7 @@ class DeviceTile extends StatelessWidget {
   Widget _buildHeader() {
     return new ListTile(
       key: new ValueKey(sensor.timeStamp),
-      title: new Text(sensor.name, style: TextStyle(fontWeight: FontWeight.w500)),
+      title: new Text(sensor.sensorName, style: TextStyle(fontWeight: FontWeight.w500)),
       subtitle: new Text(sensor.timeStamp),
       leading: const Icon(MdiIcons.developerBoard, size: 36.0),
       trailing: new Icon(this.expanded ? Icons.arrow_drop_up : Icons.arrow_drop_down, size: 36.0),
@@ -72,7 +72,7 @@ class DeviceTile extends StatelessWidget {
       _buildHeader(),
     ];
     if (expanded) {
-        children.add(_buildDataCard(sensor.name, sensor.value, sensor.metric, sensor.getIcon()));
+        children.add(_buildDataCard(sensor.metricName, sensor.value, sensor.metric, sensor.getIcon()));
       // sensor.senses.forEach((element) {
       //   children.add(_buildDataCard(element.name, element.value, element.symbol, element.getIcon()));
       // });
@@ -117,7 +117,7 @@ class _DeviceTileListState extends State<DeviceTileList> {
     super.initState();
     setState(() {
       widget.devices.sensors.forEach((element) {
-        expanded[element.name] = true;
+        expanded[element.metricName] = true;
       });
     });
   }
@@ -129,17 +129,17 @@ class _DeviceTileListState extends State<DeviceTileList> {
         SensorDataModel sensor = this.widget.devices.sensors[index];
         if (expanded.isEmpty)
           widget.devices.sensors.forEach((element) {
-            expanded[element.name] = true;
+            expanded[element.metricName] = true;
           });
         return DeviceTile(
           sensor,
-          expanded: expanded[sensor.name],
+          expanded: expanded[sensor.metricName],
           onHistoryDataTap: () {
             this.widget.onHistoryDataTap(sensor);
           },
           onTap: () {
             setState(() {
-              expanded[sensor.name] = !expanded[sensor.name];
+              expanded[sensor.metricName] = !expanded[sensor.metricName];
               if (selectedIndex == index) {
                 selectedIndex = -1;
               } else {
