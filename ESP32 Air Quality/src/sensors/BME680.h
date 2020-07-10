@@ -49,14 +49,14 @@ bool BME680_measure( JsonArray &Sensors)
   }
 
 
-  // {
-  //   JsonObject Sensors_0 = Sensors.createNestedObject();
-  //   Sensors_0["sensor"] = "BME680";
-  //   Sensors_0["name"] = "Temperature";
-  //   Sensors_0["value"] = bme.temperature;
-  //   Sensors_0["metric"] = "°C";
-  //   Sensors_0["isCalibrated"] = true;
-  // }
+  {
+    JsonObject Sensors_0 = Sensors.createNestedObject();
+    Sensors_0["sensor"] = "BME680";
+    Sensors_0["name"] = "Temperature";
+    Sensors_0["value"] = bme.temperature;
+    Sensors_0["metric"] = "°C";
+    Sensors_0["isCalibrated"] = true;
+  }
 
 
   {
@@ -67,21 +67,15 @@ bool BME680_measure( JsonArray &Sensors)
     Sensors_0["metric"] = "hPa";
     Sensors_0["isCalibrated"] = true;
   }
-  // doc["BME680"]["Pressure"]["value"] = bme.pressure / 100.0;
-  // doc["BME680"]["Pressure"]["type"] = "hPa";
-  // doc["BME680"]["Pressure"]["isCalibrated"] = true;
 
-  // {
-  //   JsonObject Sensors_0 = Sensors.createNestedObject();
-  //   Sensors_0["sensor"] = "BME680";
-  //   Sensors_0["name"] = "Humidity";
-  //   Sensors_0["value"] = bme.humidity;
-  //   Sensors_0["metric"] ="%";
-  //   Sensors_0["isCalibrated"] = true;
-  // }
-  // doc["BME680"]["Humidity"]["value"] = bme.humidity;
-  // doc["BME680"]["Humidity"]["type"] = "%";
-  // doc["BME680"]["Humidity"]["isCalibrated"] = true;
+  {
+    JsonObject Sensors_0 = Sensors.createNestedObject();
+    Sensors_0["sensor"] = "BME680";
+    Sensors_0["name"] = "Humidity";
+    Sensors_0["value"] = bme.humidity;
+    Sensors_0["metric"] ="%";
+    Sensors_0["isCalibrated"] = true;
+  }
 
   {
     JsonObject Sensors_0 = Sensors.createNestedObject();
@@ -91,16 +85,13 @@ bool BME680_measure( JsonArray &Sensors)
     Sensors_0["metric"] = "KOhms";
     Sensors_0["isCalibrated"] = true;
   }
-  // doc["BME680"]["Gas"]["value"] = bme.gas_resistance / 1000.0;
-  // doc["BME680"]["Gas"]["type"] = "KOhms";
-  // doc["BME680"]["Gas"]["isCalibrated"] = true;
 
   // {
   //   JsonObject Sensors_0 = Sensors.createNestedObject();
   //   Sensors_0["sensor"] = "BME680";
-  //   Sensors_0["name"] = "Temperature";
-  //   Sensors_0["value"] = bme.temperature;
-  //   Sensors_0["metric"] = "°C";
+  //   Sensors_0["name"] = "Approx. Altitude";
+  //   Sensors_0["value"] = bme.readAltitude(SEALEVELPRESSURE_HPA);
+  //   Sensors_0["metric"] = "m";
   //   Sensors_0["isCalibrated"] = true;
   // }
   // doc["BME680"]["Approx. Altitude"]["value"] = bme.readAltitude(SEALEVELPRESSURE_HPA);

@@ -8,6 +8,11 @@
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 
+// // Include the SSL client
+// #include <WiFiClientSecure.h>
+
+WiFiClient client;
+
 #include <Ticker.h> //Ticker Library
 
 #include "sensors/BME680.h"
@@ -117,9 +122,9 @@ void setup() {
   // timer3.start();
 
   readDataFromSensors();
-  // sendDataToLocalNetwork();
+  sendDataToLocalNetwork();
   sendDataToFirebase();
-  // delay(60 * 1000);
+  // delay(60*60 * 1000);
 }
 
 void loop() {
@@ -139,15 +144,16 @@ void blink_LED() {
                !(digitalRead(LED_BUILTIN))); // Invert Current State of LED
 }
 
-void sendDataToLocalNetwork() {   sendUDP(readDataFromSensors()); 
-}
+void sendDataToLocalNetwork() { sendUDP(readDataFromSensors()); }
 
 void sendDataToFirebase() {
 
   if (WiFi.status() == WL_CONNECTED) {
+
     HTTPClient clientHTTP;
     String url =
         "https://us-central1-pfe-air-quality.cloudfunctions.net/addRecord";
+    // "https://postman-echo.com/post";
     // String abc = readDataFromSensors();
     //  clientHTTP.setTimeout(12 * 1000) ;
     if (clientHTTP.begin(url)) {
@@ -159,8 +165,8 @@ void sendDataToFirebase() {
       int httpCode = clientHTTP.POST(readDataFromSensors());
       if (httpCode > 0) {
         String payload = clientHTTP.getString();
-        Serial.println("Status code : " + String(httpCode));
         Serial.println(payload);
+        Serial.println("Status code : " + String(httpCode));
         clientHTTP.end();
         if (httpCode > 400) {
           delay(15 * 1000);
@@ -169,6 +175,7 @@ void sendDataToFirebase() {
       } else {
         Serial.println("Error on HTTP request");
         Serial.println(clientHTTP.errorToString(httpCode));
+        // delay(15 * 1000);
         ESP.restart(); // TODO: send msg + err in local network before
         // restarting
         // ....
@@ -220,6 +227,7 @@ String readDataFromSensors() {
 
   // print data in serial port
   // serializeJsonPretty(doc, Serial);
+  // serializeJsonPretty(doc, jsonOutput);
   serializeJson(doc, jsonOutput);
   int b = millis();
   Serial.println("");
