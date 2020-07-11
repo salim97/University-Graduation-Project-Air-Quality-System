@@ -48,7 +48,7 @@ class HomeViewModel extends BaseViewModel {
     dropDownMenuItems = getDropDownMenuItems();
     currentGas = _gas.keys.first;
     currentGasLegend = _gas.values.first;
-    refresh();
+    // refresh();
     notifyListeners();
   }
 

@@ -53,22 +53,20 @@ bool SGP30_measure(JsonArray &Sensors) {
     Serial.println("Raw Measurement failed :(");
     return false;
   }
-  // {
-  //   JsonObject Sensors_0 = Sensors.createNestedObject();
-  //   Sensors_0["sensor"] = "SGP30";
-  //   Sensors_0["name"] = "Raw H2";
-  //   Sensors_0["value"] = sgp.rawH2;
-  //   Sensors_0["isCalibrated"] = true;
-  // }
-  // // doc["SGP30"]["Raw H2"]["value"] = sgp.rawH2;
-  // {
-  //   JsonObject Sensors_0 = Sensors.createNestedObject();
-  //   Sensors_0["sensor"] = "SGP30";
-  //   Sensors_0["name"] = "Raw Ethanol";
-  //   Sensors_0["value"] = sgp.rawEthanol;
-  //   Sensors_0["isCalibrated"] = true;
-  // }
-  // doc["SGP30"]["Raw Ethanol"]["value"] = sgp.rawEthanol;
+  {
+    JsonObject Sensors_0 = Sensors.createNestedObject();
+    Sensors_0["sensor"] = "SGP30";
+    Sensors_0["name"] = "Raw H2";
+    Sensors_0["value"] = sgp.rawH2;
+    Sensors_0["isCalibrated"] = true;
+  }
+  {
+    JsonObject Sensors_0 = Sensors.createNestedObject();
+    Sensors_0["sensor"] = "SGP30";
+    Sensors_0["name"] = "Raw Ethanol";
+    Sensors_0["value"] = sgp.rawEthanol;
+    Sensors_0["isCalibrated"] = true;
+  }
 
   return true;
 }

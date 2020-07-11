@@ -1,6 +1,6 @@
 import 'package:air_quality_system/datamodels/device_dataModel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:convert';
+import 'dart:io' show Platform;
 
 import 'package:injectable/injectable.dart';
 
@@ -18,10 +18,16 @@ class MyFirestoreDB {
   // }
 
   Future<List<DeviceDataModel>> getLastdata() async {
+
+
+
+
+    
     List<DeviceDataModel> posts = List<DeviceDataModel>();
+
     QuerySnapshot docs = await Firestore.instance
         .collection("Records")
-        .where("timestamp", isGreaterThan: 1592676909333)
+        .where("timestamp", isGreaterThan: 1594399926478)
         .orderBy('timestamp', descending: true)
         .getDocuments();
     docs.documents.forEach((element) {

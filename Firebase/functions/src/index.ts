@@ -1,8 +1,10 @@
 // https://github.com/dalenguyen/firebase-functions-helper/blob/master/docs/firestore.md
 // to compile ts file into js file
 // npm run build 
+// install dependency
 // npm install --save express body-parser firebase-functions-helper
 // npm install express body-parser jsonschema
+// deploy to firebase
 // firebase deploy --only functions
 
 import * as functions from 'firebase-functions';
@@ -202,6 +204,7 @@ const db = admin.firestore();
 const recordsCollection = "Records";
 const usersCollection = "Users";
 const wirteLimiteRate = (10 * 60) * 1000; // in ms
+const enableWirteLimiteRate = false ;
 
 export const accountCreate = functions.auth.user().onCreate(async (user) => {
     console.log(user.toJSON());
@@ -273,6 +276,7 @@ export const addRecord = functions.https.onRequest(async (req, res) => {
             res.status(400).send("User with uid = " + _uid + " doesn't exists ");
             return;
         }
+        if(enableWirteLimiteRate)
         if (user_lastRecordTimeStamp + wirteLimiteRate > timestamp) {
             var replyMSG = "you can't write data to DB until ";
             replyMSG += new Date(user_lastRecordTimeStamp + wirteLimiteRate).toUTCString();
