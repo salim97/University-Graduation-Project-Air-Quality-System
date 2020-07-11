@@ -1,8 +1,10 @@
 import 'dart:core';
 
 /// ui standard
-final standardWidth = 375.0;
-final standardHeight = 815.0;
+final scale = 0 ;
+final standardWidth = 375.0 + scale;
+final standardHeight = 815.0 + scale;
+// final standardHeight = (standardWidth * 815) / 375;
 
 /// late init
 double screenWidth;

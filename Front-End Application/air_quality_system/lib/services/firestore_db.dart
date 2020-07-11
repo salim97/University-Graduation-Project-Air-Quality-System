@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io' show Platform;
 
 import 'package:injectable/injectable.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// The service responsible for networking requests
 // @lazySingleton
@@ -18,18 +19,13 @@ class MyFirestoreDB {
   // }
 
   Future<List<DeviceDataModel>> getLastdata() async {
-
-
-
-
-    
     List<DeviceDataModel> posts = List<DeviceDataModel>();
-
     QuerySnapshot docs = await Firestore.instance
         .collection("Records")
         .where("timestamp", isGreaterThan: 1594399926478)
         .orderBy('timestamp', descending: true)
         .getDocuments();
+
     docs.documents.forEach((element) {
       // print("-----------------------------------");
       //print(element.data);
@@ -42,6 +38,7 @@ class MyFirestoreDB {
       // print(s.dht22.temperature.value);
       posts.add(s);
     });
+
     posts.removeWhere((value) => value.sensors.isEmpty); // remove devices with no sensor connect on it
     List<DeviceDataModel> unDuplicatedList = List<DeviceDataModel>();
     bool alreadyExist ;

@@ -2,10 +2,12 @@ import 'dart:io';
 
 import 'package:air_quality_system/app/locator.dart';
 import 'package:air_quality_system/datamodels/device_dataModel.dart';
+import 'package:air_quality_system/services/Rest_API.dart';
 import 'package:air_quality_system/services/firebase_auth.dart';
 import 'package:air_quality_system/services/firestore_db.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map/plugin_api.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
@@ -13,24 +15,27 @@ import 'package:stacked/stacked.dart';
 import 'package:latlong/latlong.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:udp/udp.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 // class HomeViewModel extends FutureViewModel<void> {
 class HomeViewModel extends BaseViewModel {
   LatLng myLocation;
   List<Marker> markers = List<Marker>();
+  double _mapZoom = 14.0;
+  MapController mapController = new MapController();
 
   final MyFirebaseAuth firebaseAuthService = locator<MyFirebaseAuth>();
+  final RestAPI restAPIService = locator<RestAPI>();
   final MyFirestoreDB myFirestoreDBservice = locator<MyFirestoreDB>();
   final DialogService _dialogService = locator<DialogService>();
   // final SnackbarService _snackbarService = locator<SnackbarService>();
   // final NavigationService _navigationService = locator<NavigationService>();
-  MapController mapController = new MapController();
 
   var gas = {
     'Temperature': MdiIcons.whiteBalanceSunny,
     'Humidity': MdiIcons.waterPercent,
     'Pressure': MdiIcons.arrowCollapseVertical,
-    'AQI': MdiIcons.molecule,
+    'CO2': MdiIcons.molecule,
   };
 
   // @override
@@ -48,42 +53,62 @@ class HomeViewModel extends BaseViewModel {
     dropDownMenuItems = getDropDownMenuItems();
     currentGas = _gas.keys.first;
     currentGasLegend = _gas.values.first;
-    // refresh();
+    refresh();
     notifyListeners();
   }
 
   onCurrentSearchChanged(String item) {
     print(item);
-    if(item == "Temperature") refresh(sensor: item);
-    if(item == "Humidity") refresh(sensor: item);
+    refresh(sensor: item);
+    // if (item == "Temperature") refresh(sensor: item);
+    // if (item == "Humidity") refresh(sensor: item);
+    // if (item == "Pressure") refresh(sensor: item);
   }
 
   refresh({String sensor = "Temperature"}) async {
     // await firebaseAuthService.signInAnonymously();
     // return;
-    List<DeviceDataModel> list = await myFirestoreDBservice.getLastdata();
+    List<DeviceDataModel> list;
+    if (kIsWeb)
+      list = await restAPIService.getLast10minRecords();
+    else
+      list = await myFirestoreDBservice.getLastdata();
 
     markers.clear();
     List<LatLng> points = new List<LatLng>();
 
     list.forEach((element) {
-      points.add(LatLng(element.gps.latitude, element.gps.longitude));
       String value = "NULL";
-      String symbol = "" ;
-      if (sensor == "Temperature") {
-        value = element.getTemperature().first.value ;
-        symbol = element.getTemperature().first.metric ;
+      String symbol = "";
+      try {
+        if (sensor == "Temperature") {
+          value = element.getTemperature().first.value;
+          symbol = element.getTemperature().first.metric;
+        }
+        if (sensor == "Humidity") {
+          value = element.getHumidity().first.value;
+          symbol = element.getHumidity().first.metric;
+        }
+        if (sensor == "Pressure") {
+          value = element.getPressure().first.value;
+          symbol = element.getPressure().first.metric;
+        }
+        if (sensor == "CO2") {
+          value = element.getCO2().first.value;
+          symbol = element.getCO2().first.metric;
+        }
+      } catch (e) {
+        print(e.toString());
+        return;
       }
-      if (sensor == "Humidity") {
-        value = element.getHumidity().first.value;
-        symbol = element.getHumidity().first.metric;
-      }
-      markers.add(addMarker(text: value+symbol, point: points.last, color: legendTemperature(double.parse(value).toInt())));
+      points.add(LatLng(element.gps.latitude, element.gps.longitude));
+
+      markers.add(addMarker(text: value + "\n" + symbol, point: points.last, color: legendTemperature(double.parse(value).toInt())));
     });
-
-    LatLngBounds llb = new LatLngBounds.fromPoints(points);
-
-    mapController.fitBounds(llb, options: FitBoundsOptions(padding: EdgeInsets.all(50.0)));
+    if (points.isNotEmpty) {
+      LatLngBounds llb = new LatLngBounds.fromPoints(points);
+      mapController.fitBounds(llb, options: FitBoundsOptions(padding: EdgeInsets.all(50.0)));
+    }
 
     notifyListeners();
   }
@@ -128,7 +153,7 @@ class HomeViewModel extends BaseViewModel {
               ),
             ),
             Center(
-              child: Text(text, style: TextStyle( fontSize: 14.0,color: Colors.white)),
+              child: Text(text, style: TextStyle(fontSize: 13.0, color: Colors.white)),
             )
           ],
         ),

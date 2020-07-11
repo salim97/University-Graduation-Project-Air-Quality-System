@@ -16,15 +16,17 @@ class DeviceDataModel {
     gps = new GPSDataModel.fromJson(json);
     // sensors.removeWhere((value) => value.senses.isEmpty); // remove non existing sensors
   }
-  removeNULLmetric()
-  {
+
+  removeNULLmetric() {
     sensors.removeWhere((value) => value.metric == null); // remove non existing sensors
   }
+
   List<SensorDataModel> getTemperature() {
     List<SensorDataModel> metricDataModel = new List<SensorDataModel>();
 
     sensors.forEach((sensor) {
       if (sensor.metric == "°C") {
+        sensor.value = double.parse(sensor.value).toStringAsFixed(1) ;
         metricDataModel.add(sensor);
       }
     });
@@ -37,6 +39,35 @@ class DeviceDataModel {
 
     sensors.forEach((sensor) {
       if (sensor.metric == "%") {
+        sensor.value = double.parse(sensor.value).toStringAsFixed(1) ;
+        metricDataModel.add(sensor);
+      }
+    });
+
+    return metricDataModel;
+  }
+
+  List<SensorDataModel> getPressure() {
+    List<SensorDataModel> metricDataModel = new List<SensorDataModel>();
+
+    sensors.forEach((sensor) {
+      if (sensor.metric != null) 
+      if (sensor.metric.toLowerCase() == "hpa") {
+        sensor.value = double.parse(sensor.value).toStringAsFixed(1);
+        metricDataModel.add(sensor);
+      }
+    });
+
+    return metricDataModel;
+  }
+
+  List<SensorDataModel> getCO2() {
+    List<SensorDataModel> metricDataModel = new List<SensorDataModel>();
+
+    sensors.forEach((sensor) {
+      if (sensor.metric != null) 
+      if (sensor.metricName.toLowerCase() == "co2") {
+        sensor.value = double.parse(sensor.value).toStringAsFixed(1);
         metricDataModel.add(sensor);
       }
     });

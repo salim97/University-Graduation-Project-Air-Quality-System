@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map/plugin_api.dart';
 import 'package:stacked/stacked.dart';
 import 'home_model.dart';
 import 'package:latlong/latlong.dart';
@@ -131,10 +132,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     screenWidth = MediaQuery.of(context).size.width;
     screenHeight = MediaQuery.of(context).size.height;
-    if (screenWidth > standardWidth) {
+    if (screenWidth > standardWidth && kIsWeb) {
       screenWidth = standardWidth;
     }
-    if (screenHeight > standardHeight) {
+    if (screenHeight > standardHeight && kIsWeb) {
       screenHeight = standardHeight;
     }
 
@@ -332,17 +333,19 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           child: Stack(
             children: <Widget>[
               FlutterMap(
+                
                 mapController: model.mapController,
                 options: MapOptions(
                   center: LatLng(35.691124, -0.618778),
-                  zoom: 14.0,
+                  zoom: 14,
                 ),
                 layers: [
                   TileLayerOptions(
                     urlTemplate: "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
                     subdomains: ['a', 'b', 'c'],
                   ),
-                  MarkerLayerOptions(markers: model.markers)
+                  MarkerLayerOptions(markers: model.markers),
+               
                 ],
               ),
               ExploreWidget(
@@ -357,7 +360,32 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               ExploreContentWidget(
                 currentExplorePercent: currentExplorePercent,
               ),
-
+              //ZOOM IN
+              MapButton(
+                  currentExplorePercent: currentExplorePercent,
+                  currentSearchPercent: currentSearchPercent,
+                  bottom: 243,
+                  offsetX: -71,
+                  width: 71,
+                  height: 71,
+                  isRight: true,
+                  icon: Icons.zoom_in,
+                  onButtonClicked: () {
+                    model.mapController.move(model.mapController.center, model.mapController.zoom+1);
+                  }),
+              //ZOOM OUT
+              MapButton(
+                  currentExplorePercent: currentExplorePercent,
+                  currentSearchPercent: currentSearchPercent,
+                  bottom: 148,
+                  offsetX: -71,
+                  width: 71,
+                  height: 71,
+                  isRight: true,
+                  icon: Icons.zoom_out,
+                  onButtonClicked: () {
+                    model.mapController.move(model.mapController.center, model.mapController.zoom-1);
+                  }),
               //search menu background
               offsetSearch != 0
                   ? Positioned(

@@ -1,4 +1,3 @@
-// https://github.com/dalenguyen/firebase-functions-helper/blob/master/docs/firestore.md
 // to compile ts file into js file
 // npm run build 
 // install dependency
@@ -6,10 +5,13 @@
 // npm install express body-parser jsonschema
 // deploy to firebase
 // firebase deploy --only functions
-
+// npm install cors
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+// https://github.com/dalenguyen/firebase-functions-helper/blob/master/docs/firestore.md
 import * as firebaseHelper from 'firebase-functions-helper/dist';
+
+// const cors = require('cors')({origin: true});
 
 var jsonValidator = require('jsonschema').Validator;
 var validator = new jsonValidator();
@@ -204,7 +206,7 @@ const db = admin.firestore();
 const recordsCollection = "Records";
 const usersCollection = "Users";
 const wirteLimiteRate = (10 * 60) * 1000; // in ms
-const enableWirteLimiteRate = false ;
+const enableWirteLimiteRate = false;
 
 export const accountCreate = functions.auth.user().onCreate(async (user) => {
     console.log(user.toJSON());
@@ -276,26 +278,26 @@ export const addRecord = functions.https.onRequest(async (req, res) => {
             res.status(400).send("User with uid = " + _uid + " doesn't exists ");
             return;
         }
-        if(enableWirteLimiteRate)
-        if (user_lastRecordTimeStamp + wirteLimiteRate > timestamp) {
-            var replyMSG = "you can't write data to DB until ";
-            replyMSG += new Date(user_lastRecordTimeStamp + wirteLimiteRate).toUTCString();
+        if (enableWirteLimiteRate)
+            if (user_lastRecordTimeStamp + wirteLimiteRate > timestamp) {
+                var replyMSG = "you can't write data to DB until ";
+                replyMSG += new Date(user_lastRecordTimeStamp + wirteLimiteRate).toUTCString();
 
-            var delayBetween = user_lastRecordTimeStamp + wirteLimiteRate - timestamp;
-            var date2 = new Date(delayBetween);
-            // Hours part from the timestamp
-            var hours = date2.getHours();
-            // Minutes part from the timestamp
-            var minutes = "0" + date2.getMinutes();
-            // Seconds part from the timestamp
-            var seconds = "0" + date2.getSeconds();
-            // Will display time in 10:30:23 format
-            var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
-            replyMSG += " ( you need to wait "+formattedTime+" to be able to write ) "
+                var delayBetween = user_lastRecordTimeStamp + wirteLimiteRate - timestamp;
+                var date2 = new Date(delayBetween);
+                // Hours part from the timestamp
+                var hours = date2.getHours();
+                // Minutes part from the timestamp
+                var minutes = "0" + date2.getMinutes();
+                // Seconds part from the timestamp
+                var seconds = "0" + date2.getSeconds();
+                // Will display time in 10:30:23 format
+                var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+                replyMSG += " ( you need to wait " + formattedTime + " to be able to write ) "
 
-            res.status(400).send(replyMSG);
-            return;
-        }
+                res.status(400).send(replyMSG);
+                return;
+            }
 
 
         // await firebaseHelper.firestore
@@ -311,12 +313,35 @@ export const addRecord = functions.https.onRequest(async (req, res) => {
         await firebaseHelper.firestore
             .createNewDocument(db, recordsCollection, req.body).then(doc => console.log(doc));
 
-        res.status(201).send("data inserted at "+date.toUTCString());
+        res.status(201).send("data inserted at " + date.toUTCString());
     } catch (error) {
         res.status(400).send(`Error inserting data`)
     }
 });
 
+export const getLast10minRecords = functions.https.onRequest(async (req, res) => {
+
+    if (req.method != "GET") {
+        res.status(401).send("Accept GET Request only");
+        return;
+    }
+
+    const date = new Date();
+    const timestamp = date.getTime();
+
+    // Search for data ( <, <=, ==, >, or >= )
+    const queryArray = [['timestamp', '>', timestamp-wirteLimiteRate]];
+    const orderBy = ['timestamp', 'desc'];
+
+    await firebaseHelper.firestore
+        .queryData(db, recordsCollection, queryArray, orderBy)
+        .then(docs => {
+            res.status(201).set('Access-Control-Allow-Origin', '*').send(docs);;
+        });
+
+
+
+});
 
 export const currentTimeStamp = functions.https.onRequest(async (req, res) => {
     const date = new Date();

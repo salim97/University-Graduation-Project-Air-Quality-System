@@ -14,7 +14,6 @@ import 'ui/screens/localNetwork/localNetwork_view.dart';
 import 'ui/styles/theme_data.dart';
 
 void main() {
-
   setupLocator();
   runApp(MyApp());
 }

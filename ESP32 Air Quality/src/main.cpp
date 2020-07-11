@@ -147,15 +147,11 @@ void sendDataToFirebase() {
 
   String url =
       "https://us-central1-pfe-air-quality.cloudfunctions.net/addRecord";
+
   {
     jsonHeader();
     // you can optimized in the future
     JsonArray Sensors = doc.createNestedArray("Sensors");
-    if (!DHT22_measure(Sensors)) networkBroadcatLog("DHT22 ERROR!", true);
-    delay(10);
-
-    if (!MICS6814_measure(Sensors)) networkBroadcatLog("MICS6814 ERROR!", true);
-    delay(10);
 
     if (!SGP30_measure(Sensors)) networkBroadcatLog("SGP30 ERROR!", true);
     delay(10);
@@ -167,8 +163,15 @@ void sendDataToFirebase() {
     jsonHeader();
     // you can optimized in the future
     JsonArray Sensors = doc.createNestedArray("Sensors");
+    if (!DHT22_measure(Sensors)) networkBroadcatLog("DHT22 ERROR!", true);
+    delay(10);
+
+    if (!MICS6814_measure(Sensors)) networkBroadcatLog("MICS6814 ERROR!", true);
+    delay(10);
+
     if (!BME680_measure(Sensors)) networkBroadcatLog("BME680 ERROR!", true);
     delay(10);
+
     if (!MHZ19_measure(Sensors)) networkBroadcatLog("MHZ19 ERROR!", true);
     delay(10);
 
