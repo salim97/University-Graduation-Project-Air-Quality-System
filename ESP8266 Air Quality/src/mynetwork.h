@@ -1,158 +1,98 @@
 
-// #include <IPAddress.h>
-// #include <WiFiUDP.h>
-// #include <WiFi.h>
+#include <IPAddress.h>
+#include <ESP8266WIFI.h>
+#include <WiFiUDP.h>
 
+/*---------------*/
+// wifi config
+/*----------------*/
+const char *WIFI_AP_SSID = "HNA FI HNA"; // this is fine
+const char *WIFI_AP_PASSWORD = NULL;     // NULL = AP with no password
 
-// //---------------------------------------------------------
-// // UDP packet handler
-// //---------------------------------------------------------
-// IPAddress ipBroadCast;
-// String localIP, remoteIP ;
-// unsigned int udpPort = 5551 ;
+//---------------------------------------------------------
+// UDP/TCP packet handler
+//---------------------------------------------------------
+IPAddress ipBroadCast;
+String localIP, remoteIP;
+char packetBuffer[2048]; // buffer to hold incoming packet,
+
 // unsigned int tcpPort = 5544;  // port input data
-// char packetBuffer[500]; //buffer to hold incoming packet,
-// WiFiUDP  udp; // udp broadcast client
 // WiFiClient client; // tcp client
-// String tcpBuffer, udpBuffer ;
+// String tcpBuffer ;
 
+unsigned int udpPort = 9876;
+WiFiUDP udp; // udp broadcast client
+String udpBuffer;
 
-// /*---------------*/
-// // wifi config
-// /*----------------*/
-// char* ssid = "r2"; //"DJAWEB_1CE0" ; //"DJAWEB_1CE0";
-// char* password = "qt2016c++"; //"123412341234" ;
+String _jsonOutput;
+DynamicJsonDocument _doc(2048);
 
+void init_udp() {
+  ipBroadCast = WiFi.localIP();
+  ipBroadCast[3] = 255;
+  udp.begin(udpPort); // set udp port for listen...
+  localIP += String(WiFi.localIP()[0]);
+  localIP += +"." + String(WiFi.localIP()[1]);
+  localIP += +"." + String(WiFi.localIP()[2]);
+  localIP += +"." + String(WiFi.localIP()[3]);
+}
 
+String readAllUDP() {
+  int packetSize = udp.parsePacket();
+  udpBuffer = "";
+  if (packetSize) {
+    // read the packet into packetBufffer
+    udp.read(packetBuffer, 2048);
+    udpBuffer = String(packetBuffer);
 
-// bool mynetwork_init()
-// {
-//   //start connecting to wifi....
-//   WiFi.begin(ssid,password);
-//   // wait untill esp8266 connected to wifi...
-//   while(WiFi.status()!=WL_CONNECTED)
-//   {
-//     Serial.print(".");
-//     delay(500);
-//   }
-//   // debuging ...
-//    Serial.println("");
-//    Serial.print("IP Address: ");
-//    Serial.println(WiFi.localIP()); // todo: config ip broadcast
+    for (int i = 0; i < packetSize; i++)
+      packetBuffer[i] = 0;
+    Serial.println("readAllUDP: " + udpBuffer);
+  }
 
-//   ipBroadCast = WiFi.localIP() ;
-//   ipBroadCast[3] = 255;
-//   udp.begin(udpPort); // set udp port for listen...
-//   localIP +=       String(WiFi.localIP()[0]) ;
-//   localIP += +"."+ String(WiFi.localIP()[1]) ;
-//   localIP += +"."+ String(WiFi.localIP()[2]) ;
-//   localIP += +"."+ String(WiFi.localIP()[3]) ;
+  return udpBuffer;
+}
 
-//   return true ;
-// }
+void sendUDP(String msg) {
+  if (msg.length() == 0) return;
 
-// String mynetwork_localIP()
-// {
-//   return  localIP;
-// }
+  msg += " ";
+  // convert string to char array
+  int UDP_PACKET_SIZE = msg.length();
+  uint8_t tmpBuffer[UDP_PACKET_SIZE - 1];
+  // msg.toCharArray(tmpBuffer, UDP_PACKET_SIZE) ;
+  for (int i = 0; i < UDP_PACKET_SIZE; i++)
+    tmpBuffer[i] = msg[i];
+  //// send msg broadcast to port destinie
+  udp.beginPacket(ipBroadCast, udpPort);
+  udp.write(tmpBuffer, UDP_PACKET_SIZE);
+  udp.endPacket();
+  memset(tmpBuffer, 0, UDP_PACKET_SIZE);
+  // Serial.println("sendUDP: "+msg) ;
+  // Serial.println(localIP+" sendUDP: "+msg) ;
 
-// String readAllUDP()
-// {
-//   int packetSize = udp.parsePacket();
-//   udpBuffer = "";
-//   if(packetSize)
-//   {
-//     // read the packet into packetBufffer
-//     udp.read(packetBuffer,500);
-//     udpBuffer = String(packetBuffer) ;
+  // Serial.println(jsonOutput) ;
+}
 
-//     for (int i =0; i < packetSize; i++)
-//     packetBuffer[i]= 0;
-//     // Serial.println("readAllUDP: "+udpBuffer) ;
-//   }
+String upTimeToString() {
+  static char str[12];
+  unsigned long t = millis() /1000 ;
+  long h = t / 3600;
+  t = t % 3600;
+  int m = t / 60;
+  int s = t % 60;
+  sprintf(str, "%04ld:%02d:%02d", h, m, s);
+  return str;
+}
 
-//   return udpBuffer ;
-// }
+void networkBroadcatLog(String msg, bool isError = false) {
+  _doc.clear();
+  _jsonOutput.clear();
+  _doc["ip"] = localIP;
+  _doc["upTime"] = upTimeToString();
+  _doc["msg"] = msg;
+  _doc["isError"] = isError;
+  serializeJson(_doc, _jsonOutput);
+  sendUDP(_jsonOutput);
+}
 
-// String readAllTCP()
-// {
-//   tcpBuffer = "" ;
-//   if (client.connected())
-//   {
-//     if(client.available())
-//     {
-//       while(client.available())
-//       {
-//         char c = client.read();
-//         tcpBuffer += c ;
-
-//       }
-
-//       // Serial.println("readAllTCP: "+tcpBuffer) ;
-//     }
-//   }
-
-//   return tcpBuffer ;
-// }
-
-// bool connectToHost(String ip)
-// {
-//   if( ip == remoteIP )
-//     if(client.connected())
-//       return true ;
-
-//   remoteIP= ip ;
-//   byte parts[4] = {0, 0, 0, 0};
-//   int part = 0 ;
-//   for ( int i = 0 ; i < ip.length() ; i++)
-//   {
-//     char c = ip[i];
-//     if ( c == '.' )
-//     {
-//       part++;
-//       continue ;
-//     }
-//     parts[part] *= 10 ;
-//     parts[part] += c - '0';
-//   }
-
-//   client.stop();
-//   return client.connect(parts, tcpPort) ;
-// }
-// String ipToString(IPAddress ip)
-// {
-//     return String(ip[0])+"."+String(ip[1])+"."+String(ip[2])+"."+String(ip[3]) ;
-// }
-// bool isConnected()
-// {
-//   return client.connected();
-// }
-
-// void sendUDP(String msg)
-// {
-//   if(msg.length() == 0 ) return ;
-
-//   msg += " " ;
-//   // convert string to char array
-//   int UDP_PACKET_SIZE = msg.length();
-//   uint8_t  tmpBuffer[UDP_PACKET_SIZE-1] ;
-//   //msg.toCharArray(tmpBuffer, UDP_PACKET_SIZE) ;
-//   for(int i = 0 ; i < UDP_PACKET_SIZE ; i++)
-//     tmpBuffer[i] = msg[i] ;
-//   //// send msg broadcast to port destinie
-//   udp.beginPacket(ipBroadCast, udpPort);
-//   udp.write(tmpBuffer, UDP_PACKET_SIZE);
-//   udp.endPacket();
-// memset(tmpBuffer, 0, UDP_PACKET_SIZE);
-//   //// Serial.println("sendUDP: "+msg) ;
-// }
-
-// // it should be bool and not void because TCP ....
-// void sendTCP(String msg)
-// {
-//   if(msg.length() == 0 ) return ;
-//   if(isConnected())
-//     client.print(msg);
-
-//   // Serial.println("sendTCP: "+msg) ;
-// }

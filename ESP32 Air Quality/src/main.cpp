@@ -8,11 +8,6 @@
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 
-// // Include the SSL client
-// #include <WiFiClientSecure.h>
-
-WiFiClient client;
-
 #include <Ticker.h> //Ticker Library
 
 #include "sensors/BME680.h"
@@ -137,8 +132,6 @@ void loop() {
 }
 
 void blink_LED() {
-  // digitalWrite(BUILTIN_LED, !(digitalRead(BUILTIN_LED))); //Invert Current
-  // State of LED
   digitalWrite(LED_BUILTIN,
                !(digitalRead(LED_BUILTIN))); // Invert Current State of LED
 }
@@ -225,6 +218,7 @@ bool httpPOST(String url, String body) {
                    // ....
   }
   delay(1000);
+  return true;
 }
 
 void jsonHeader() {

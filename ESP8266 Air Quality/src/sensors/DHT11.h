@@ -1,7 +1,6 @@
 #include <ArduinoJson.h>
 #include <DHT.h>
 #include <DHT_U.h>
-#include <Wire.h>
 
 #define DHTPIN D3 // Digital pin connected to the DHT sensor
 // #define DHTTYPE DHT11 // DHT 11
@@ -50,9 +49,8 @@ void DHT11_init() {
   Serial.println(F("%"));
   Serial.println(F("------------------------------------"));
 }
-// DynamicJsonDocument doc(2048);
 
-void DHT11_measure(JsonArray &Sensors) {
+bool DHT11_measure(JsonArray &Sensors) {
   Serial.println("============= DHT11 =============");
 
   sensors_event_t event;
@@ -60,7 +58,7 @@ void DHT11_measure(JsonArray &Sensors) {
   dht11.temperature().getEvent(&event);
   if (isnan(event.temperature)) {
     Serial.println(F("Error reading temperature :("));
-    return;
+    return false;
   }
 
   {
@@ -76,7 +74,7 @@ void DHT11_measure(JsonArray &Sensors) {
   dht11.humidity().getEvent(&event);
   if (isnan(event.relative_humidity)) {
     Serial.println(F("Error reading humidity :("));
-    return;
+    return false;
   }
 
   {
@@ -87,4 +85,5 @@ void DHT11_measure(JsonArray &Sensors) {
     Sensors_0["metric"] = "%";
     Sensors_0["isCalibrated"] = true;
   }
+  return true ;
 }
