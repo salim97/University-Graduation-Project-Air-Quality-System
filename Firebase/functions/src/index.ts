@@ -258,7 +258,7 @@ export const addRecord = functions.https.onRequest(async (req, res) => {
         const timestamp = date.getTime();
         // console.log(timestamp);
         req.body["timestamp"] = timestamp;
-
+        if (req.body["Sensors"].length == 0) res.status(400).send("Sensors array is empty ");
         var userExists = false;
         var user_lastRecordTimeStamp = 0;
         await firebaseHelper.firestore
@@ -330,7 +330,7 @@ export const getLast10minRecords = functions.https.onRequest(async (req, res) =>
     const timestamp = date.getTime();
 
     // Search for data ( <, <=, ==, >, or >= )
-    const queryArray = [['timestamp', '>', timestamp-wirteLimiteRate]];
+    const queryArray = [['timestamp', '>', timestamp - wirteLimiteRate]];
     const orderBy = ['timestamp', 'desc'];
 
     await firebaseHelper.firestore

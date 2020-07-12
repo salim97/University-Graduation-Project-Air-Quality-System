@@ -1,5 +1,7 @@
 // https://arduinojson.org/v6/assistant/
-
+// https://randomnerdtutorials.com/esp32-dual-core-arduino-ide/
+// https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/freertos-smp.html
+// https://esp32.com/viewtopic.php?t=1703
 // #include "NTPClient.h"
 #include <Arduino.h>
 // #include <WiFi.h>
@@ -25,7 +27,7 @@
 #include <ESPAsyncWiFiManager.h> //https://github.com/tzapu/WiFiManager
 #include <esp_wifi.h>
 
-String jsonOutput;
+
 String jsonOutputAllsensors;
 String jsonOutputMTU1;
 String jsonOutputMTU2;
@@ -121,7 +123,7 @@ void Task1code(void *parameter) {
       JsonArray Sensors = doc.createNestedArray("Sensors");
 
       mySGP30.toJSON(Sensors);
-      myBME680.toJSON(Sensors);
+      myDHT22.toJSON(Sensors);
       myMHZ19.toJSON(Sensors);
       myMICS6814.toJSON(Sensors);
 
@@ -136,7 +138,7 @@ void Task1code(void *parameter) {
       // getting data and convert it into JSON
       JsonArray Sensors = doc.createNestedArray("Sensors");
 
-      myDHT22.toJSON(Sensors);
+      myBME680.toJSON(Sensors);
 
       portENTER_CRITICAL(&myMutex);
       jsonOutputMTU2.clear();
@@ -154,7 +156,7 @@ void Task2code(void *parameter) {
   Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
   Serial.println("Waiting for flag from Core " + String(xPortGetCoreID()));
 
-  delay(15 * 1000);
+  delay(20 * 1000);
 
   {
     // WiFiManager
@@ -263,14 +265,14 @@ void sendDataToLocalNetwork() {
 }
 
 void sendDataToFirebase() {
-  if (jsonOutputMTU1.isEmpty()) return;
-  if (jsonOutputMTU2.isEmpty()) return;
+  while (jsonOutputMTU1.isEmpty()) ;
+  while (jsonOutputMTU2.isEmpty()) ;
   String url =
       "https://us-central1-pfe-air-quality.cloudfunctions.net/addRecord";
 
-  httpPOST(url, jsonOutputMTU1);
+  while(!httpPOST(url, jsonOutputMTU1));
 
-  httpPOST(url, jsonOutputMTU2);
+  while(!httpPOST(url, jsonOutputMTU2));
 }
 
 bool httpPOST(String url, String body) {
@@ -291,27 +293,31 @@ bool httpPOST(String url, String body) {
         Serial.println("Status code : " + String(httpCode));
         Serial.println("request body : " + body);
         clientHTTP.end();
-        if (httpCode > 400) {
+        if (httpCode >= 400) {
           delay(15 * 1000);
-          ESP.restart();
+          return false ;
+          // ESP.restart();
         }
       } else {
         Serial.println("Error on HTTP request");
         Serial.println(clientHTTP.errorToString(httpCode));
         delay(5 * 1000);
-        ESP.restart(); // TODO: send msg + err in local network before
+        return false ;
+        // ESP.restart(); // TODO: send msg + err in local network before
         // restarting
         // ....
       }
     } else {
       Serial.printf("[HTTP] Unable to connect");
       Serial.printf(url.c_str());
-      ESP.restart();
+      return false ;
+      // ESP.restart();
     }
 
   } else {
     Serial.println("WiFi.status() == WL_CONNECTED, no WiFi");
-    ESP.restart(); // TODO: send msg + err in local network before restarting
+    return false ;
+    // ESP.restart(); // TODO: send msg + err in local network before restarting
                    // ....
   }
   delay(1000);
