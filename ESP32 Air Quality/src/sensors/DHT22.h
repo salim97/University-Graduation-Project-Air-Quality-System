@@ -8,17 +8,19 @@
 DHT_Unified dht(DHTPIN, DHTTYPE);
 class MyDHT22 {
 private:
-  sensors_event_t event;
+  sensors_event_t event1, event2;
   bool debug = false;
-  bool internalError = false;
+  uint32_t delayMS;
 
 public:
   MyDHT22() {
     dht.begin();
     Serial.println(F("DHT22"));
-
+     event2.relative_humidity =0;
+     event1.temperature =0;
+    sensor_t sensor;
     if (debug) {
-      sensor_t sensor;
+
       // Print temperature sensor details.
       dht.temperature().getSensor(&sensor);
       Serial.println(F("------------------------------------"));
@@ -59,38 +61,43 @@ public:
       Serial.println(F("%"));
       Serial.println(F("------------------------------------"));
     }
+    dht.humidity().getSensor(&sensor);
+    // Set delay between sensor readings based on sensor details.
+    delayMS = sensor.min_delay / 1000;
   }
 
   bool doMeasure() {
     Serial.println("============= DHT22 =============");
-    internalError = false;
+
+    // Delay between measurements.
+    delay(delayMS);
+    sensors_event_t event;
     // Get temperature event
     dht.temperature().getEvent(&event);
     if (isnan(event.temperature)) {
       Serial.println(F("Error reading temperature :("));
-      internalError = true;
       return false;
     }
+      event1.temperature = event.temperature;
 
     // Get humidity event
     dht.humidity().getEvent(&event);
     if (isnan(event.relative_humidity)) {
       Serial.println(F("Error reading humidity :("));
-      internalError = true;
       return false;
     }
+      event2.relative_humidity = event.relative_humidity;
 
     return true;
   }
 
   void toJSON(JsonArray &Sensors) {
-    if (internalError) return;
-    
+
     {
       JsonObject Sensors_0 = Sensors.createNestedObject();
       Sensors_0["sensor"] = "DHT22";
       Sensors_0["name"] = "Temperature";
-      Sensors_0["value"] = event.temperature;
+      Sensors_0["value"] = event1.temperature;
       Sensors_0["metric"] = "°C";
       Sensors_0["isCalibrated"] = true;
     }
@@ -98,7 +105,7 @@ public:
       JsonObject Sensors_0 = Sensors.createNestedObject();
       Sensors_0["sensor"] = "DHT22";
       Sensors_0["name"] = "Humidity";
-      Sensors_0["value"] = event.relative_humidity;
+      Sensors_0["value"] = event2.relative_humidity;
       Sensors_0["metric"] = "%";
       Sensors_0["isCalibrated"] = true;
     }

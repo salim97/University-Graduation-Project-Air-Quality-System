@@ -93,13 +93,18 @@ void Task1code(void *parameter) {
     if (!mySGP30.doMeasure()) networkBroadcatLog("SGP30 ERROR!", true);
     delay(10);
 
+    // {
+    //   JsonArray Sensors = doc.createNestedArray("Sensors");
+    //   myDHT22.toJSON(Sensors);
+    //   serializeJsonPretty(doc, Serial);
+    // }
     {
       jsonHeader();
       // getting data and convert it into JSON
       JsonArray Sensors = doc.createNestedArray("Sensors");
 
+      myDHT22.toJSON(Sensors);
       myBME680.toJSON(Sensors);
-      // myDHT22.toJSON(Sensors);
       myMHZ19.toJSON(Sensors);
       myMICS6814.toJSON(Sensors);
       mySGP30.toJSON(Sensors);
@@ -115,7 +120,7 @@ void Task1code(void *parameter) {
       // getting data and convert it into JSON
       JsonArray Sensors = doc.createNestedArray("Sensors");
 
-      myDHT22.toJSON(Sensors);
+      mySGP30.toJSON(Sensors);
       myBME680.toJSON(Sensors);
       myMHZ19.toJSON(Sensors);
       myMICS6814.toJSON(Sensors);
@@ -131,7 +136,7 @@ void Task1code(void *parameter) {
       // getting data and convert it into JSON
       JsonArray Sensors = doc.createNestedArray("Sensors");
 
-      mySGP30.toJSON(Sensors);
+      myDHT22.toJSON(Sensors);
 
       portENTER_CRITICAL(&myMutex);
       jsonOutputMTU2.clear();
@@ -144,7 +149,8 @@ void Task1code(void *parameter) {
 }
 
 void Task2code(void *parameter) {
-
+  // while (true) {
+  // };
   Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
   Serial.println("Waiting for flag from Core " + String(xPortGetCoreID()));
 

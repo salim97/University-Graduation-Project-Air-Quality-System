@@ -21,6 +21,9 @@ class DeviceTile extends StatefulWidget {
 }
 
 class _DeviceTileState extends State<DeviceTile> {
+  bool isChartOpen = false;
+  int chartSample = 5;
+
   Widget _buildHeader() {
     return new ListTile(
       key: new ValueKey(widget.sensors.first.timeStamp),
@@ -74,7 +77,6 @@ class _DeviceTileState extends State<DeviceTile> {
     );
   }
 
-  bool isChartOpen = false;
   Widget build(BuildContext context) {
     var children = <Widget>[
       _buildHeader(),
@@ -86,7 +88,7 @@ class _DeviceTileState extends State<DeviceTile> {
         //   children.add(_buildDataCard(element.name, element.value, element.symbol, element.getIcon()));
         // });
 
-        if (sensor.values != null&&isChartOpen) {
+        if (sensor.values != null && isChartOpen) {
           List<double> abc = new List<double>();
           sensor.values.forEach((element) {
             if (!element.contains("."))
@@ -94,8 +96,8 @@ class _DeviceTileState extends State<DeviceTile> {
             else
               abc.add(double.parse(element));
           });
-          while (abc.length > 3) abc.removeLast();
-          
+          // while (abc.length > chartSample) abc.removeAt(0);
+
           children.add(Padding(
             padding: const EdgeInsets.all(8.0),
             child: Sparkline(
