@@ -26,9 +26,7 @@ class LocalNetworkView extends StatelessWidget {
         body: DeviceTileList(
           model.devices,
           onHistoryDataTap: (SensorDataModel device) {
-            // Navigator
-            //     .of(context)
-            //     .push(MaterialPageRoute(builder: (_) => DeviceChartPage(device)));
+            
           },
         ),
       ),

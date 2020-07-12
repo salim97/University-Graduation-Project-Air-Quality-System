@@ -81,7 +81,7 @@ String upTimeToString() {
   t = t % 3600;
   int m = t / 60;
   int s = t % 60;
-  sprintf(str, "%04ld:%02d:%02d", h, m, s);
+  sprintf(str, "[ %04ld:%02d:%02d ]", h, m, s);
   return str;
 }
 
@@ -92,7 +92,8 @@ void networkBroadcatLog(String msg, bool isError = false) {
   _doc["upTime"] = upTimeToString();
   _doc["msg"] = msg;
   _doc["isError"] = isError;
-  serializeJson(_doc, _jsonOutput);
-  sendUDP(_jsonOutput);
+  serializeJsonPretty(_doc, Serial);
+  // serializeJson(_doc, _jsonOutput);
+  // sendUDP(_jsonOutput);
 }
 

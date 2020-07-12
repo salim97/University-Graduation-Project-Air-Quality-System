@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'package:air_quality_system/datamodels/device_dataModel.dart';
+import 'package:air_quality_system/datamodels/sensor_datamodel.dart';
 import 'package:get_ip/get_ip.dart';
 import 'package:stacked/stacked.dart';
 import 'dart:convert';
@@ -8,11 +11,35 @@ import 'dart:convert';
 class LocalNetworkViewModel extends BaseViewModel {
   DeviceDataModel devices = new DeviceDataModel();
   RawDatagramSocket socket;
-  String phoneIPaddress ;
+  String phoneIPaddress;
   // @override
   void initState() async {
     print("=================== initState ");
-    
+    // const oneSec = const Duration(seconds: 1);
+    // new Timer.periodic(oneSec, (Timer t) {
+    //   print("timeout");
+    //   int newValue = Random().nextInt(100);
+    //   //     devices.sensors.add(SensorDataModel(
+    //   //   sensorName: "DHT22",
+    //   //   value: newValue.toString(),
+    //   //   metric: "°C",
+    //   //   metricName: "Calibrated",
+    //   //  ));
+    //   devices.sensors[0].values.add(newValue.toString());
+    //   if(devices.sensors[0].values.length > 20 ) devices.sensors[0].values.removeAt(0);
+      
+    //   notifyListeners();
+    // });
+    // devices.sensors.add(SensorDataModel(
+    //     sensorName: "DHT22",
+    //     value: "27.5",
+    //     metric: "°C",
+    //     metricName: "Temperature",
+    //     values: ["27.5"]
+    //    ));
+    // devices.sensors.add(SensorDataModel(sensorName: "DHT22", value: "80", metric: "%", metricName: "Humidity"));
+    // devices.sensors.add(SensorDataModel(sensorName: "DHT22", value: "27.5", metric: "°C", metricName: "Temperature"));
+    // devices.sensors.add(SensorDataModel(sensorName: "DHT22", value: "27.5", metric: "°C", metricName: "Calibrated"));
     phoneIPaddress = await GetIp.ipAddress;
     RawDatagramSocket.bind(InternetAddress.anyIPv4, 9876).then((RawDatagramSocket socket) {
       print('Datagram socket ready to receive');
@@ -28,7 +55,7 @@ class LocalNetworkViewModel extends BaseViewModel {
         print('Datagram from ${d.address.address}:${d.port}: ${message}');
         if (!isJSON(message)) return;
         Map<String, dynamic> _json = json.decode(message);
-        if (phoneIPaddress == d.address.address ) return ;
+        if (phoneIPaddress == d.address.address) return;
 
         devices.fromJson(_json);
         devices.removeNULLmetric();

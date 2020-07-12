@@ -7,11 +7,23 @@ class DeviceDataModel {
   int timeStamp;
   List<SensorDataModel> sensors = new List<SensorDataModel>();
   GPSDataModel gps;
+
   fromJson(Map<dynamic, dynamic> json) {
-    sensors.clear();
+    // sensors.clear();
+
     List<dynamic> list = json["Sensors"];
     list.forEach((element) {
-      sensors.add(new SensorDataModel.fromJson(element));
+      bool alreadyExist = false;
+      SensorDataModel newElement = SensorDataModel.fromJson(element);
+      for (int i = 0; i < sensors.length; i++) {
+        if (newElement.uid() == sensors[i].uid()) {
+          sensors[i].value = newElement.value;
+          sensors[i].values.add(newElement.value);
+          sensors[i].updateTimeStamp();
+          alreadyExist = true ;
+        }
+      }
+      if (!alreadyExist) sensors.add(newElement);
     });
     gps = new GPSDataModel.fromJson(json);
     // sensors.removeWhere((value) => value.senses.isEmpty); // remove non existing sensors
@@ -26,7 +38,7 @@ class DeviceDataModel {
 
     sensors.forEach((sensor) {
       if (sensor.metric == "°C") {
-        sensor.value = double.parse(sensor.value).toStringAsFixed(1) ;
+        sensor.value = double.parse(sensor.value).toStringAsFixed(1);
         metricDataModel.add(sensor);
       }
     });
@@ -39,7 +51,7 @@ class DeviceDataModel {
 
     sensors.forEach((sensor) {
       if (sensor.metric == "%") {
-        sensor.value = double.parse(sensor.value).toStringAsFixed(1) ;
+        sensor.value = double.parse(sensor.value).toStringAsFixed(1);
         metricDataModel.add(sensor);
       }
     });
@@ -51,8 +63,7 @@ class DeviceDataModel {
     List<SensorDataModel> metricDataModel = new List<SensorDataModel>();
 
     sensors.forEach((sensor) {
-      if (sensor.metric != null) 
-      if (sensor.metric.toLowerCase() == "hpa") {
+      if (sensor.metric != null) if (sensor.metric.toLowerCase() == "hpa") {
         sensor.value = double.parse(sensor.value).toStringAsFixed(1);
         metricDataModel.add(sensor);
       }
@@ -65,8 +76,7 @@ class DeviceDataModel {
     List<SensorDataModel> metricDataModel = new List<SensorDataModel>();
 
     sensors.forEach((sensor) {
-      if (sensor.metric != null) 
-      if (sensor.metricName.toLowerCase() == "co2") {
+      if (sensor.metric != null) if (sensor.metricName.toLowerCase() == "co2") {
         sensor.value = double.parse(sensor.value).toStringAsFixed(1);
         metricDataModel.add(sensor);
       }

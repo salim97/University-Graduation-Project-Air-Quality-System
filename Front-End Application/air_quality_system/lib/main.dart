@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
       navigatorKey: locator<NavigationService>().navigatorKey,
       theme: ThemeScheme.light(),
       // initialRoute: Routes.startupViewRoute,
-      home: HomeView(),
+      home: LocalNetworkView(),
     );
   }
 }

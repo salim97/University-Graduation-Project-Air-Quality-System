@@ -4,6 +4,7 @@ import 'package:air_quality_system/datamodels/device_dataModel.dart';
 
 import 'package:air_quality_system/datamodels/sensor_datamodel.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sparkline/flutter_sparkline.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class DeviceTile extends StatelessWidget {
@@ -72,21 +73,40 @@ class DeviceTile extends StatelessWidget {
       _buildHeader(),
     ];
     if (expanded) {
-        children.add(_buildDataCard(sensor.metricName, sensor.value, sensor.metric, sensor.getIcon()));
+      children.add(_buildDataCard(sensor.metricName, sensor.value, sensor.metric, sensor.getIcon()));
       // sensor.senses.forEach((element) {
       //   children.add(_buildDataCard(element.name, element.value, element.symbol, element.getIcon()));
       // });
-      children.add(Container(
-        alignment: Alignment.center,
-        margin: EdgeInsets.all(4.0),
-        child: FlatButton.icon(
-          icon: const Icon(Icons.timeline),
-          color: Colors.green,
-          textColor: Colors.white,
-          label: const Text('See historical data'),
-          onPressed: this.onHistoryDataTap,
-        ),
-      ));
+      if (sensor.values != null ) {
+
+        List<double> abc = new List<double>();
+        sensor.values.forEach((element) {
+          if (!element.contains("."))
+            abc.add(int.parse(element).toDouble());
+          else
+            abc.add(double.parse(element));
+        });
+        // if(abc.length > 2)
+        children.add(Sparkline(
+          data: abc,
+          lineWidth: 3.0,
+          pointColor: Colors.black,
+          pointSize: 8.0,
+          pointsMode: PointsMode.last,
+          lineColor: Colors.green,
+        ));
+      }
+      // children.add(Container(
+      //   alignment: Alignment.center,
+      //   margin: EdgeInsets.all(4.0),
+      //   child: FlatButton.icon(
+      //     icon: const Icon(Icons.timeline),
+      //     color: Colors.green,
+      //     textColor: Colors.white,
+      //     label: const Text('See historical data'),
+      //     onPressed: this.onHistoryDataTap,
+      //   ),
+      // ));
     }
     return Container(
       margin: EdgeInsets.all(4.0),
@@ -117,7 +137,7 @@ class _DeviceTileListState extends State<DeviceTileList> {
     super.initState();
     setState(() {
       widget.devices.sensors.forEach((element) {
-        expanded[element.metricName] = true;
+        expanded[element.uid()] = true;
       });
     });
   }
@@ -129,17 +149,17 @@ class _DeviceTileListState extends State<DeviceTileList> {
         SensorDataModel sensor = this.widget.devices.sensors[index];
         if (expanded.isEmpty)
           widget.devices.sensors.forEach((element) {
-            expanded[element.metricName] = true;
+            expanded[element.uid()] = true;
           });
         return DeviceTile(
           sensor,
-          expanded: expanded[sensor.metricName],
+          expanded: expanded[sensor.uid()],
           onHistoryDataTap: () {
-            this.widget.onHistoryDataTap(sensor);
+            // this.widget.onHistoryDataTap(sensor);
           },
           onTap: () {
             setState(() {
-              expanded[sensor.metricName] = !expanded[sensor.metricName];
+              expanded[sensor.uid()] = !expanded[sensor.uid()];
               if (selectedIndex == index) {
                 selectedIndex = -1;
               } else {
