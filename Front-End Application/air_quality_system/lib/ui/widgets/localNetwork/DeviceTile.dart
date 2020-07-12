@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math';
 
 import 'package:air_quality_system/datamodels/device_dataModel.dart';
@@ -7,22 +8,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sparkline/flutter_sparkline.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
-class DeviceTile extends StatelessWidget {
-  DeviceTile(this.sensor, {this.expanded, this.onTap, this.onHistoryDataTap});
+class DeviceTile extends StatefulWidget {
+  DeviceTile(this.sensors, {this.expanded, this.onTap, this.onHistoryDataTap});
 
-  final SensorDataModel sensor;
+  final List<SensorDataModel> sensors;
   final GestureTapCallback onTap;
   final GestureTapCallback onHistoryDataTap;
   final bool expanded;
 
+  @override
+  _DeviceTileState createState() => _DeviceTileState();
+}
+
+class _DeviceTileState extends State<DeviceTile> {
   Widget _buildHeader() {
     return new ListTile(
-      key: new ValueKey(sensor.timeStamp),
-      title: new Text(sensor.sensorName, style: TextStyle(fontWeight: FontWeight.w500)),
-      subtitle: new Text(sensor.timeStamp),
+      key: new ValueKey(widget.sensors.first.timeStamp),
+      title: new Text(widget.sensors.first.sensorName, style: TextStyle(fontWeight: FontWeight.w500)),
+      subtitle: new Text(widget.sensors.first.timeStamp),
       leading: const Icon(MdiIcons.developerBoard, size: 36.0),
-      trailing: new Icon(this.expanded ? Icons.arrow_drop_up : Icons.arrow_drop_down, size: 36.0),
-      onTap: this.onTap,
+      trailing: new Icon(this.widget.expanded ? Icons.arrow_drop_up : Icons.arrow_drop_down, size: 36.0),
+      onTap: this.widget.onTap,
     );
   }
 
@@ -68,46 +74,57 @@ class DeviceTile extends StatelessWidget {
     );
   }
 
+  bool isChartOpen = false;
   Widget build(BuildContext context) {
     var children = <Widget>[
       _buildHeader(),
     ];
-    if (expanded) {
-      children.add(_buildDataCard(sensor.metricName, sensor.value, sensor.metric, sensor.getIcon()));
-      // sensor.senses.forEach((element) {
-      //   children.add(_buildDataCard(element.name, element.value, element.symbol, element.getIcon()));
-      // });
-      if (sensor.values != null ) {
+    widget.sensors.forEach((sensor) {
+      if (widget.expanded) {
+        children.add(_buildDataCard(sensor.metricName, sensor.value, sensor.metric, sensor.getIcon()));
+        // sensor.senses.forEach((element) {
+        //   children.add(_buildDataCard(element.name, element.value, element.symbol, element.getIcon()));
+        // });
 
-        List<double> abc = new List<double>();
-        sensor.values.forEach((element) {
-          if (!element.contains("."))
-            abc.add(int.parse(element).toDouble());
-          else
-            abc.add(double.parse(element));
-        });
-        // if(abc.length > 2)
-        children.add(Sparkline(
-          data: abc,
-          lineWidth: 3.0,
-          pointColor: Colors.black,
-          pointSize: 8.0,
-          pointsMode: PointsMode.last,
-          lineColor: Colors.green,
-        ));
+        if (sensor.values != null&&isChartOpen) {
+          List<double> abc = new List<double>();
+          sensor.values.forEach((element) {
+            if (!element.contains("."))
+              abc.add(int.parse(element).toDouble());
+            else
+              abc.add(double.parse(element));
+          });
+          while (abc.length > 3) abc.removeLast();
+          
+          children.add(Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Sparkline(
+              data: abc,
+              lineWidth: 3.0,
+              pointColor: Colors.black,
+              pointSize: 8.0,
+              pointsMode: PointsMode.last,
+              lineColor: Colors.green,
+            ),
+          ));
+        }
       }
-      // children.add(Container(
-      //   alignment: Alignment.center,
-      //   margin: EdgeInsets.all(4.0),
-      //   child: FlatButton.icon(
-      //     icon: const Icon(Icons.timeline),
-      //     color: Colors.green,
-      //     textColor: Colors.white,
-      //     label: const Text('See historical data'),
-      //     onPressed: this.onHistoryDataTap,
-      //   ),
-      // ));
-    }
+    });
+    children.add(Container(
+      alignment: Alignment.center,
+      margin: EdgeInsets.all(4.0),
+      child: FlatButton.icon(
+        icon: const Icon(Icons.timeline),
+        color: Colors.green,
+        textColor: Colors.white,
+        label: const Text('See historical data'),
+        onPressed: () {
+          setState(() {
+            isChartOpen = !isChartOpen;
+          });
+        },
+      ),
+    ));
     return Container(
       margin: EdgeInsets.all(4.0),
       child: Padding(
@@ -135,31 +152,36 @@ class _DeviceTileListState extends State<DeviceTileList> {
 
   void initState() {
     super.initState();
+    Map<String, List<SensorDataModel>> newSensors = this.widget.devices.regroupSensorsByName();
+
     setState(() {
-      widget.devices.sensors.forEach((element) {
-        expanded[element.uid()] = true;
+      newSensors.values.forEach((element) {
+        expanded[element.first.uid()] = true;
       });
     });
   }
 
   Widget build(BuildContext context) {
+    Map<String, List<SensorDataModel>> newSensors = this.widget.devices.regroupSensorsByName();
+
     return new ListView.builder(
-      itemCount: this.widget.devices.sensors.length,
+      itemCount: newSensors.keys.length,
       itemBuilder: (BuildContext context, int index) {
-        SensorDataModel sensor = this.widget.devices.sensors[index];
+        List<SensorDataModel> sensor = newSensors.values.elementAt(index);
         if (expanded.isEmpty)
           widget.devices.sensors.forEach((element) {
             expanded[element.uid()] = true;
           });
+
         return DeviceTile(
           sensor,
-          expanded: expanded[sensor.uid()],
+          expanded: expanded[sensor.first.uid()],
           onHistoryDataTap: () {
             // this.widget.onHistoryDataTap(sensor);
           },
           onTap: () {
             setState(() {
-              expanded[sensor.uid()] = !expanded[sensor.uid()];
+              expanded[sensor.first.uid()] = !expanded[sensor.first.uid()];
               if (selectedIndex == index) {
                 selectedIndex = -1;
               } else {

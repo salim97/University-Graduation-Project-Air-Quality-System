@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:air_quality_system/datamodels/GPS_dataModel.dart';
 
 import 'sensor_datamodel.dart';
@@ -20,7 +22,7 @@ class DeviceDataModel {
           sensors[i].value = newElement.value;
           sensors[i].values.add(newElement.value);
           sensors[i].updateTimeStamp();
-          alreadyExist = true ;
+          alreadyExist = true;
         }
       }
       if (!alreadyExist) sensors.add(newElement);
@@ -31,6 +33,25 @@ class DeviceDataModel {
 
   removeNULLmetric() {
     sensors.removeWhere((value) => value.metric == null); // remove non existing sensors
+  }
+
+  Map<String, List<SensorDataModel>> regroupSensorsByName() {
+    Map<String, List<SensorDataModel>> newSensors = new Map<String, List<SensorDataModel>>();
+
+    List<String> arr = List<String>();
+    sensors.forEach((element) {
+      arr.add(element.sensorName);
+    });
+    List<String> result = LinkedHashSet<String>.from(arr).toList();
+    result.forEach((element) {
+      newSensors[element] = List<SensorDataModel>();
+      sensors.forEach((sensor) {
+        if (sensor.sensorName == element) {
+          newSensors[element].add(sensor);
+        }
+      });
+    });
+    return newSensors;
   }
 
   List<SensorDataModel> getTemperature() {
