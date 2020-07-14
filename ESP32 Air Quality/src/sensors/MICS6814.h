@@ -7,6 +7,7 @@
 MICS6814 mics6814(PIN_CO, PIN_NO2, PIN_NH3);
 
 class MyMICS6814 {
+  bool debug = false ;
 public:
   MyMICS6814() {
     Serial.println(F("start calibrating MICS6814 ..."));
@@ -14,7 +15,7 @@ public:
   }
 
   bool doMeasure() {
-    Serial.println("============= MICS6814 =============");
+    if (debug)Serial.println("============= MICS6814 =============");
 
     return true;
   }

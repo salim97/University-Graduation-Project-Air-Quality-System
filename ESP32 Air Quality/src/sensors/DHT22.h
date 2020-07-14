@@ -67,7 +67,7 @@ public:
   }
 
   bool doMeasure() {
-    Serial.println("============= DHT22 =============");
+    if (debug)Serial.println("============= DHT22 =============");
 
     // Delay between measurements.
     delay(delayMS);

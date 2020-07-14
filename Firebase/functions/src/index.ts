@@ -5,13 +5,12 @@
 // npm install express body-parser jsonschema
 // deploy to firebase
 // firebase deploy --only functions
-// npm install cors
+
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 // https://github.com/dalenguyen/firebase-functions-helper/blob/master/docs/firestore.md
 import * as firebaseHelper from 'firebase-functions-helper/dist';
 
-// const cors = require('cors')({origin: true});
 
 var jsonValidator = require('jsonschema').Validator;
 var validator = new jsonValidator();

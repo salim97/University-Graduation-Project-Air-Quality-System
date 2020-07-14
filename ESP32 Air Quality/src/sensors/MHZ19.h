@@ -14,7 +14,7 @@ private:
   int16_t CO2Unlimited;
   int8_t Temp;
   double CO2RAW;
-
+  bool debug = false ;
 public:
   MyMHZ19() {
     mySerial.begin(BAUDRATE); // (Uno example) device to MH-Z19 serial start
@@ -27,7 +27,7 @@ public:
   }
 
   bool doMeasure() {
-    Serial.println("============= MHZ19 =============");
+    if (debug)Serial.println("============= MHZ19 =============");
 
     CO2RAW = myMHZ19.getCO2Raw(); // issue
     // double adjustedCO2 = 6.60435861e+15 * exp(-8.78661228e-04 * CO2RAW); //

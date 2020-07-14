@@ -29,7 +29,7 @@ public:
     bme.setGasHeater(320, 150); // 320*C for 150 ms
   }
   bool doMeasure() {
-    Serial.println("============= BME680 =============");
+    if (debug)Serial.println("============= BME680 =============");
 
     // Tell BME680 to begin measurement.
     unsigned long endTime = bme.beginReading();

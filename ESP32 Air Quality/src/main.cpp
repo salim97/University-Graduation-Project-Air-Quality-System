@@ -2,6 +2,7 @@
 // https://randomnerdtutorials.com/esp32-dual-core-arduino-ide/
 // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/freertos-smp.html
 // https://esp32.com/viewtopic.php?t=1703
+// http://www.iotsharing.com/2017/06/how-to-use-binary-semaphore-mutex-counting-semaphore-resource-management.html
 // #include "NTPClient.h"
 #include <Arduino.h>
 // #include <WiFi.h>
@@ -26,7 +27,6 @@
 #include <ESPAsyncWebServer.h>
 #include <ESPAsyncWiFiManager.h> //https://github.com/tzapu/WiFiManager
 #include <esp_wifi.h>
-
 
 String jsonOutputAllsensors;
 String jsonOutputMTU1;
@@ -65,7 +65,7 @@ void saveConfigCallback() {
 AsyncWebServer server(80);
 DNSServer dns;
 
-static portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
+SemaphoreHandle_t xMutex;
 TaskHandle_t Task1;
 TaskHandle_t Task2;
 
@@ -100,22 +100,6 @@ void Task1code(void *parameter) {
     //   myDHT22.toJSON(Sensors);
     //   serializeJsonPretty(doc, Serial);
     // }
-    {
-      jsonHeader();
-      // getting data and convert it into JSON
-      JsonArray Sensors = doc.createNestedArray("Sensors");
-
-      myDHT22.toJSON(Sensors);
-      myBME680.toJSON(Sensors);
-      myMHZ19.toJSON(Sensors);
-      myMICS6814.toJSON(Sensors);
-      mySGP30.toJSON(Sensors);
-
-      portENTER_CRITICAL(&myMutex);
-      jsonOutputAllsensors.clear();
-      serializeJson(doc, jsonOutputAllsensors);
-      portEXIT_CRITICAL(&myMutex);
-    }
 
     {
       jsonHeader();
@@ -127,10 +111,10 @@ void Task1code(void *parameter) {
       myMHZ19.toJSON(Sensors);
       myMICS6814.toJSON(Sensors);
 
-      portENTER_CRITICAL(&myMutex);
+      xSemaphoreTake(xMutex, portMAX_DELAY);
       jsonOutputMTU1.clear();
       serializeJson(doc, jsonOutputMTU1);
-      portEXIT_CRITICAL(&myMutex);
+      xSemaphoreGive(xMutex);
     }
 
     {
@@ -140,10 +124,27 @@ void Task1code(void *parameter) {
 
       myBME680.toJSON(Sensors);
 
-      portENTER_CRITICAL(&myMutex);
+      xSemaphoreTake(xMutex, portMAX_DELAY);
       jsonOutputMTU2.clear();
       serializeJson(doc, jsonOutputMTU2);
-      portEXIT_CRITICAL(&myMutex);
+      xSemaphoreGive(xMutex);
+    }
+
+    {
+      jsonHeader();
+      // getting data and convert it into JSON
+      JsonArray Sensors = doc.createNestedArray("Sensors");
+
+      myDHT22.toJSON(Sensors);
+      myBME680.toJSON(Sensors);
+      myMHZ19.toJSON(Sensors);
+      myMICS6814.toJSON(Sensors);
+      mySGP30.toJSON(Sensors);
+
+      xSemaphoreTake(xMutex, portMAX_DELAY);
+      jsonOutputAllsensors.clear();
+      serializeJson(doc, jsonOutputAllsensors);
+      xSemaphoreGive(xMutex);
     }
 
     delay(100);
@@ -221,6 +222,8 @@ void Task2code(void *parameter) {
 
 void setup() {
 
+  xMutex = xSemaphoreCreateMutex();
+
   Serial.begin(115200);
   // Device to serial monitor feedback
   while (!Serial)
@@ -260,19 +263,33 @@ void blink_LED() {
 }
 
 void sendDataToLocalNetwork() {
-  if (jsonOutputAllsensors.isEmpty()) return;
-  sendUDP(jsonOutputAllsensors);
+  String local;
+  xSemaphoreTake(xMutex, portMAX_DELAY);
+  local = jsonOutputAllsensors;
+  xSemaphoreGive(xMutex);
+  if (local.isEmpty()) return;
+  sendUDP(local);
 }
 
 void sendDataToFirebase() {
-  while (jsonOutputMTU1.isEmpty()) ;
-  while (jsonOutputMTU2.isEmpty()) ;
+  String local1, local2;
+  xSemaphoreTake(xMutex, portMAX_DELAY);
+  local1 = jsonOutputMTU1;
+  local2 = jsonOutputMTU2;
+  xSemaphoreGive(xMutex);
+
+  while (local1.isEmpty())
+    ;
+  while (local2.isEmpty())
+    ;
   String url =
       "https://us-central1-pfe-air-quality.cloudfunctions.net/addRecord";
 
-  while(!httpPOST(url, jsonOutputMTU1));
+  while (!httpPOST(url, local1))
+    ;
 
-  while(!httpPOST(url, jsonOutputMTU2));
+  while (!httpPOST(url, local2))
+    ;
 }
 
 bool httpPOST(String url, String body) {
@@ -295,14 +312,14 @@ bool httpPOST(String url, String body) {
         clientHTTP.end();
         if (httpCode >= 400) {
           delay(15 * 1000);
-          return false ;
+          return false;
           // ESP.restart();
         }
       } else {
         Serial.println("Error on HTTP request");
         Serial.println(clientHTTP.errorToString(httpCode));
         delay(5 * 1000);
-        return false ;
+        return false;
         // ESP.restart(); // TODO: send msg + err in local network before
         // restarting
         // ....
@@ -310,13 +327,13 @@ bool httpPOST(String url, String body) {
     } else {
       Serial.printf("[HTTP] Unable to connect");
       Serial.printf(url.c_str());
-      return false ;
+      return false;
       // ESP.restart();
     }
 
   } else {
     Serial.println("WiFi.status() == WL_CONNECTED, no WiFi");
-    return false ;
+    return false;
     ESP.restart(); // restart esp to connect into wifi again
                    // ....
   }

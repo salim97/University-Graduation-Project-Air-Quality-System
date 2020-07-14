@@ -5,7 +5,7 @@ class MySGP30 {
 private:
   Adafruit_SGP30 sgp;
   bool internalError = false;
-
+  bool debug = false ;
 public:
   MySGP30() {
     if (!sgp.begin()) {
@@ -24,7 +24,7 @@ public:
   }
 
   bool doMeasure() {
-    Serial.println("============= SGP30 =============");
+    if (debug)Serial.println("============= SGP30 =============");
     internalError = false;
     if (!sgp.IAQmeasure()) {
       Serial.println("Measurement failed :(");
