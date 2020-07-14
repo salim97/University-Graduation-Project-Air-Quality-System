@@ -65,7 +65,7 @@ void saveConfigCallback() {
 AsyncWebServer server(80);
 DNSServer dns;
 
-portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
+static portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
 TaskHandle_t Task1;
 TaskHandle_t Task2;
 
@@ -317,7 +317,7 @@ bool httpPOST(String url, String body) {
   } else {
     Serial.println("WiFi.status() == WL_CONNECTED, no WiFi");
     return false ;
-    // ESP.restart(); // TODO: send msg + err in local network before restarting
+    ESP.restart(); // restart esp to connect into wifi again
                    // ....
   }
   delay(1000);
