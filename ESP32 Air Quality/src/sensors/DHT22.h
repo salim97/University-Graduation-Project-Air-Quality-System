@@ -68,6 +68,18 @@ public:
 
   bool doMeasure() {
     if (debug)Serial.println("============= DHT22 =============");
+    
+  int retry = 0 ;
+    bool noError = false ;
+    while(retry < 5 && noError == false){
+      if(_doMeasure()) noError = true ;
+      else retry++;
+    }
+
+    return noError;
+  }
+
+  bool _doMeasure() {
 
     // Delay between measurements.
     delay(delayMS);
@@ -75,7 +87,7 @@ public:
     // Get temperature event
     dht.temperature().getEvent(&event);
     if (isnan(event.temperature)) {
-      Serial.println(F("Error reading temperature :("));
+      if (debug)Serial.println(F("Error reading temperature :("));
       return false;
     }
       event1.temperature = event.temperature;
@@ -83,10 +95,10 @@ public:
     // Get humidity event
     dht.humidity().getEvent(&event);
     if (isnan(event.relative_humidity)) {
-      Serial.println(F("Error reading humidity :("));
+     if (debug) Serial.println(F("Error reading humidity :("));
       return false;
     }
-      event2.relative_humidity = event.relative_humidity;
+    event2.relative_humidity = event.relative_humidity;
 
     return true;
   }

@@ -333,7 +333,7 @@ bool httpPOST(String url, String body) {
 
   } else {
     Serial.println("WiFi.status() == WL_CONNECTED, no WiFi");
-    return false;
+   
     ESP.restart(); // restart esp to connect into wifi again
                    // ....
   }
