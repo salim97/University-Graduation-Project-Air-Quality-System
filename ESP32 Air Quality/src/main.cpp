@@ -28,9 +28,7 @@
 #include <ESPAsyncWiFiManager.h> //https://github.com/tzapu/WiFiManager
 #include <esp_wifi.h>
 
-String jsonOutputAllsensors;
-String jsonOutputMTU1;
-String jsonOutputMTU2;
+String globalSharedBuffer;
 DynamicJsonDocument doc(2048);
 
 void jsonHeader();
@@ -66,11 +64,13 @@ AsyncWebServer server(80);
 DNSServer dns;
 
 SemaphoreHandle_t xMutex;
+
 TaskHandle_t Task1;
 TaskHandle_t Task2;
 
 void Task1code(void *parameter) {
   Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
+
   MyBME680 myBME680;
   MyDHT22 myDHT22;
   MyMHZ19 myMHZ19;
@@ -95,69 +95,40 @@ void Task1code(void *parameter) {
     if (!mySGP30.doMeasure()) networkBroadcatLog("SGP30 ERROR!", true);
     delay(10);
 
-    // {
-    //   JsonArray Sensors = doc.createNestedArray("Sensors");
-    //   myDHT22.toJSON(Sensors);
-    //   serializeJsonPretty(doc, Serial);
-    // }
+    jsonHeader();
+    // getting data and convert it into JSON
+    JsonArray Sensors = doc.createNestedArray("Sensors");
 
-    {
-      jsonHeader();
-      // getting data and convert it into JSON
-      JsonArray Sensors = doc.createNestedArray("Sensors");
+    myDHT22.toJSON(Sensors);
+    myBME680.toJSON(Sensors);
+    myMHZ19.toJSON(Sensors);
+    myMICS6814.toJSON(Sensors);
+    mySGP30.toJSON(Sensors);
 
-      mySGP30.toJSON(Sensors);
-      myDHT22.toJSON(Sensors);
-      myMHZ19.toJSON(Sensors);
-      myMICS6814.toJSON(Sensors);
-
-      xSemaphoreTake(xMutex, portMAX_DELAY);
-      jsonOutputMTU1.clear();
-      serializeJson(doc, jsonOutputMTU1);
-      xSemaphoreGive(xMutex);
-    }
-
-    {
-      jsonHeader();
-      // getting data and convert it into JSON
-      JsonArray Sensors = doc.createNestedArray("Sensors");
-
-      myBME680.toJSON(Sensors);
-
-      xSemaphoreTake(xMutex, portMAX_DELAY);
-      jsonOutputMTU2.clear();
-      serializeJson(doc, jsonOutputMTU2);
-      xSemaphoreGive(xMutex);
-    }
-
-    {
-      jsonHeader();
-      // getting data and convert it into JSON
-      JsonArray Sensors = doc.createNestedArray("Sensors");
-
-      myDHT22.toJSON(Sensors);
-      myBME680.toJSON(Sensors);
-      myMHZ19.toJSON(Sensors);
-      myMICS6814.toJSON(Sensors);
-      mySGP30.toJSON(Sensors);
-
-      xSemaphoreTake(xMutex, portMAX_DELAY);
-      jsonOutputAllsensors.clear();
-      serializeJson(doc, jsonOutputAllsensors);
-      xSemaphoreGive(xMutex);
-    }
+    xSemaphoreTake(xMutex, portMAX_DELAY);
+    globalSharedBuffer.clear();
+    serializeJson(doc, globalSharedBuffer);
+    xSemaphoreGive(xMutex);
 
     delay(100);
   }
 }
 
 void Task2code(void *parameter) {
-  // while (true) {
-  // };
-  Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
-  Serial.println("Waiting for flag from Core " + String(xPortGetCoreID()));
 
-  delay(20 * 1000);
+  Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
+
+  while (true) {
+    Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()) +
+                   ": Waiting for flag from Core 0");
+    xSemaphoreTake(xMutex, portMAX_DELAY);
+    if (!globalSharedBuffer.isEmpty()) {
+      xSemaphoreGive(xMutex);
+      break;
+    }
+    xSemaphoreGive(xMutex);
+    delay(1000);
+  };
 
   {
     // WiFiManager
@@ -192,7 +163,7 @@ void Task2code(void *parameter) {
                    String(reinterpret_cast<const char *>(conf.sta.ssid)));
     Serial.println("PASS: " +
                    String(reinterpret_cast<const char *>(conf.sta.password)));
-    if (configMode) return;
+    while (configMode) ;
 
     init_udp();
     // pinMode(BUILTIN_LED, OUTPUT);
@@ -209,7 +180,7 @@ void Task2code(void *parameter) {
     // delay(60*60 * 1000);
 
     while (true) {
-      if (configMode) return;
+      if (configMode) continue;
 
       timer0.update();
       timer1.update();
@@ -229,7 +200,7 @@ void setup() {
   while (!Serial)
     ;
 
-  delay(1000);
+  delay(500);
   // create a task that will be executed in the Task1code() function, with
   // priority 1 and executed on core 0
   xTaskCreatePinnedToCore(
@@ -265,30 +236,24 @@ void blink_LED() {
 void sendDataToLocalNetwork() {
   String local;
   xSemaphoreTake(xMutex, portMAX_DELAY);
-  local = jsonOutputAllsensors;
+  local = globalSharedBuffer;
   xSemaphoreGive(xMutex);
   if (local.isEmpty()) return;
   sendUDP(local);
 }
 
 void sendDataToFirebase() {
-  String local1, local2;
+
+  String url = "https://pfe-helper.herokuapp.com/";
+  // "https://us-central1-pfe-air-quality.cloudfunctions.net/addRecord";
+  // "https://postman-echo.com/post";
+
+  String local;
   xSemaphoreTake(xMutex, portMAX_DELAY);
-  local1 = jsonOutputMTU1;
-  local2 = jsonOutputMTU2;
+  local = globalSharedBuffer;
   xSemaphoreGive(xMutex);
 
-  while (local1.isEmpty())
-    ;
-  while (local2.isEmpty())
-    ;
-  String url =
-      "https://us-central1-pfe-air-quality.cloudfunctions.net/addRecord";
-
-  while (!httpPOST(url, local1))
-    ;
-
-  while (!httpPOST(url, local2))
+  while (!httpPOST(url, local))
     ;
 }
 
@@ -297,12 +262,9 @@ bool httpPOST(String url, String body) {
 
     HTTPClient clientHTTP;
 
-    // "https://postman-echo.com/post";
-
     if (clientHTTP.begin(url)) {
+      Serial.println("connected: " + url);
       clientHTTP.addHeader("Content-Type", "application/json");
-      // clientHTTP.addHeader("Connection", "keep-alive");
-
       int httpCode = clientHTTP.POST(body);
       if (httpCode > 0) {
         String payload = clientHTTP.getString();
@@ -333,7 +295,7 @@ bool httpPOST(String url, String body) {
 
   } else {
     Serial.println("WiFi.status() == WL_CONNECTED, no WiFi");
-   
+
     ESP.restart(); // restart esp to connect into wifi again
                    // ....
   }
@@ -342,6 +304,7 @@ bool httpPOST(String url, String body) {
 }
 
 void jsonHeader() {
+  // TODO: read form EPPROM
   // clear RAM
   doc.clear();
   doc["uid"] = "Lf7gh5IDYxZgOmUXKhtaHSk6j9y2";
@@ -357,6 +320,7 @@ void processUDP(String command) {
     sendDataToLocalNetwork();
     return;
   }
+  // TODO: set uid + gps to EPPROM
   // if (_doc["command"] == "setWiFi") {
   //   clearEPPROM();
   //   setSSID(doc["ssid"]);
