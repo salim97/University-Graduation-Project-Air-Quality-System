@@ -1,20 +1,18 @@
-#define DEBUG true // print messages in serial port
 
-#include <ArduinoJson.h>
-
-#include "Adafruit_BME680.h"
+#include "../MySensor.h"
+#include <Adafruit_BME680.h>
 #include <Adafruit_Sensor.h>
 #include <SPI.h>
 #include <Wire.h>
 
 #define SEALEVELPRESSURE_HPA (1013.25)
 
-class MyBME680 {
+class MyBME680 : public MySensor{
 private:
   Adafruit_BME680 bme; // I2C
-  bool debug = false ;
+
 public:
-  MyBME680() {
+  virtual void init() {
     Serial.println(F("BME680 async test"));
     if (!bme.begin()) {
       Serial.println("Failed to start BME680 gas sensor - check wiring.");
@@ -28,8 +26,8 @@ public:
     bme.setIIRFilterSize(BME680_FILTER_SIZE_3);
     bme.setGasHeater(320, 150); // 320*C for 150 ms
   }
-  bool doMeasure() {
-    if (debug)Serial.println("============= BME680 =============");
+  virtual bool doMeasure() {
+    if (_Sensors_DEBUG)Serial.println("============= BME680 =============");
 
     // Tell BME680 to begin measurement.
     unsigned long endTime = bme.beginReading();
@@ -47,8 +45,7 @@ public:
 
     return true;
   }
-
-  void toJSON(JsonArray &Sensors) {
+  virtual void toJSON(JsonArray &Sensors) {
     {
       JsonObject Sensors_0 = Sensors.createNestedObject();
       Sensors_0["sensor"] = "BME680";

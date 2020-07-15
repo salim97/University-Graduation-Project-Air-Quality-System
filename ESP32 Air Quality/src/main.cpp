@@ -64,7 +64,6 @@ AsyncWebServer server(80);
 DNSServer dns;
 
 SemaphoreHandle_t xMutex;
-
 TaskHandle_t Task1;
 TaskHandle_t Task2;
 
@@ -76,34 +75,28 @@ void Task1code(void *parameter) {
   MyMHZ19 myMHZ19;
   MyMICS6814 myMICS6814;
   MySGP30 mySGP30;
+  MySensor *mySensorsList[] = {&mySGP30, &myBME680, &myDHT22, &myMHZ19,
+                               &myMICS6814};
+  const uint8_t sizeMySensorsList =
+      sizeof(mySensorsList) / sizeof(mySensorsList[0]);
 
+
+  for (uint8_t i = 0; i < sizeMySensorsList; i++) {
+    mySensorsList[i]->init();
+  }
+  // mySGP30.init();
   while (true) {
     Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
-
-    if (!myDHT22.doMeasure()) networkBroadcatLog("DHT22 ERROR!", true);
-    delay(10);
-
-    if (!myBME680.doMeasure()) networkBroadcatLog("BME680 ERROR!", true);
-    delay(10);
-
-    if (!myMHZ19.doMeasure()) networkBroadcatLog("MHZ19 ERROR!", true);
-    delay(10);
-
-    if (!myMICS6814.doMeasure()) networkBroadcatLog("MICS6814 ERROR!", true);
-    delay(10);
-
-    if (!mySGP30.doMeasure()) networkBroadcatLog("SGP30 ERROR!", true);
-    delay(10);
+    for (uint8_t i = 0; i < sizeMySensorsList; i++) {
+      mySensorsList[i]->doMeasure();
+    }
 
     jsonHeader();
     // getting data and convert it into JSON
     JsonArray Sensors = doc.createNestedArray("Sensors");
-
-    myDHT22.toJSON(Sensors);
-    myBME680.toJSON(Sensors);
-    myMHZ19.toJSON(Sensors);
-    myMICS6814.toJSON(Sensors);
-    mySGP30.toJSON(Sensors);
+    for (uint8_t i = 0; i < sizeMySensorsList; i++) {
+      mySensorsList[i]->toJSON(Sensors);
+    }
 
     xSemaphoreTake(xMutex, portMAX_DELAY);
     globalSharedBuffer.clear();
@@ -163,7 +156,8 @@ void Task2code(void *parameter) {
                    String(reinterpret_cast<const char *>(conf.sta.ssid)));
     Serial.println("PASS: " +
                    String(reinterpret_cast<const char *>(conf.sta.password)));
-    while (configMode) ;
+    while (configMode)
+      ;
 
     init_udp();
     // pinMode(BUILTIN_LED, OUTPUT);

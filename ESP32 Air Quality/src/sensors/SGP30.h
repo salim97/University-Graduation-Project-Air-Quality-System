@@ -1,13 +1,11 @@
 #include "Adafruit_SGP30.h"
-#include <ArduinoJson.h>
-
-class MySGP30 {
+class MySGP30 : public MySensor {
 private:
   Adafruit_SGP30 sgp;
-  bool internalError = false;
-  bool debug = false ;
+  // bool internalError = false;
 public:
-  MySGP30() {
+  MySGP30(){};
+  virtual void init() {
     if (!sgp.begin()) {
       Serial.println("Failed to start SGP30 gas sensor - check wiring.");
       while (1)
@@ -23,26 +21,26 @@ public:
     // vary for each sensor!
   }
 
-  bool doMeasure() {
-    if (debug)Serial.println("============= SGP30 =============");
-    internalError = false;
+  virtual bool doMeasure() {
+    if (_Sensors_DEBUG) Serial.println("============= SGP30 =============");
+    // internalError = false;
     if (!sgp.IAQmeasure()) {
       Serial.println("Measurement failed :(");
-      internalError = true;
+      // internalError = true;
       return false;
     }
 
     if (!sgp.IAQmeasureRaw()) {
       Serial.println("Raw Measurement failed :(");
-      internalError = true;
+      // internalError = true;
       return false;
     }
 
     return true;
   }
 
-  void toJSON(JsonArray &Sensors) {
-    if (internalError) return;
+  virtual void toJSON(JsonArray &Sensors) {
+    // if (internalError) return;
     {
       JsonObject Sensors_0 = Sensors.createNestedObject();
       Sensors_0["sensor"] = "SGP30";

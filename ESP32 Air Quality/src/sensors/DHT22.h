@@ -1,4 +1,3 @@
-#include <ArduinoJson.h>
 #include <DHT.h>
 #include <DHT_U.h>
 
@@ -6,20 +5,19 @@
 #define DHTTYPE DHT22 // DHT 22 (AM2302)
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
-class MyDHT22 {
+class MyDHT22 : public MySensor{
 private:
   sensors_event_t event1, event2;
-  bool debug = false;
   uint32_t delayMS;
 
 public:
-  MyDHT22() {
+  virtual void init() {
     dht.begin();
     Serial.println(F("DHT22"));
      event2.relative_humidity =0;
      event1.temperature =0;
     sensor_t sensor;
-    if (debug) {
+    if (_Sensors_DEBUG) {
 
       // Print temperature sensor details.
       dht.temperature().getSensor(&sensor);
@@ -66,8 +64,8 @@ public:
     delayMS = sensor.min_delay / 1000;
   }
 
-  bool doMeasure() {
-    if (debug)Serial.println("============= DHT22 =============");
+  virtual bool doMeasure() {
+    if (_Sensors_DEBUG)Serial.println("============= DHT22 =============");
     
   int retry = 0 ;
     bool noError = false ;
@@ -87,7 +85,7 @@ public:
     // Get temperature event
     dht.temperature().getEvent(&event);
     if (isnan(event.temperature)) {
-      if (debug)Serial.println(F("Error reading temperature :("));
+      if (_Sensors_DEBUG)Serial.println(F("Error reading temperature :("));
       return false;
     }
       event1.temperature = event.temperature;
@@ -95,7 +93,7 @@ public:
     // Get humidity event
     dht.humidity().getEvent(&event);
     if (isnan(event.relative_humidity)) {
-     if (debug) Serial.println(F("Error reading humidity :("));
+     if (_Sensors_DEBUG) Serial.println(F("Error reading humidity :("));
       return false;
     }
     event2.relative_humidity = event.relative_humidity;
@@ -103,7 +101,7 @@ public:
     return true;
   }
 
-  void toJSON(JsonArray &Sensors) {
+  virtual void toJSON(JsonArray &Sensors) {
 
     {
       JsonObject Sensors_0 = Sensors.createNestedObject();

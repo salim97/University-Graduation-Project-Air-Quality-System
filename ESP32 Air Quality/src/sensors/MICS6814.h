@@ -1,26 +1,23 @@
 #include "../lib/MICS6814.h"
-#include <ArduinoJson.h>
-
 #define PIN_CO 32  // ADC1_CHANNEL_4
 #define PIN_NO2 34 // ADC1_CHANNEL_6
 #define PIN_NH3 35 // ADC1_CHANNEL_7
 MICS6814 mics6814(PIN_CO, PIN_NO2, PIN_NH3);
 
-class MyMICS6814 {
-  bool debug = false ;
+class MyMICS6814 : public MySensor{
 public:
-  MyMICS6814() {
+  virtual void init() {
     Serial.println(F("start calibrating MICS6814 ..."));
     mics6814.calibrate();
   }
 
-  bool doMeasure() {
-    if (debug)Serial.println("============= MICS6814 =============");
+  virtual bool doMeasure() {
+    if (_Sensors_DEBUG)Serial.println("============= MICS6814 =============");
 
     return true;
   }
 
-  void toJSON(JsonArray &Sensors) {
+  virtual void toJSON(JsonArray &Sensors) {
     {
       JsonObject Sensors_0 = Sensors.createNestedObject();
       Sensors_0["sensor"] = "MICS6814";
