@@ -5,17 +5,17 @@
 The ESP32 is the ESP8266 successor. It adds an extra CPU core, faster Wi-Fi, more GPIOs, and supports Bluetooth 4.2 and Bluetooth low energy
 
 
-![](https://github.com/salim97/University-Graduation-Project-Air-Quality-System/edit/master/ESP32%20Air%20Quality/MultiCoreComm.png)
+![](MultiCoreComm.png)
 
 
-![](https://github.com/salim97/University-Graduation-Project-Air-Quality-System/edit/master/ESP32%20Air%20Quality/TimeLineCore0.png)
+![](TimeLineCore0.png)
 
 
-![](https://github.com/salim97/University-Graduation-Project-Air-Quality-System/edit/master/ESP32%20Air%20Quality/TimeLineCore1.png)
+![](TimeLineCore1.png)
 
 
 
-![](https://github.com/salim97/University-Graduation-Project-Air-Quality-System/edit/master/ESP32%20Air%20Quality/Schematic_PFE_Air_Quality_2020-07-16_12-40-15.png)
+![](Schematic_PFE_Air_Quality_2020-07-16_12-40-15.png)
 
 See also: https://easyeda.com/benabadji.mohammed.salim/pfe-air-quality
 
