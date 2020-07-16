@@ -28,63 +28,72 @@
 #include <ESPAsyncWiFiManager.h> //https://github.com/tzapu/WiFiManager
 #include <esp_wifi.h>
 
-String globalSharedBuffer;
-DynamicJsonDocument doc(2048);
+MySensor *mySensorsList[] = {new MyDHT22(), new MyBME680(), new MySGP30(), new MyMHZ19(), new MyMICS6814()};
 
+void FirstCoreCode(void *parameter);
+void SecondCoreCode(void *parameter) ;
 void jsonHeader();
-bool httpPOST(String url, String body);
 
 void blink_LED();
 void sendDataToFirebase();
 void sendDataToLocalNetwork();
 void processUDP(String command);
+bool httpPOST(String url, String body);
 
-// each second blink led
-Ticker timer0(blink_LED, 1000);
-// each 10 min send data to server
-Ticker timer1(sendDataToFirebase, 10 * 60 * 1000);
-// each 15 second send data in local network
-Ticker timer2(sendDataToLocalNetwork, 15 * 1000);
-
-bool configMode = false;
-void configModeCallback(AsyncWiFiManager *myWiFiManager) {
-  Serial.println("Entered config mode");
-  Serial.println(WiFi.softAPIP());
-  // if you used auto generated SSID, print it
-  Serial.println(myWiFiManager->getConfigPortalSSID());
-  configMode = true;
-}
-void saveConfigCallback() {
-  Serial.println("-----------------------------------------------------");
-  Serial.println("Should save config");
-  configMode = false;
-}
-
-AsyncWebServer server(80);
-DNSServer dns;
 
 SemaphoreHandle_t xMutex;
 TaskHandle_t Task1;
 TaskHandle_t Task2;
+void setup() {
+  //init mutex
+  xMutex = xSemaphoreCreateMutex();
 
-void Task1code(void *parameter) {
+  Serial.begin(115200);
+  // Device to serial monitor feedback
+  while (!Serial)
+    ;
+
+  delay(500);
+  // create a task that will be executed in the FirstCoreCode() function, with
+  // priority 1 and executed on core 0
+  xTaskCreatePinnedToCore(
+      FirstCoreCode, /* Task function. */
+      "Task1",   /* name of task. */
+      10000,     /* Stack size of task */
+      NULL,      /* parameter of the task */
+      1,         /* priority of the task */
+      &Task1,    /* Task handle to keep track of created task */
+      0);        /* pin task to core 0 */
+  delay(500);
+
+  // create a task that will be executed in the SecondCoreCode() function, with
+  // priority 1 and executed on core 1
+  xTaskCreatePinnedToCore(
+      SecondCoreCode, /* Task function. */
+      "Task2",   /* name of task. */
+      10000,     /* Stack size of task */
+      NULL,      /* parameter of the task */
+      1,         /* priority of the task */
+      &Task2,    /* Task handle to keep track of created task */
+      1);        /* pin task to core 1 */
+  delay(500);
+}
+
+void loop() {}
+
+String globalSharedBuffer;
+DynamicJsonDocument doc(2048);
+void FirstCoreCode(void *parameter) {
   Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
 
-  MyBME680 myBME680;
-  MyDHT22 myDHT22;
-  MyMHZ19 myMHZ19;
-  MyMICS6814 myMICS6814;
-  MySGP30 mySGP30;
-  MySensor *mySensorsList[] = {&mySGP30, &myBME680, &myDHT22, &myMHZ19,
-                               &myMICS6814};
+  
   const uint8_t sizeMySensorsList =
       sizeof(mySensorsList) / sizeof(mySensorsList[0]);
-
 
   for (uint8_t i = 0; i < sizeMySensorsList; i++) {
     mySensorsList[i]->init();
   }
-  // mySGP30.init();
+
   while (true) {
     Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
     for (uint8_t i = 0; i < sizeMySensorsList; i++) {
@@ -107,7 +116,30 @@ void Task1code(void *parameter) {
   }
 }
 
-void Task2code(void *parameter) {
+
+// each second blink led
+Ticker timer0(blink_LED, 1000);
+// each 10 min send data to server
+Ticker timer1(sendDataToFirebase, 10 * 60 * 1000);
+
+bool configMode = false;
+void configModeCallback(AsyncWiFiManager *myWiFiManager) {
+  Serial.println("Entered config mode");
+  Serial.println(WiFi.softAPIP());
+  // if you used auto generated SSID, print it
+  Serial.println(myWiFiManager->getConfigPortalSSID());
+  configMode = true;
+}
+void saveConfigCallback() {
+  Serial.println("-----------------------------------------------------");
+  Serial.println("Should save config");
+  configMode = false;
+}
+
+AsyncWebServer server(80);
+DNSServer dns;
+
+void SecondCoreCode(void *parameter) {
 
   Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
 
@@ -124,9 +156,6 @@ void Task2code(void *parameter) {
   };
 
   {
-    // WiFiManager
-    // Local intialization. Once its business is done, there is no need to keep
-    // it around
     AsyncWiFiManager wifiManager(&server, &dns);
     // reset settings - for testing
     // wifiManager.resetSettings();
@@ -149,15 +178,14 @@ void Task2code(void *parameter) {
     }
 
     // if you get here you have connected to the WiFi
-    // WiFi.disconnect(true, true);
     wifi_config_t conf;
     esp_wifi_get_config(WIFI_IF_STA, &conf);
     Serial.println("SSID: " +
                    String(reinterpret_cast<const char *>(conf.sta.ssid)));
     Serial.println("PASS: " +
                    String(reinterpret_cast<const char *>(conf.sta.password)));
-    while (configMode)
-      ;
+    // while (configMode) ;
+
 
     init_udp();
     // pinMode(BUILTIN_LED, OUTPUT);
@@ -166,74 +194,25 @@ void Task2code(void *parameter) {
 
     timer0.start();
     timer1.start();
-    timer2.start();
-    // timer3.start();
 
     sendDataToLocalNetwork();
     sendDataToFirebase();
-    // delay(60*60 * 1000);
 
     while (true) {
-      if (configMode) continue;
+      // if (configMode) continue;
 
       timer0.update();
       timer1.update();
-      timer2.update();
 
       processUDP(readAllUDP());
     }
   }
 }
 
-void setup() {
-
-  xMutex = xSemaphoreCreateMutex();
-
-  Serial.begin(115200);
-  // Device to serial monitor feedback
-  while (!Serial)
-    ;
-
-  delay(500);
-  // create a task that will be executed in the Task1code() function, with
-  // priority 1 and executed on core 0
-  xTaskCreatePinnedToCore(
-      Task1code, /* Task function. */
-      "Task1",   /* name of task. */
-      10000,     /* Stack size of task */
-      NULL,      /* parameter of the task */
-      1,         /* priority of the task */
-      &Task1,    /* Task handle to keep track of created task */
-      0);        /* pin task to core 0 */
-  delay(500);
-
-  // create a task that will be executed in the Task2code() function, with
-  // priority 1 and executed on core 1
-  xTaskCreatePinnedToCore(
-      Task2code, /* Task function. */
-      "Task2",   /* name of task. */
-      10000,     /* Stack size of task */
-      NULL,      /* parameter of the task */
-      1,         /* priority of the task */
-      &Task2,    /* Task handle to keep track of created task */
-      1);        /* pin task to core 1 */
-  delay(500);
-}
-
-void loop() {}
 
 void blink_LED() {
   digitalWrite(LED_BUILTIN,
                !(digitalRead(LED_BUILTIN))); // Invert Current State of LED
-}
-
-void sendDataToLocalNetwork() {
-  String local;
-  xSemaphoreTake(xMutex, portMAX_DELAY);
-  local = globalSharedBuffer;
-  xSemaphoreGive(xMutex);
-  if (local.isEmpty()) return;
-  sendUDP(local);
 }
 
 void sendDataToFirebase() {
@@ -321,4 +300,13 @@ void processUDP(String command) {
   //   setPASS(doc["pass"]);
   //   ESP.restart();
   // }
+}
+
+void sendDataToLocalNetwork() {
+  String local;
+  xSemaphoreTake(xMutex, portMAX_DELAY);
+  local = globalSharedBuffer;
+  xSemaphoreGive(xMutex);
+  if (local.isEmpty()) return;
+  sendUDP(local);
 }
