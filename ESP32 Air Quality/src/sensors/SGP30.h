@@ -2,7 +2,7 @@
 class MySGP30 : public MySensor {
 private:
   Adafruit_SGP30 sgp;
-  // bool internalError = false;
+  bool internalError = false;
 public:
   MySGP30(){};
   virtual void init() {
@@ -23,16 +23,16 @@ public:
 
   virtual bool doMeasure() {
     if (_Sensors_DEBUG) Serial.println("============= SGP30 =============");
-    // internalError = false;
+    internalError = false;
     if (!sgp.IAQmeasure()) {
       Serial.println("Measurement failed :(");
-      // internalError = true;
+      internalError = true;
       return false;
     }
 
     if (!sgp.IAQmeasureRaw()) {
       Serial.println("Raw Measurement failed :(");
-      // internalError = true;
+      internalError = true;
       return false;
     }
 
@@ -40,7 +40,7 @@ public:
   }
 
   virtual void toJSON(JsonArray &Sensors) {
-    // if (internalError) return;
+    if (internalError) return;
     {
       JsonObject Sensors_0 = Sensors.createNestedObject();
       Sensors_0["sensor"] = "SGP30";

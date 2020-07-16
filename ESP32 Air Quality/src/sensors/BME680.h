@@ -7,9 +7,10 @@
 
 #define SEALEVELPRESSURE_HPA (1013.25)
 
-class MyBME680 : public MySensor{
+class MyBME680 : public MySensor {
 private:
   Adafruit_BME680 bme; // I2C
+  bool internalError = false;
 
 public:
   virtual void init() {
@@ -27,12 +28,13 @@ public:
     bme.setGasHeater(320, 150); // 320*C for 150 ms
   }
   virtual bool doMeasure() {
-    if (_Sensors_DEBUG)Serial.println("============= BME680 =============");
-
+    if (_Sensors_DEBUG) Serial.println("============= BME680 =============");
+    internalError = false;
     // Tell BME680 to begin measurement.
     unsigned long endTime = bme.beginReading();
     if (endTime == 0) {
       Serial.println(F("Failed to begin reading bme :("));
+      internalError = true;
       return false;
     }
 
@@ -40,12 +42,14 @@ public:
 
     if (!bme.endReading()) {
       Serial.println(F("Failed to complete reading :("));
+      internalError = true;
       return false;
     }
 
     return true;
   }
   virtual void toJSON(JsonArray &Sensors) {
+    if (internalError) return;
     {
       JsonObject Sensors_0 = Sensors.createNestedObject();
       Sensors_0["sensor"] = "BME680";

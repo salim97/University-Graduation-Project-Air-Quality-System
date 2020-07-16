@@ -5,17 +5,18 @@
 #define DHTTYPE DHT22 // DHT 22 (AM2302)
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
-class MyDHT22 : public MySensor{
+class MyDHT22 : public MySensor {
 private:
   sensors_event_t event1, event2;
   uint32_t delayMS;
+  bool internalError = false;
 
 public:
   virtual void init() {
     dht.begin();
     Serial.println(F("DHT22"));
-     event2.relative_humidity =0;
-     event1.temperature =0;
+    event2.relative_humidity = 0;
+    event1.temperature = 0;
     sensor_t sensor;
     if (_Sensors_DEBUG) {
 
@@ -65,14 +66,21 @@ public:
   }
 
   virtual bool doMeasure() {
-    if (_Sensors_DEBUG)Serial.println("============= DHT22 =============");
-    
-  int retry = 0 ;
-    bool noError = false ;
-    while(retry < 5 && noError == false){
-      if(_doMeasure()) noError = true ;
-      else retry++;
+    if (_Sensors_DEBUG) Serial.println("============= DHT22 =============");
+
+    int retry = 0;
+    bool noError = false;
+    while (retry < 5 && noError == false) {
+      if (_doMeasure())
+        noError = true;
+      else
+        retry++;
     }
+    
+    if (retry == 5 && noError == false)
+      internalError = true;
+    else
+      internalError = false;
 
     return noError;
   }
@@ -85,15 +93,15 @@ public:
     // Get temperature event
     dht.temperature().getEvent(&event);
     if (isnan(event.temperature)) {
-      if (_Sensors_DEBUG)Serial.println(F("Error reading temperature :("));
+      if (_Sensors_DEBUG) Serial.println(F("Error reading temperature :("));
       return false;
     }
-      event1.temperature = event.temperature;
+    event1.temperature = event.temperature;
 
     // Get humidity event
     dht.humidity().getEvent(&event);
     if (isnan(event.relative_humidity)) {
-     if (_Sensors_DEBUG) Serial.println(F("Error reading humidity :("));
+      if (_Sensors_DEBUG) Serial.println(F("Error reading humidity :("));
       return false;
     }
     event2.relative_humidity = event.relative_humidity;
@@ -102,7 +110,7 @@ public:
   }
 
   virtual void toJSON(JsonArray &Sensors) {
-
+    if (internalError) return;
     {
       JsonObject Sensors_0 = Sensors.createNestedObject();
       Sensors_0["sensor"] = "DHT22";
