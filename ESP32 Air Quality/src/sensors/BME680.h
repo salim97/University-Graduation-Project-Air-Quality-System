@@ -1,5 +1,8 @@
+#ifndef MyBME680_H
+#define MyBME680_H
 
-#include "../MySensor.h"
+
+#include "MySensor.h"
 #include <Adafruit_BME680.h>
 #include <Adafruit_Sensor.h>
 #include <SPI.h>
@@ -95,3 +98,5 @@ public:
     // }
   }
 };
+
+#endif 

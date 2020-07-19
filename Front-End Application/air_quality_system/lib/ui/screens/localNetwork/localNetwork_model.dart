@@ -2,14 +2,16 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'package:air_quality_system/datamodels/device_dataModel.dart';
+import 'package:air_quality_system/datamodels/esp_network_log_datamodel.dart';
 import 'package:air_quality_system/datamodels/sensor_datamodel.dart';
 import 'package:get_ip/get_ip.dart';
 import 'package:stacked/stacked.dart';
 import 'dart:convert';
 
 // class HomeViewModel extends FutureViewModel<void> {
-class LocalNetworkViewModel extends BaseViewModel {
+class LocalNetworkViewModel extends IndexTrackingViewModel {
   DeviceDataModel devices = new DeviceDataModel();
+  List<ESPNetworkLogDataModel> logs = new List<ESPNetworkLogDataModel>();
   RawDatagramSocket socket;
   String phoneIPaddress;
   // @override
@@ -27,7 +29,7 @@ class LocalNetworkViewModel extends BaseViewModel {
     //   //  ));
     //   devices.sensors[0].values.add(newValue.toString());
     //   if(devices.sensors[0].values.length > 20 ) devices.sensors[0].values.removeAt(0);
-      
+
     //   notifyListeners();
     // });
     // devices.sensors.add(SensorDataModel(
@@ -50,19 +52,28 @@ class LocalNetworkViewModel extends BaseViewModel {
       socket.listen((RawSocketEvent e) {
         Datagram d = socket.receive();
         if (d == null) return;
+        if (phoneIPaddress == d.address.address) return;
+
         String message = new String.fromCharCodes(d.data).trim();
         message = message.replaceAll("Â", "");
         print('Datagram from ${d.address.address}:${d.port}: ${message}');
         if (!isJSON(message)) return;
         Map<String, dynamic> _json = json.decode(message);
-        if (phoneIPaddress == d.address.address) return;
-
-        devices.fromJson(_json);
-        devices.removeNULLmetric();
+        ESPNetworkLogDataModel _eSPNetworkLogDataModel;
+        if (ESPNetworkLogDataModel.isJSONvalide(_json)) {
+          logs.insert(0, ESPNetworkLogDataModel.fromJson(_json));
+        } else {
+          devices.fromJson(_json);
+          devices.removeNULLmetric();
+        }
         notifyListeners();
       });
     });
 
+    Timer.periodic(Duration(seconds:5), (Timer t) {
+      refresh();
+      
+    });
     notifyListeners();
   }
 

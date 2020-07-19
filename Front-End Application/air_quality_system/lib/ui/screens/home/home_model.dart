@@ -36,6 +36,10 @@ class HomeViewModel extends BaseViewModel {
     'Humidity': MdiIcons.waterPercent,
     'Pressure': MdiIcons.arrowCollapseVertical,
     'CO2': MdiIcons.molecule,
+    'CO': MdiIcons.molecule,
+    'NH3': MdiIcons.molecule,
+    'NO2': MdiIcons.molecule,
+    'O3': MdiIcons.molecule,
   };
 
   // @override
@@ -54,6 +58,7 @@ class HomeViewModel extends BaseViewModel {
     currentGas = _gas.keys.first;
     currentGasLegend = _gas.values.first;
     refresh();
+
     notifyListeners();
   }
 
@@ -65,14 +70,20 @@ class HomeViewModel extends BaseViewModel {
     // if (item == "Pressure") refresh(sensor: item);
   }
 
+  bool loadingDataFromBackend = false;
   refresh({String sensor = "Temperature"}) async {
     // await firebaseAuthService.signInAnonymously();
     // return;
+    loadingDataFromBackend = true;
+    notifyListeners();
     List<DeviceDataModel> list;
-    if (kIsWeb)
-      list = await restAPIService.getLast10minRecords();
-    else
-      list = await myFirestoreDBservice.getLastdata();
+    // if (kIsWeb)
+    list = await restAPIService.getLast10minRecords();
+    // else
+    // list = await myFirestoreDBservice.getLastdata();
+
+    loadingDataFromBackend = false;
+    notifyListeners();
 
     markers.clear();
     List<LatLng> points = new List<LatLng>();
@@ -101,14 +112,17 @@ class HomeViewModel extends BaseViewModel {
         print(e.toString());
         return;
       }
+      if (value == "NULL") return;
       points.add(LatLng(element.gps.latitude, element.gps.longitude));
 
-      markers.add(addMarker(text: value + "\n" + symbol, point: points.last, color: legendTemperature(double.parse(value).toInt())));
+      markers.add(addMarker(
+          text: value + "\n" + symbol, point: points.last, color: legendTemperature(double.parse(value).toInt()), otherSensors: element));
     });
     if (points.isNotEmpty) {
       LatLngBounds llb = new LatLngBounds.fromPoints(points);
       mapController.fitBounds(llb, options: FitBoundsOptions(padding: EdgeInsets.all(50.0)));
     }
+    loadingDataFromBackend = false;
 
     notifyListeners();
   }
@@ -135,27 +149,63 @@ class HomeViewModel extends BaseViewModel {
     return Color.lerp(a, b, temp / 20);
   }
 
-  addMarker({point, color, text}) {
+  Widget dataTable = null;
+  addMarker({point, color, text, DeviceDataModel otherSensors}) {
     return Marker(
       width: 60.0,
       height: 60.0,
       point: point,
-      builder: (ctx) => Container(
-        child: Stack(
-          children: <Widget>[
-            Opacity(
-              opacity: 0.6,
-              child: Image.asset(
-                "assets/images/shape_hexagon.png",
-                width: 60.0,
-                height: 60.0,
-                color: color,
-              ),
+      builder: (ctx) => GestureDetector(
+        onTap: () async {
+          List<DataRow> dataArray = [];
+          otherSensors.sensors.forEach((sensor) => dataArray.add(
+                DataRow(cells: [
+                  // DataCell(
+                  //   Text(sensor.sensorName),
+                  // ),
+                  DataCell(
+                    Text(sensor.sensorName+"_"+sensor.metricName),
+                  ),
+                  DataCell(
+                    Text(sensor.value),
+                  ),
+                ]),
+              ));
+          dataTable = SingleChildScrollView(
+                      child: DataTable(
+              columns: [
+                // DataColumn(
+                //   label: Text('Sensor Name'),
+                // ),
+                DataColumn(
+                  label: Text('Sensor_Metric'),
+                ),
+                DataColumn(
+                  label: Text('Value'),
+                ),
+              ],
+              rows: dataArray,
             ),
-            Center(
-              child: Text(text, style: TextStyle(fontSize: 13.0, color: Colors.white)),
-            )
-          ],
+          );
+          notifyListeners();
+        },
+        child: Container(
+          child: Stack(
+            children: <Widget>[
+              Opacity(
+                opacity: 0.6,
+                child: Image.asset(
+                  "assets/images/shape_hexagon.png",
+                  width: 60.0,
+                  height: 60.0,
+                  color: color,
+                ),
+              ),
+              Center(
+                child: Text(text, style: TextStyle(fontSize: 13.0, color: Colors.white)),
+              )
+            ],
+          ),
         ),
       ),
     );

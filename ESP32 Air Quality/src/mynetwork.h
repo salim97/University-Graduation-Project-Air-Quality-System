@@ -24,9 +24,6 @@ unsigned int udpPort = 9876;
 WiFiUDP udp; // udp broadcast client
 String udpBuffer;
 
-String _jsonOutput;
-DynamicJsonDocument _doc(2048);
-
 void init_udp() {
   ipBroadCast = WiFi.localIP();
   ipBroadCast[3] = 255;
@@ -75,8 +72,8 @@ void sendUDP(String msg) {
 }
 
 String upTimeToString() {
-  static char str[12];
-  unsigned long t = millis() /1000 ;
+  static char str[15];
+  unsigned long t = millis() / 1000;
   long h = t / 3600;
   t = t % 3600;
   int m = t / 60;
@@ -86,6 +83,10 @@ String upTimeToString() {
 }
 
 void networkBroadcatLog(String msg, bool isError = false) {
+
+  String _jsonOutput;
+  DynamicJsonDocument _doc(2048);
+
   _doc.clear();
   _jsonOutput.clear();
   _doc["ip"] = localIP;
@@ -93,7 +94,7 @@ void networkBroadcatLog(String msg, bool isError = false) {
   _doc["msg"] = msg;
   _doc["isError"] = isError;
   serializeJsonPretty(_doc, Serial);
-  // serializeJson(_doc, _jsonOutput);
-  // sendUDP(_jsonOutput);
+  serializeJson(_doc, _jsonOutput);
+  sendUDP(_jsonOutput);
+  delay(500);
 }
-

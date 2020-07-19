@@ -1,3 +1,7 @@
+#ifndef MyMICS6814_H
+#define MyMICS6814_H
+#include "MySensor.h"
+
 #include "../lib/MICS6814.h"
 #define PIN_CO 32  // ADC1_CHANNEL_4
 #define PIN_NO2 34 // ADC1_CHANNEL_6
@@ -44,3 +48,5 @@ public:
     }
   }
 };
+
+#endif

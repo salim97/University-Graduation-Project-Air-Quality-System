@@ -60,7 +60,7 @@ class _SearchMenuWidgetState extends State<SearchMenuWidget> {
       onTap: () => onMenuItemClicked(text),
 
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(6.0),
         child: Container(
           width: realW(130),
           height: realH(60),

@@ -1,3 +1,6 @@
+#ifndef MyMHZ19_H
+#define MyMHZ19_H
+#include "MySensor.h"
 #include <MHZ19.h>
 #include <SoftwareSerial.h> // Remove if using HardwareSerial or Arduino package without SoftwareSerial support
 
@@ -77,3 +80,5 @@ public:
     }
   }
 };
+
+#endif

@@ -111,11 +111,12 @@ void MICS6814 ::calibrate() {
     pntrCO = (pntrCO + 1) % seconds;
     pntrNO2 = (pntrNO2 + 1) % seconds;
 
-    // Serial.print("isStableNH3 = ");		Serial.println(abs (fltSumNH3 / seconds
-    // - curNH3) );
-    // Serial.print("isStableCO = ");		Serial.println(abs (fltSumCO / seconds -
-    // curCO)); Serial.print("isStableNO2 = ");
-    // Serial.println(abs (fltSumNO2 / seconds - curNO2));
+    Serial.print("isStableNH3 = ");
+    Serial.println(abs(fltSumNH3 / seconds - curNH3));
+    Serial.print("isStableCO = ");
+    Serial.println(abs(fltSumCO / seconds - curCO));
+    Serial.print("isStableNO2 = ");
+    Serial.println(abs(fltSumNO2 / seconds - curNO2));
   } while (!isStableNH3 || !isStableCO || !isStableNO2);
 
   _baseNH3 = fltSumNH3 / seconds;
@@ -158,7 +159,8 @@ float MICS6814 ::measure(gas_t gas) {
     break;
   }
 
-  return isnan(c) ? -1 : c;
+  return isnan(c) ? 0 : c;
+  // return  c;
 }
 
 /*

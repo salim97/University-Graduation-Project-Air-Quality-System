@@ -1,3 +1,7 @@
+#ifndef MyDHT22_H
+#define MyDHT22_H
+
+#include "MySensor.h"
 #include <DHT.h>
 #include <DHT_U.h>
 
@@ -129,3 +133,5 @@ public:
     }
   }
 };
+
+#endif 

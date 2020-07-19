@@ -5,33 +5,29 @@
 // http://www.iotsharing.com/2017/06/how-to-use-binary-semaphore-mutex-counting-semaphore-resource-management.html
 // #include "NTPClient.h"
 #include <Arduino.h>
-// #include <WiFi.h>
-#include <WiFiUdp.h>
-
 #include <ArduinoJson.h>
+#include <BluetoothSerial.h>
+#include <ESPAsyncWebServer.h>
+#include <ESPAsyncWiFiManager.h> //https://github.com/tzapu/WiFiManager
 #include <HTTPClient.h>
+#include <Ticker.h>
+#include <WiFi.h>
+#include <WiFiUdp.h>
+#include <esp_wifi.h>
 
-#include <Ticker.h> //Ticker Library
-
+#include "mynetwork.h"
 #include "sensors/BME680.h"
 #include "sensors/DHT22.h"
 #include "sensors/MHZ19.h"
 #include "sensors/MICS6814.h"
 #include "sensors/SGP30.h"
 
-#include "mynetwork.h"
-
-#include <WiFi.h>
-
-// needed for library
-#include <ESPAsyncWebServer.h>
-#include <ESPAsyncWiFiManager.h> //https://github.com/tzapu/WiFiManager
-#include <esp_wifi.h>
-
-MySensor *mySensorsList[] = {new MyDHT22(), new MyBME680(), new MySGP30(), new MyMHZ19(), new MyMICS6814()};
+MySensor *mySensorsList[] = {new MyDHT22(), new MyBME680(), new MySGP30(),
+                              new MyMHZ19(),new MyMICS6814()};
+                              
 
 void FirstCoreCode(void *parameter);
-void SecondCoreCode(void *parameter) ;
+void SecondCoreCode(void *parameter);
 void jsonHeader();
 
 void blink_LED();
@@ -40,12 +36,11 @@ void sendDataToLocalNetwork();
 void processUDP(String command);
 bool httpPOST(String url, String body);
 
-
 SemaphoreHandle_t xMutex;
 TaskHandle_t Task1;
 TaskHandle_t Task2;
 void setup() {
-  //init mutex
+  // init mutex
   xMutex = xSemaphoreCreateMutex();
 
   Serial.begin(115200);
@@ -58,24 +53,24 @@ void setup() {
   // priority 1 and executed on core 0
   xTaskCreatePinnedToCore(
       FirstCoreCode, /* Task function. */
-      "Task1",   /* name of task. */
-      10000,     /* Stack size of task */
-      NULL,      /* parameter of the task */
-      1,         /* priority of the task */
-      &Task1,    /* Task handle to keep track of created task */
-      0);        /* pin task to core 0 */
+      "Task1",       /* name of task. */
+      10000,         /* Stack size of task */
+      NULL,          /* parameter of the task */
+      1,             /* priority of the task */
+      &Task1,        /* Task handle to keep track of created task */
+      0);            /* pin task to core 0 */
   delay(500);
 
   // create a task that will be executed in the SecondCoreCode() function, with
   // priority 1 and executed on core 1
   xTaskCreatePinnedToCore(
       SecondCoreCode, /* Task function. */
-      "Task2",   /* name of task. */
-      10000,     /* Stack size of task */
-      NULL,      /* parameter of the task */
-      1,         /* priority of the task */
-      &Task2,    /* Task handle to keep track of created task */
-      1);        /* pin task to core 1 */
+      "Task2",        /* name of task. */
+      10000,          /* Stack size of task */
+      NULL,           /* parameter of the task */
+      1,              /* priority of the task */
+      &Task2,         /* Task handle to keep track of created task */
+      1);             /* pin task to core 1 */
   delay(500);
 }
 
@@ -86,7 +81,6 @@ DynamicJsonDocument doc(2048);
 void FirstCoreCode(void *parameter) {
   Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
 
-  
   const uint8_t sizeMySensorsList =
       sizeof(mySensorsList) / sizeof(mySensorsList[0]);
 
@@ -116,9 +110,8 @@ void FirstCoreCode(void *parameter) {
   }
 }
 
-
 // each second blink led
-Ticker timer0(blink_LED, 1000);
+Ticker timer0(blink_LED, 5 * 1000);
 // each 10 min send data to server
 Ticker timer1(sendDataToFirebase, 10 * 60 * 1000);
 
@@ -156,6 +149,10 @@ void SecondCoreCode(void *parameter) {
   };
 
   {
+    // BluetoothSerial ESP_BT;            // Object for Bluetooth
+    // ESP_BT.begin("Trash Binome :)"); // Name of your Bluetooth Signal
+    // Serial.println("Bluetooth Device is Ready to Pair");
+
     AsyncWiFiManager wifiManager(&server, &dns);
     // reset settings - for testing
     // wifiManager.resetSettings();
@@ -186,7 +183,6 @@ void SecondCoreCode(void *parameter) {
                    String(reinterpret_cast<const char *>(conf.sta.password)));
     // while (configMode) ;
 
-
     init_udp();
     // pinMode(BUILTIN_LED, OUTPUT);
     pinMode(LED_BUILTIN, OUTPUT);
@@ -197,10 +193,26 @@ void SecondCoreCode(void *parameter) {
 
     sendDataToLocalNetwork();
     sendDataToFirebase();
-
+    // int incoming ;
     while (true) {
       // if (configMode) continue;
 
+      // if (ESP_BT.available()) // Check if we receive anything from Bluetooth
+      // {
+      //   incoming = ESP_BT.read(); // Read what we recevive
+      //   Serial.print("Received:");
+      //   Serial.println(incoming);
+
+      //   if (incoming == 49) {
+      //     digitalWrite(LED_BUILTIN, HIGH);
+      //     ESP_BT.println("LED turned ON");
+      //   }
+
+      //   if (incoming == 48) {
+      //     digitalWrite(LED_BUILTIN, LOW);
+      //     ESP_BT.println("LED turned OFF");
+      //   }
+      // }
       timer0.update();
       timer1.update();
 
@@ -209,10 +221,11 @@ void SecondCoreCode(void *parameter) {
   }
 }
 
-
 void blink_LED() {
   digitalWrite(LED_BUILTIN,
                !(digitalRead(LED_BUILTIN))); // Invert Current State of LED
+  networkBroadcatLog(digitalRead(LED_BUILTIN) ? "BILTIN LED is ON" : "BILTIN LED is OFF");
+  //  networkBroadcatLog("sowa", false);
 }
 
 void sendDataToFirebase() {
@@ -245,30 +258,36 @@ bool httpPOST(String url, String body) {
         Serial.println("Status code : " + String(httpCode));
         Serial.println("request body : " + body);
         clientHTTP.end();
+
         if (httpCode >= 400) {
-          delay(15 * 1000);
+          networkBroadcatLog("HTTP Response Code : " + String(httpCode) +
+                                 "\n HTTP Response Body : " + payload,
+                             true);
+          delay(5 * 1000);
           return false;
-          // ESP.restart();
+        } else {
+          networkBroadcatLog("HTTP Response Code : " + String(httpCode) +
+                                 "\n HTTP Response Body : " + payload,
+                             false);
         }
+
       } else {
-        Serial.println("Error on HTTP request");
-        Serial.println(clientHTTP.errorToString(httpCode));
+
+        networkBroadcatLog("HTTP Internal Error Code : " + String(httpCode) +
+                               "\n HTTP Internal Error Message : " +
+                               clientHTTP.errorToString(httpCode),
+                           true);
         delay(5 * 1000);
         return false;
-        // ESP.restart(); // TODO: send msg + err in local network before
-        // restarting
-        // ....
       }
     } else {
-      Serial.printf("[HTTP] Unable to connect");
-      Serial.printf(url.c_str());
+      networkBroadcatLog("HTTP Unable to connect : " + url, true);
       return false;
-      // ESP.restart();
     }
 
   } else {
     Serial.println("WiFi.status() == WL_CONNECTED, no WiFi");
-
+    delay(5 * 1000);
     ESP.restart(); // restart esp to connect into wifi again
                    // ....
   }

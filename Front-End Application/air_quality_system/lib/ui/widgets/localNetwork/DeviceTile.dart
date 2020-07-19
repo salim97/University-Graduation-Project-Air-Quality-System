@@ -64,7 +64,8 @@ class _DeviceTileState extends State<DeviceTile> {
               ],
             ),
             Material(
-                color: Colors.green,
+                // color: Colors.green,
+                color: Color(0xff01b87d),
                 borderRadius: BorderRadius.circular(24.0),
                 child: Center(
                     child: Padding(
@@ -117,7 +118,8 @@ class _DeviceTileState extends State<DeviceTile> {
       margin: EdgeInsets.all(4.0),
       child: FlatButton.icon(
         icon: const Icon(Icons.timeline),
-        color: Colors.green,
+        // color: Colors.green,
+        color:  Color(0xff01b87d),
         textColor: Colors.white,
         label: const Text('See historical data'),
         onPressed: () {

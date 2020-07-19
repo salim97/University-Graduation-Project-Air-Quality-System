@@ -1,3 +1,7 @@
+#ifndef MySGP30_H
+#define MySGP30_H
+#include "MySensor.h"
+
 #include "Adafruit_SGP30.h"
 class MySGP30 : public MySensor {
 private:
@@ -75,3 +79,6 @@ public:
     }
   }
 };
+
+
+#endif

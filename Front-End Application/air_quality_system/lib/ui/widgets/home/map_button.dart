@@ -11,6 +11,7 @@ class MapButton extends StatelessWidget {
   final double height;
 
   final IconData icon;
+  final Widget childWidget;
   final Color iconColor;
   final bool isRight;
   final Gradient gradient;
@@ -24,6 +25,7 @@ class MapButton extends StatelessWidget {
       this.width,
       this.height,
       this.icon,
+      this.childWidget,
       this.iconColor,
       this.isRight = true,
       this.gradient,
@@ -34,7 +36,7 @@ class MapButton extends StatelessWidget {
         assert(offsetX != null),
         assert(width != null),
         assert(height != null),
-        assert(icon != null),
+        // assert(icon != null),
         super(key: key);
 
   @override
@@ -53,11 +55,8 @@ class MapButton extends StatelessWidget {
             height: realH(height),
             alignment: Alignment.centerLeft,
             padding: EdgeInsets.only(left: realW(17)),
-            child: Icon(
-              icon,
-              size: realW(34),
-              color: iconColor ?? Colors.black,
-            ),
+            child: childWidget
+           ,
             decoration: BoxDecoration(
                 color: gradient == null ? Colors.white.withOpacity(0.75) : null,
                 gradient: gradient,

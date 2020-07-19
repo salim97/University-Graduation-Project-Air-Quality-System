@@ -77,7 +77,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   /// else make Explore close
   void animateExplore(bool open) {
     animationControllerExplore = AnimationController(
-        duration: Duration(milliseconds: 1 + (800 * (isExploreOpen ? currentExplorePercent : (1 - currentExplorePercent))).toInt()), vsync: this);
+        duration: Duration(milliseconds: 1 + (800 * (isExploreOpen ? currentExplorePercent : (1 - currentExplorePercent))).toInt()),
+        vsync: this);
     curve = CurvedAnimation(parent: animationControllerExplore, curve: Curves.ease);
     animation = Tween(begin: offsetExplore, end: open ? 760.0 - 122 : 0.0).animate(curve)
       ..addListener(() {
@@ -95,7 +96,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
   void animateSearch(bool open) {
     animationControllerSearch = AnimationController(
-        duration: Duration(milliseconds: 1 + (800 * (isSearchOpen ? currentSearchPercent : (1 - currentSearchPercent))).toInt()), vsync: this);
+        duration: Duration(milliseconds: 1 + (800 * (isSearchOpen ? currentSearchPercent : (1 - currentSearchPercent))).toInt()),
+        vsync: this);
     curve = CurvedAnimation(parent: animationControllerSearch, curve: Curves.ease);
     animation = Tween(begin: offsetSearch, end: open ? 347.0 - 68.0 : 0.0).animate(curve)
       ..addListener(() {
@@ -142,185 +144,225 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     return ViewModelBuilder<HomeViewModel>.reactive(
       builder: (context, model, child) => kIsWeb
           ? webUI(context, model, child)
-          : Scaffold(
-              body: Center(
-                child: SizedBox(
-                  width: screenWidth,
-                  height: screenHeight,
-                  child: Stack(
-                    children: <Widget>[
-                      FlutterMap(
-                        mapController: model.mapController,
-                        options: MapOptions(
-                          center: LatLng(35.691124, -0.618778),
-                          zoom: 14.0,
-                        ),
-                        layers: [
-                          TileLayerOptions(
-                            urlTemplate: "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
-                            subdomains: ['a', 'b', 'c'],
+          : WillPopScope(
+                  onWillPop: () async {
+                    if(model.dataTable != null) {
+                      model.dataTable = null;
+                      model.notifyListeners();
+                      return false;
+                    }
+                    else
+                    return true ;
+        // return false;
+      },
+                      child: Scaffold(
+                body: Center(
+                  child: SizedBox(
+                    width: screenWidth,
+                    height: screenHeight,
+                    child: Stack(
+                      children: <Widget>[
+                        FlutterMap(
+                          mapController: model.mapController,
+                          options: MapOptions(
+                            center: LatLng(35.691124, -0.618778),
+                            zoom: 14.0,
                           ),
-                          MarkerLayerOptions(markers: model.markers)
-                        ],
-                      ),
-                      ExploreWidget(
-                        currentExplorePercent: currentExplorePercent,
-                        currentSearchPercent: currentSearchPercent,
-                        animateExplore: animateExplore,
-                        isExploreOpen: isExploreOpen,
-                        onVerticalDragUpdate: onExploreVerticalUpdate,
-                        onPanDown: () => animationControllerExplore?.stop(),
-                      ),
-                      //explore content
-                      ExploreContentWidget(
-                        currentExplorePercent: currentExplorePercent,
-                      ),
-
-                      //search menu background
-                      offsetSearch != 0
-                          ? Positioned(
-                              bottom: realH(88),
-                              left: realW((standardWidth - 320) / 2),
-                              width: realW(320),
-                              height: realH(400 * currentSearchPercent),
-                              child: Opacity(
-                                opacity: currentSearchPercent,
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.7),
-                                      borderRadius: BorderRadius.only(topLeft: Radius.circular(realW(33)), topRight: Radius.circular(realW(33)))),
-                                ),
-                              ),
-                            )
-                          : const Padding(
-                              padding: const EdgeInsets.all(0),
+                          layers: [
+                            TileLayerOptions(
+                              urlTemplate: "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+                              subdomains: ['a', 'b', 'c'],
                             ),
-                      //search menu
-                      SearchMenuWidget(
-                        currentSearchPercent: currentSearchPercent,
-                        gas: model.gas,
-                        onCurrentSearchChanged: model.onCurrentSearchChanged,
-                      ),
+                            MarkerLayerOptions(markers: model.markers)
+                          ],
+                        ),
+                        ExploreWidget(
+                          currentExplorePercent: currentExplorePercent,
+                          currentSearchPercent: currentSearchPercent,
+                          animateExplore: animateExplore,
+                          isExploreOpen: isExploreOpen,
+                          onVerticalDragUpdate: onExploreVerticalUpdate,
+                          onPanDown: () => animationControllerExplore?.stop(),
+                        ),
+                        //explore content
+                        ExploreContentWidget(
+                          currentExplorePercent: currentExplorePercent,
+                        ),
 
-                      //search
-                      SearchWidget(
-                        currentSearchPercent: currentSearchPercent,
-                        currentExplorePercent: currentExplorePercent,
-                        isSearchOpen: isSearchOpen,
-                        animateSearch: animateSearch,
-                        onHorizontalDragUpdate: onSearchHorizontalDragUpdate,
-                        onPanDown: () => animationControllerSearch?.stop(),
-                      ),
-
-                      // //layer button
-                      // MapButton(
-                      //   currentExplorePercent: currentExplorePercent,
-                      //   currentSearchPercent: currentSearchPercent,
-                      //   bottom: 243,
-                      //   offsetX: -71,
-                      //   width: 71,
-                      //   height: 71,
-                      //   isRight: false,
-                      //   icon: Icons.layers,
-                      //   onButtonClicked: (){
-                      //     print("hahowa");
-                      //   }
-                      // ),
-                      // //directions button
-                      // MapButton(
-                      //   currentSearchPercent: currentSearchPercent,
-                      //   currentExplorePercent: currentExplorePercent,
-                      //   bottom: 243,
-                      //   offsetX: -68,
-                      //   width: 68,
-                      //   height: 71,
-                      //   icon: Icons.directions,
-                      //   iconColor: Colors.white,
-                      //   gradient: const LinearGradient(colors: [
-                      //     Color(0xFF59C2FF),
-                      //     Color(0xFF1270E3),
-                      //   ]),
-                      // ),
-                      //my_location button
-                      MapButton(
-                        currentSearchPercent: currentSearchPercent,
-                        currentExplorePercent: currentExplorePercent,
-                        bottom: 148,
-                        offsetX: -68,
-                        width: 68,
-                        height: 71,
-                        icon: Icons.my_location,
-                        iconColor: Colors.blue,
-                        onButtonClicked: () {
-                          // TODO : center camera to user location
-                          print("Ncha'allah brabi :)");
-                        },
-                      ),
-                      //menu button
-                      Positioned(
-                        bottom: realH(53),
-                        left: realW(-71 * (currentExplorePercent + currentSearchPercent)),
-                        child: GestureDetector(
-                          onTap: () {
-                            animateMenu(true);
-                          },
-                          child: Opacity(
-                            opacity: 1 - (currentSearchPercent + currentExplorePercent),
-                            child: Container(
-                              width: realW(71),
-                              height: realH(71),
-                              alignment: Alignment.centerLeft,
-                              padding: EdgeInsets.only(left: realW(17)),
-                              child: Icon(
-                                Icons.menu,
-                                size: realW(34),
+                        //search menu background
+                        offsetSearch != 0
+                            ? Positioned(
+                                bottom: realH(88),
+                                left: realW((standardWidth - 320) / 2),
+                                width: realW(320),
+                                height: realH(400 * currentSearchPercent),
+                                child: Opacity(
+                                  opacity: currentSearchPercent,
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.7),
+                                        borderRadius:
+                                            BorderRadius.only(topLeft: Radius.circular(realW(33)), topRight: Radius.circular(realW(33)))),
+                                  ),
+                                ),
+                              )
+                            : const Padding(
+                                padding: const EdgeInsets.all(0),
                               ),
+                        //search menu
+                        SearchMenuWidget(
+                          currentSearchPercent: currentSearchPercent,
+                          gas: model.gas,
+                          onCurrentSearchChanged: model.onCurrentSearchChanged,
+                        ),
+                        //search
+                        SearchWidget(
+                          currentSearchPercent: currentSearchPercent,
+                          currentExplorePercent: currentExplorePercent,
+                          isSearchOpen: isSearchOpen,
+                          animateSearch: animateSearch,
+                          onHorizontalDragUpdate: onSearchHorizontalDragUpdate,
+                          onPanDown: () => animationControllerSearch?.stop(),
+                        ),
+
+                        // //layer button
+                        // MapButton(
+                        //   currentExplorePercent: currentExplorePercent,
+                        //   currentSearchPercent: currentSearchPercent,
+                        //   bottom: 243,
+                        //   offsetX: -71,
+                        //   width: 71,
+                        //   height: 71,
+                        //   isRight: false,
+                        //   icon: Icons.layers,
+                        //   onButtonClicked: (){
+                        //     print("hahowa");
+                        //   }
+                        // ),
+                        // //directions button
+                        // MapButton(
+                        //   currentSearchPercent: currentSearchPercent,
+                        //   currentExplorePercent: currentExplorePercent,
+                        //   bottom: 243,
+                        //   offsetX: -68,
+                        //   width: 68,
+                        //   height: 71,
+                        //   icon: Icons.directions,
+                        //   iconColor: Colors.white,
+                        //   gradient: const LinearGradient(colors: [
+                        //     Color(0xFF59C2FF),
+                        //     Color(0xFF1270E3),
+                        //   ]),
+                        // ),
+                        //my_location button
+
+                        MapButton(
+                          currentSearchPercent: currentSearchPercent,
+                          currentExplorePercent: currentExplorePercent,
+                          bottom: 148,
+                          offsetX: -68,
+                          width: 68,
+                          height: 71,
+                          childWidget: model.loadingDataFromBackend
+                              ? CircularProgressIndicator()
+                              : Icon(
+                                  Icons.refresh,
+                                  size: realW(34),
+                                  color: Colors.blue,
+                                ),
+                          onButtonClicked: () async {
+                            // model.loadingDataFromBackend = true;
+                            // model.notifyListeners();
+                            model.refresh();
+                            // model.loadingDataFromBackend = false;
+                            // model.notifyListeners();
+                          },
+                        ),
+                        //menu button
+                        Positioned(
+                          bottom: realH(53),
+                          left: realW(-71 * (currentExplorePercent + currentSearchPercent)),
+                          child: GestureDetector(
+                            onTap: () {
+                              animateMenu(true);
+                            },
+                            child: Opacity(
+                              opacity: 1 - (currentSearchPercent + currentExplorePercent),
+                              child: Container(
+                                width: realW(71),
+                                height: realH(71),
+                                alignment: Alignment.centerLeft,
+                                padding: EdgeInsets.only(left: realW(17)),
+                                child: Icon(
+                                  Icons.menu,
+                                  size: realW(34),
+                                ),
+                                decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.75),
+                                    borderRadius:
+                                        BorderRadius.only(bottomRight: Radius.circular(realW(36)), topRight: Radius.circular(realW(36))),
+                                    boxShadow: [
+                                      BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.3), blurRadius: realW(36)),
+                                    ]),
+                              ),
+                            ),
+                          ),
+                        ),
+                        //menu
+                        MenuWidget(
+                          currentMenuPercent: currentMenuPercent,
+                          animateMenu: animateMenu,
+                          name: "Benda Benda",
+                          phoneNumber: "06666666666",
+                        ),
+
+                        /*       Positioned(
+                        bottom: 0,
+                        left: MediaQuery.of(context).size.width * 0.25,
+                        child: Container(
+              decoration: BoxDecoration(color: Colors.white),
+              child: DropdownButton(
+                value: model.currentGas,
+                items: model.dropDownMenuItems,
+                onChanged: model.changedDropDownItem,
+              ),
+                        )),
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      //  height: MediaQuery.of(context).size.height * 0.50,
+                      width: MediaQuery.of(context).size.width * 0.25,
+                      child: Image.asset(
+                        // "assets/images/legend_Temperature.png",
+                        model.currentGasLegend
+                      ),
+                    ), */
+
+                        model.dataTable != null ? Positioned.fill(
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Container(
+                              width: screenWidth * 0.8,
+                              height: screenHeight * 0.8,
                               decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.75),
-                                  borderRadius: BorderRadius.only(bottomRight: Radius.circular(realW(36)), topRight: Radius.circular(realW(36))),
+                                  borderRadius: BorderRadius.all(Radius.circular(realW(36))),
                                   boxShadow: [
                                     BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.3), blurRadius: realW(36)),
                                   ]),
+                              child: model.dataTable,
                             ),
                           ),
-                        ),
-                      ),
-                      //menu
-                      MenuWidget(
-                        currentMenuPercent: currentMenuPercent,
-                        animateMenu: animateMenu,
-                        name: "Benda Benda",
-                        phoneNumber: "06666666666",
-                      ),
-
-                      /*       Positioned(
-                      bottom: 0,
-                      left: MediaQuery.of(context).size.width * 0.25,
-                      child: Container(
-            decoration: BoxDecoration(color: Colors.white),
-            child: DropdownButton(
-              value: model.currentGas,
-              items: model.dropDownMenuItems,
-              onChanged: model.changedDropDownItem,
-            ),
-                      )),
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    //  height: MediaQuery.of(context).size.height * 0.50,
-                    width: MediaQuery.of(context).size.width * 0.25,
-                    child: Image.asset(
-                      // "assets/images/legend_Temperature.png",
-                      model.currentGasLegend
+                        ) : Container()
+                      ],
                     ),
-                  ), */
-                    ],
                   ),
                 ),
               ),
-            ),
+          ),
       viewModelBuilder: () => HomeViewModel(),
-      onModelReady: (model) => model.initState(), // TODO: khrebch fiha apre, prc initstate ta3 fluter w hadi custom je pense pas 3andhom meme behavior
+      onModelReady: (model) =>
+          model.initState(), // TODO: khrebch fiha apre, prc initstate ta3 fluter w hadi custom je pense pas 3andhom meme behavior
     );
   }
 
@@ -333,7 +375,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           child: Stack(
             children: <Widget>[
               FlutterMap(
-                
                 mapController: model.mapController,
                 options: MapOptions(
                   center: LatLng(35.691124, -0.618778),
@@ -345,7 +386,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     subdomains: ['a', 'b', 'c'],
                   ),
                   MarkerLayerOptions(markers: model.markers),
-               
                 ],
               ),
               ExploreWidget(
@@ -371,7 +411,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   isRight: true,
                   icon: Icons.zoom_in,
                   onButtonClicked: () {
-                    model.mapController.move(model.mapController.center, model.mapController.zoom+1);
+                    model.mapController.move(model.mapController.center, model.mapController.zoom + 1);
                   }),
               //ZOOM OUT
               MapButton(
@@ -384,7 +424,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   isRight: true,
                   icon: Icons.zoom_out,
                   onButtonClicked: () {
-                    model.mapController.move(model.mapController.center, model.mapController.zoom-1);
+                    model.mapController.move(model.mapController.center, model.mapController.zoom - 1);
                   }),
               //search menu background
               offsetSearch != 0
