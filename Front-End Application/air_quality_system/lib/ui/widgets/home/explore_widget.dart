@@ -14,7 +14,8 @@ class ExploreWidget extends StatelessWidget {
   final Function() onPanDown;
 
   final bool isExploreOpen;
-
+  final String title;
+  final Widget icon ;
   const ExploreWidget(
       {Key key,
       this.currentSearchPercent,
@@ -22,6 +23,8 @@ class ExploreWidget extends StatelessWidget {
       this.animateExplore,
       this.isExploreOpen,
       this.onVerticalDragUpdate,
+      this.title,
+      this.icon,
       this.onPanDown})
       : super(key: key);
 
@@ -59,17 +62,13 @@ class ExploreWidget extends StatelessWidget {
                       top: realH(65 + (-5 * currentExplorePercent)),
                       left: realW(49 + (91 - 49) * currentExplorePercent),
                       child: Text(
-                        "Weather",
+                        title,
                         style: TextStyle(color: Colors.white, fontSize: realW(18 + (32 - 18) * currentExplorePercent)),
                       )),
                   Positioned(
                       top: realH(20 + (60 - 20) * currentExplorePercent),
                       left: realW(63 + (44 - 63) * currentExplorePercent),
-                      child: Icon(
-                        MdiIcons.weatherPartlySnowyRainy,
-                        size: realW(34),
-                        color: Colors.white,
-                      )),
+                      child: icon ),
                   // Positioned(
                   //     top: realH(currentExplorePercent < 0.9
                   //         ? realH(-35)

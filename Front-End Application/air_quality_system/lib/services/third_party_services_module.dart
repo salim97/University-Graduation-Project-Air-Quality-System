@@ -19,7 +19,7 @@ abstract class ThirdPartyServicesModule {
   SnackbarService get snackbarService;
 
   @lazySingleton
-  MyFirebaseAuth get myFirebaseAuth;
+  MyFirebaseAuthService get myFirebaseAuth;
   @lazySingleton
   MyFirestoreDB get myFirestoreDB;
   @lazySingleton

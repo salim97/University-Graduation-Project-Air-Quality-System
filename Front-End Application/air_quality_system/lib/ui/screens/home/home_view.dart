@@ -1,8 +1,10 @@
 import 'dart:math';
 import 'dart:ui';
+import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map/plugin_api.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:stacked/stacked.dart';
 import 'home_model.dart';
 import 'package:latlong/latlong.dart';
@@ -14,6 +16,8 @@ class HomeView extends StatefulWidget {
   @override
   _HomeViewState createState() => _HomeViewState();
 }
+
+const String feature1 = 'feature1', feature2 = 'feature2', feature3 = 'feature3', feature4 = 'feature4';
 
 class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   AnimationController animationControllerExplore;
@@ -131,6 +135,22 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FeatureDiscovery.discoverFeatures(
+        context,
+        const <String>{
+          feature1,
+          feature2,
+          feature3,
+          feature4,
+        },
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     screenWidth = MediaQuery.of(context).size.width;
     screenHeight = MediaQuery.of(context).size.height;
@@ -140,22 +160,40 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     if (screenHeight > standardHeight && kIsWeb) {
       screenHeight = standardHeight;
     }
+    const Widget iconDrawer = Icon(
+      Icons.menu,
+      size: 34,
+    );
+    const Widget iconRefresh = Icon(
+      Icons.refresh,
+      size: 34,
+      color: Colors.blue,
+    );
+    const Widget iconMenu = Icon(
+      // MdiIcons.formSelect,
+      MdiIcons.cogOutline,
+      size: 34,
+    );
+    const Widget iconWeather = Icon(
+      MdiIcons.weatherPartlySnowyRainy,
+      size: 34,
+      color: Colors.white,
+    );
 
     return ViewModelBuilder<HomeViewModel>.reactive(
       builder: (context, model, child) => kIsWeb
           ? webUI(context, model, child)
           : WillPopScope(
-                  onWillPop: () async {
-                    if(model.dataTable != null) {
-                      model.dataTable = null;
-                      model.notifyListeners();
-                      return false;
-                    }
-                    else
-                    return true ;
-        // return false;
-      },
-                      child: Scaffold(
+              onWillPop: () async {
+                if (model.dataTable != null) {
+                  model.dataTable = null;
+                  model.notifyListeners();
+                  return false;
+                } else
+                  return true;
+                // return false;
+              },
+              child: Scaffold(
                 body: Center(
                   child: SizedBox(
                     width: screenWidth,
@@ -177,6 +215,19 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           ],
                         ),
                         ExploreWidget(
+                          title: isExploreOpen ? "Weather Forecast" : "Weather",
+                          icon: DescribedFeatureOverlay(
+                              featureId: feature4,
+                              tapTarget: iconWeather,
+                              backgroundColor: Colors.green,
+                              targetColor: Colors.blue,
+                              onOpen: () async {
+                                print('Tapped tap target of $feature1.');
+                                return true;
+                              },
+                              title: const Text('Weather forecast', style: TextStyle(fontSize: 22.0)),
+                              description: const Text('Get weather forecast of your current location', style: TextStyle(fontSize: 18.0)),
+                              child: iconWeather),
                           currentExplorePercent: currentExplorePercent,
                           currentSearchPercent: currentSearchPercent,
                           animateExplore: animateExplore,
@@ -217,6 +268,19 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         ),
                         //search
                         SearchWidget(
+                          mainIcon: DescribedFeatureOverlay(
+                              featureId: feature1,
+                              tapTarget: iconMenu,
+                              backgroundColor: Colors.green,
+                              onOpen: () async {
+                                print('Tapped tap target of $feature1.');
+                                return true;
+                              },
+                              title: const Text('Map menu', style: TextStyle(fontSize: 22.0)),
+                              description: const Text(
+                                  'click on this mapbutton to select target chemical ( Temperature, humidity, CO2 ...etc ) to be displayed in the map',
+                                  style: TextStyle(fontSize: 18.0)),
+                              child: iconMenu),
                           currentSearchPercent: currentSearchPercent,
                           currentExplorePercent: currentExplorePercent,
                           isSearchOpen: isSearchOpen,
@@ -224,37 +288,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           onHorizontalDragUpdate: onSearchHorizontalDragUpdate,
                           onPanDown: () => animationControllerSearch?.stop(),
                         ),
-
-                        // //layer button
-                        // MapButton(
-                        //   currentExplorePercent: currentExplorePercent,
-                        //   currentSearchPercent: currentSearchPercent,
-                        //   bottom: 243,
-                        //   offsetX: -71,
-                        //   width: 71,
-                        //   height: 71,
-                        //   isRight: false,
-                        //   icon: Icons.layers,
-                        //   onButtonClicked: (){
-                        //     print("hahowa");
-                        //   }
-                        // ),
-                        // //directions button
-                        // MapButton(
-                        //   currentSearchPercent: currentSearchPercent,
-                        //   currentExplorePercent: currentExplorePercent,
-                        //   bottom: 243,
-                        //   offsetX: -68,
-                        //   width: 68,
-                        //   height: 71,
-                        //   icon: Icons.directions,
-                        //   iconColor: Colors.white,
-                        //   gradient: const LinearGradient(colors: [
-                        //     Color(0xFF59C2FF),
-                        //     Color(0xFF1270E3),
-                        //   ]),
-                        // ),
-                        //my_location button
 
                         MapButton(
                           currentSearchPercent: currentSearchPercent,
@@ -265,17 +298,40 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           height: 71,
                           childWidget: model.loadingDataFromBackend
                               ? CircularProgressIndicator()
-                              : Icon(
-                                  Icons.refresh,
-                                  size: realW(34),
-                                  color: Colors.blue,
+                              : DescribedFeatureOverlay(
+                                  featureId: feature2,
+                                  tapTarget: iconRefresh,
+                                  backgroundColor: Colors.green,
+                                  onOpen: () async {
+                                    print('Tapped tap target of $feature1.');
+                                    return true;
+                                  },
+                                  title: const Text('Map Refresh', style: TextStyle(fontSize: 22.0)),
+                                  description: const Text('Get latest 10 min data and display it to map', style: TextStyle(fontSize: 18.0)),
+                                  child: iconRefresh,
                                 ),
                           onButtonClicked: () async {
-                            // model.loadingDataFromBackend = true;
-                            // model.notifyListeners();
                             model.refresh();
-                            // model.loadingDataFromBackend = false;
-                            // model.notifyListeners();
+                          },
+                        ),
+
+                        MapButton(
+                          currentSearchPercent: currentSearchPercent,
+                          currentExplorePercent: currentExplorePercent,
+                          bottom: 250,
+                          offsetX: -68,
+                          width: 68,
+                          height: 71,
+                          childWidget: Icon(
+                            Icons.help,
+                            size: 34,
+                            color: Colors.blue,
+                          ),
+                          onButtonClicked: () {
+                            FeatureDiscovery.discoverFeatures(
+                              context,
+                              const <String>{feature1, feature2, feature3, feature4,},
+                            );
                           },
                         ),
                         //menu button
@@ -293,10 +349,17 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                 height: realH(71),
                                 alignment: Alignment.centerLeft,
                                 padding: EdgeInsets.only(left: realW(17)),
-                                child: Icon(
-                                  Icons.menu,
-                                  size: realW(34),
-                                ),
+                                child: DescribedFeatureOverlay(
+                                    featureId: feature3,
+                                    tapTarget: iconDrawer,
+                                    backgroundColor: Colors.green,
+                                    onOpen: () async {
+                                      print('Tapped tap target of $feature1.');
+                                      return true;
+                                    },
+                                    title: const Text('App Drawer', style: TextStyle(fontSize: 22.0)),
+                                    description: const Text('Access to more functionality of the App', style: TextStyle(fontSize: 18.0)),
+                                    child: iconDrawer),
                                 decoration: BoxDecoration(
                                     color: Colors.white.withOpacity(0.75),
                                     borderRadius:
@@ -316,50 +379,30 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           phoneNumber: "06666666666",
                         ),
 
-                        /*       Positioned(
-                        bottom: 0,
-                        left: MediaQuery.of(context).size.width * 0.25,
-                        child: Container(
-              decoration: BoxDecoration(color: Colors.white),
-              child: DropdownButton(
-                value: model.currentGas,
-                items: model.dropDownMenuItems,
-                onChanged: model.changedDropDownItem,
-              ),
-                        )),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      //  height: MediaQuery.of(context).size.height * 0.50,
-                      width: MediaQuery.of(context).size.width * 0.25,
-                      child: Image.asset(
-                        // "assets/images/legend_Temperature.png",
-                        model.currentGasLegend
-                      ),
-                    ), */
-
-                        model.dataTable != null ? Positioned.fill(
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: Container(
-                              width: screenWidth * 0.8,
-                              height: screenHeight * 0.8,
-                              decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.75),
-                                  borderRadius: BorderRadius.all(Radius.circular(realW(36))),
-                                  boxShadow: [
-                                    BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.3), blurRadius: realW(36)),
-                                  ]),
-                              child: model.dataTable,
-                            ),
-                          ),
-                        ) : Container()
+                        model.dataTable != null
+                            ? Positioned.fill(
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: Container(
+                                    width: screenWidth * 0.8,
+                                    height: screenHeight * 0.8,
+                                    decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.75),
+                                        borderRadius: BorderRadius.all(Radius.circular(realW(36))),
+                                        boxShadow: [
+                                          BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.3), blurRadius: realW(36)),
+                                        ]),
+                                    child: model.dataTable,
+                                  ),
+                                ),
+                              )
+                            : Container()
                       ],
                     ),
                   ),
                 ),
               ),
-          ),
+            ),
       viewModelBuilder: () => HomeViewModel(),
       onModelReady: (model) =>
           model.initState(), // TODO: khrebch fiha apre, prc initstate ta3 fluter w hadi custom je pense pas 3andhom meme behavior

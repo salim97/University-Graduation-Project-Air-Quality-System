@@ -24,7 +24,7 @@ class HomeViewModel extends BaseViewModel {
   double _mapZoom = 14.0;
   MapController mapController = new MapController();
 
-  final MyFirebaseAuth firebaseAuthService = locator<MyFirebaseAuth>();
+  final MyFirebaseAuthService firebaseAuthService = locator<MyFirebaseAuthService>();
   final RestAPI restAPIService = locator<RestAPI>();
   final MyFirestoreDB myFirestoreDBservice = locator<MyFirestoreDB>();
   final DialogService _dialogService = locator<DialogService>();
@@ -57,7 +57,7 @@ class HomeViewModel extends BaseViewModel {
     dropDownMenuItems = getDropDownMenuItems();
     currentGas = _gas.keys.first;
     currentGasLegend = _gas.values.first;
-    refresh();
+    // refresh();
 
     notifyListeners();
   }

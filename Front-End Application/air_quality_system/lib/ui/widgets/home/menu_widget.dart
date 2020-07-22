@@ -63,11 +63,12 @@ class _MenuWidgetState extends State<MenuWidget> {
       widget.animateMenu(false);
       return;
     }
-    // if (item == "Contributions") {
-    //   Navigator.of(context).pushNamed(Routes.localNetworkView);
-    //   widget.animateMenu(false);
-    //   return;
-    // }
+    if (item == "Contributions") {
+      Navigator.of(context).pushNamed(Routes.phoneAuthView);
+      widget.animateMenu(false);
+      return;
+    }
+    
     
     Scaffold.of(context).showSnackBar(SnackBar(
       content: Text("Ncha'allah brabi :)"),

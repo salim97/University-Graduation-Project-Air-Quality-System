@@ -11,17 +11,20 @@ import 'package:air_quality_system/ui/screens/home/home_view.dart';
 import 'package:air_quality_system/ui/screens/authentication/phone/phone_auth_view.dart';
 import 'package:air_quality_system/ui/screens/authentication/unauth_view.dart';
 import 'package:air_quality_system/ui/screens/localNetwork/localNetwork_view.dart';
+import 'package:air_quality_system/ui/screens/localNetwork/scanNetwork_view.dart';
 
 abstract class Routes {
   static const homeView = '/';
   static const phoneAuthView = '/phone-auth-view';
   static const unAuth = '/un-auth';
   static const localNetworkView = '/local-network-view';
+  static const scanNetworkView = '/scan-network-view';
   static const all = {
     homeView,
     phoneAuthView,
     unAuth,
     localNetworkView,
+    scanNetworkView,
   };
 }
 
@@ -54,6 +57,11 @@ class Router extends RouterBase {
       case Routes.localNetworkView:
         return MaterialPageRoute<dynamic>(
           builder: (context) => LocalNetworkView(),
+          settings: settings,
+        );
+      case Routes.scanNetworkView:
+        return MaterialPageRoute<dynamic>(
+          builder: (context) => ScanNetworkView(),
           settings: settings,
         );
       default:

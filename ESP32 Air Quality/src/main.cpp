@@ -10,31 +10,70 @@
 #include <ESPAsyncWebServer.h>
 #include <ESPAsyncWiFiManager.h> //https://github.com/tzapu/WiFiManager
 #include <HTTPClient.h>
+#include <Preferences.h>
 #include <Ticker.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <esp_wifi.h>
+Preferences preferences;
 
 #include "mynetwork.h"
 #include "sensors/BME680.h"
 #include "sensors/DHT22.h"
 #include "sensors/MHZ19.h"
 #include "sensors/MICS6814.h"
+#include "sensors/MQ131.h"
 #include "sensors/SGP30.h"
 
-MySensor *mySensorsList[] = {new MyDHT22(), new MyBME680(), new MySGP30(),
-                              new MyMHZ19(),new MyMICS6814()};
-                              
+#if defined(ESP32)
+static const char _HEX_CHAR_ARRAY[17] = "0123456789ABCDEF";
+static String _byteToHexString(uint8_t *buf, uint8_t length,
+                               String strSeperator = "-") {
+  String dataString = "";
+  for (uint8_t i = 0; i < length; i++) {
+    byte v = buf[i] / 16;
+    byte w = buf[i] % 16;
+    if (i > 0) {
+      dataString += strSeperator;
+    }
+    dataString += String(_HEX_CHAR_ARRAY[v]);
+    dataString += String(_HEX_CHAR_ARRAY[w]);
+  }
+  dataString.toUpperCase();
+  return dataString;
+} // byteToHexString
+String _getESP32ChipID() {
+  uint64_t chipid;
+  chipid = ESP.getEfuseMac(); // The chip ID is essentially its MAC
+                              // address(length: 6 bytes).
+  int chipid_size = 6;
+  uint8_t chipid_arr[chipid_size];
+  for (uint8_t i = 0; i < chipid_size; i++) {
+    chipid_arr[i] = (chipid >> (8 * i)) & 0xff;
+  }
+  return _byteToHexString(chipid_arr, chipid_size, "");
+}
+
+#define APName "ESP" + _getESP32ChipID();
+#endif
+
+#if defined(ESP8266)
+#define APName "ESP" + String(ESP.getChipId());
+#endif
+
+MySensor *mySensorsList[] = {new MyDHT22(), new MyBME680(),   new MySGP30(),
+                             new MyMHZ19(), new MyMICS6814(), new MQ131()};
 
 void FirstCoreCode(void *parameter);
 void SecondCoreCode(void *parameter);
-void jsonHeader();
+bool jsonHeader();
 
 void blink_LED();
 void sendDataToFirebase();
 void sendDataToLocalNetwork();
 void processUDP(String command);
 bool httpPOST(String url, String body);
+void tmp_SecondCoreCode();
 
 SemaphoreHandle_t xMutex;
 TaskHandle_t Task1;
@@ -47,7 +86,13 @@ void setup() {
   // Device to serial monitor feedback
   while (!Serial)
     ;
-
+  // Open Preferences with my-app namespace. Each application module, library,
+  // etc has to use a namespace name to prevent key name collisions. We will
+  // open storage in RW-mode (second parameter has to be false). Note: Namespace
+  // name is limited to 15 chars.
+  preferences.begin("firebaseConfig", false);
+  // jsonHeader();
+  // tmp_SecondCoreCode();
   delay(500);
   // create a task that will be executed in the FirstCoreCode() function, with
   // priority 1 and executed on core 0
@@ -162,6 +207,7 @@ void SecondCoreCode(void *parameter) {
     // enters Access Point mode
     wifiManager.setAPCallback(configModeCallback);
     wifiManager.setSaveConfigCallback(saveConfigCallback);
+    // get the AP name  the config portal, so it can be used in the callback
 
     // fetches ssid and pass and tries to connect
     // if it does not connect it starts an access point with the specified name
@@ -187,6 +233,12 @@ void SecondCoreCode(void *parameter) {
     // pinMode(BUILTIN_LED, OUTPUT);
     pinMode(LED_BUILTIN, OUTPUT);
     blink_LED();
+    // Serial.println(preferences.clear());
+    while (!jsonHeader()) {
+      processUDP(readAllUDP());
+      Serial.println("Waiting for firebase config from local network");
+      delay(1000);
+    }
 
     timer0.start();
     timer1.start();
@@ -195,6 +247,7 @@ void SecondCoreCode(void *parameter) {
     sendDataToFirebase();
     // int incoming ;
     while (true) {
+
       // if (configMode) continue;
 
       // if (ESP_BT.available()) // Check if we receive anything from Bluetooth
@@ -224,7 +277,8 @@ void SecondCoreCode(void *parameter) {
 void blink_LED() {
   digitalWrite(LED_BUILTIN,
                !(digitalRead(LED_BUILTIN))); // Invert Current State of LED
-  networkBroadcatLog(digitalRead(LED_BUILTIN) ? "BILTIN LED is ON" : "BILTIN LED is OFF");
+  networkBroadcatLog(digitalRead(LED_BUILTIN) ? "BILTIN LED is ON"
+                                              : "BILTIN LED is OFF");
   //  networkBroadcatLog("sowa", false);
 }
 
@@ -239,8 +293,11 @@ void sendDataToFirebase() {
   local = globalSharedBuffer;
   xSemaphoreGive(xMutex);
 
-  while (!httpPOST(url, local))
-    ;
+  while (!httpPOST(url, local)) {
+    xSemaphoreTake(xMutex, portMAX_DELAY);
+    local = globalSharedBuffer;
+    xSemaphoreGive(xMutex);
+  };
 }
 
 bool httpPOST(String url, String body) {
@@ -295,14 +352,21 @@ bool httpPOST(String url, String body) {
   return true;
 }
 
-void jsonHeader() {
-  // TODO: read form EPPROM
+bool jsonHeader() {
   // clear RAM
   doc.clear();
-  doc["uid"] = "Lf7gh5IDYxZgOmUXKhtaHSk6j9y2";
-  doc["GPS"]["latitude"] = 35.6935229;
-  doc["GPS"]["longitude"] = -0.6140395;
+  if (preferences.getString("uid").isEmpty()) return false;
+
+  doc["uid"] = preferences.getString("uid");
+  doc["GPS"]["latitude"] = preferences.getFloat("GPS_latitude");
+  doc["GPS"]["longitude"] = preferences.getFloat("GPS_longitude");
   doc["upTime"] = millis();
+  Serial.println(preferences.getString("requestDateTime"));
+  Serial.println(preferences.getString("uid"));
+  Serial.println(preferences.getFloat("GPS_latitude"));
+  Serial.println(preferences.getFloat("GPS_longitude"));
+  Serial.println(preferences.getFloat("GPS_altitude"));
+  return true;
 }
 
 void processUDP(String command) {
@@ -312,13 +376,31 @@ void processUDP(String command) {
     sendDataToLocalNetwork();
     return;
   }
-  // TODO: set uid + gps to EPPROM
-  // if (_doc["command"] == "setWiFi") {
-  //   clearEPPROM();
-  //   setSSID(doc["ssid"]);
-  //   setPASS(doc["pass"]);
-  //   ESP.restart();
-  // }
+  if (_doc["command"] == "scanNetwork") {
+    String __jsonOutput;
+    DynamicJsonDocument __doc(2048);
+
+    __doc.clear();
+    __jsonOutput.clear();
+    __doc["ip"] = localIP;
+    __doc["upTime"] = upTimeToString();
+    __doc["deviceName"] = APName;
+    serializeJsonPretty(__doc, Serial);
+    serializeJson(__doc, __jsonOutput);
+    sendUDP(__jsonOutput);
+    delay(500);
+    return;
+  }
+  if (_doc["command"] == "setData") {
+    const char *requestDateTime = _doc["requestDateTime"]; // "setData"
+    const char *uid = _doc["uid"]; // "Lf7gh5IDYxZgOmUXKhtaHSk6j9y2"
+    preferences.putString("requestDateTime", requestDateTime);
+    preferences.putString("uid", uid);
+    preferences.putFloat("GPS_latitude", _doc["GPS"]["latitude"]);
+    preferences.putFloat("GPS_longitude", _doc["GPS"]["longitude"]);
+    preferences.putFloat("GPS_altitude", _doc["GPS"]["altitude"]);
+    jsonHeader();
+  }
 }
 
 void sendDataToLocalNetwork() {
@@ -328,4 +410,33 @@ void sendDataToLocalNetwork() {
   xSemaphoreGive(xMutex);
   if (local.isEmpty()) return;
   sendUDP(local);
+}
+
+void tmp_SecondCoreCode() {
+
+  AsyncWiFiManager wifiManager(&server, &dns);
+
+  wifiManager.setAPCallback(configModeCallback);
+  wifiManager.setSaveConfigCallback(saveConfigCallback);
+
+  if (!wifiManager.autoConnect()) {
+    Serial.println("failed to connect and hit timeout");
+    ESP.restart();
+    delay(1000);
+  }
+
+  wifi_config_t conf;
+  esp_wifi_get_config(WIFI_IF_STA, &conf);
+  Serial.println("SSID: " +
+                 String(reinterpret_cast<const char *>(conf.sta.ssid)));
+  Serial.println("PASS: " +
+                 String(reinterpret_cast<const char *>(conf.sta.password)));
+
+  init_udp();
+  pinMode(LED_BUILTIN, OUTPUT);
+  blink_LED();
+
+  while (true) {
+    processUDP(readAllUDP());
+  }
 }

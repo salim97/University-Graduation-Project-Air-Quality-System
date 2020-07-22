@@ -15,6 +15,7 @@ class SearchWidget extends StatelessWidget {
 
   final Function() onPanDown;
 
+  final Widget mainIcon;
   const SearchWidget(
       {Key key,
       this.currentExplorePercent,
@@ -22,7 +23,8 @@ class SearchWidget extends StatelessWidget {
       this.animateSearch,
       this.isSearchOpen,
       this.onHorizontalDragUpdate,
-      this.onPanDown})
+      this.onPanDown,
+      this.mainIcon})
       : super(key: key);
 
   @override
@@ -51,11 +53,7 @@ class SearchWidget extends StatelessWidget {
                 left: realW(17),
                 child: Opacity(
                   opacity: 1.0 - currentSearchPercent,
-                  child: Icon(
-                    // MdiIcons.formSelect,
-                    MdiIcons.cogOutline,
-                    size: realW(34),
-                  ),
+                  child: mainIcon 
                 ),
               ),
               Positioned.fill(

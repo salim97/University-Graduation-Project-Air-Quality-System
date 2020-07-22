@@ -1,188 +1,206 @@
 import 'package:air_quality_system/app/router.gr.dart';
-import 'package:air_quality_system/ui/widgets/authentication/custom_text_form_field.dart';
+import 'package:air_quality_system/ui/widgets/authentication/countrydropdown.dart';
+import 'package:country_pickers/country.dart';
+import 'package:country_pickers/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-
-
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'phone_otp_view.dart';
 
-class PhoneAuthView extends StatelessWidget {
-  final phoneNumberController = TextEditingController();
+class PhoneAuthView extends StatefulWidget {
+  @override
+  _PhoneAuthViewState createState() => _PhoneAuthViewState();
+}
+
+class _PhoneAuthViewState extends State<PhoneAuthView> {
+  var _txtNumber = TextEditingController();
+  String _txtNumberHint = "05078596252";
+
+  @override
+  void initState() {
+    _txtNumber.text = "662253959";
+    // _txtNumber.addListener(() {
+    //   setState(() {
+    //     _txtNumberHint = _txtNumber.text;
+    //     print("Text Number Value: ${_txtNumber.text}");
+    //   });
+    // });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final ThemeData _theme = Theme.of(context);
-
     return Scaffold(
-      resizeToAvoidBottomPadding: false,
-      appBar: AppBar(
-        backgroundColor: _theme.scaffoldBackgroundColor,
-        automaticallyImplyLeading: false,
-        elevation: 0.0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios),
-          onPressed: () {
-            if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            }
-          },
-        ),
-        actions: <Widget>[
-          GestureDetector(
-            onTap: () {
-              // Navigator.of(context).pushReplacementNamed(PhoneRegisterRoute);
-              Navigator.of(context).pushReplacementNamed(Routes.phoneAuthView);
-            },
-            child: Container(
-              alignment: Alignment.center,
-              padding: EdgeInsets.symmetric(horizontal: 25.0),
-              child: Text(
-                "Sign Up",
-                style: TextStyle(
-                  color: _theme.primaryColor,
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.w700,
+      body: SingleChildScrollView(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 96.0),
+            child: Column(
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Text("What is your phone number?", textAlign: TextAlign.center, style: Theme.of(context).textTheme.title),
                 ),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: Container(
-        padding: EdgeInsets.only(left: 15.0, right: 15.0, bottom: 15.0),
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 20.0),
-                    child: Text(
-                      "What is your phone number?",
-                      style: _theme.textTheme.title.merge(
-                        TextStyle(fontSize: 30.0),
+                Padding(
+                  padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 36.0),
+                  child: Text("We will send an SMS with a code to your phone number",
+                      textAlign: TextAlign.center, style: Theme.of(context).textTheme.subtitle),
+                ),
+                Stack(
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(top: 24.0, bottom: 8.0, left: 24.0, right: 24.0),
+                      child: TextFormField(
+                        // controller: _txtNumber,
+                        textAlign: TextAlign.left,
+                        keyboardType: TextInputType.phone,
+                        // maxLength: 9,
+                        decoration: InputDecoration(
+                          fillColor: Theme.of(context).dividerColor,
+                          hintStyle: Theme.of(context).textTheme.subtitle,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide(
+                              width: 0,
+                              style: BorderStyle.none,
+                            ),
+                          ),
+                          filled: true,
+                          contentPadding: EdgeInsets.all(16),
+                        ),
                       ),
                     ),
-                  ),
-                  Text(
-                    "Tap \"Get Started\" to get an SMS confirmation to help you use TOGYAN FOOD. We would like to get your phone number.\nSupported phone numbers :\n05XX XX XX XX \n06XX XX XX XX \n07XX XX XX XX  ",
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0),
-                  ),
-                  SizedBox(
-                    height: 20.0,
-                  ),
-                  Expanded(
-                    child: CustomTextFormField(
-                      hintText: "Country Code",
-                      controller: phoneNumberController,
-                      keyboardType: TextInputType.phone,
-                      maxLength: 10,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 36.0, bottom: 8.0, left: 36.0, right: 24.0),
+                      child: CountryPickerDropdown(
+                        initialValue: 'dz',
+                        itemBuilder: _buildDropdownItem,
+                        onValuePicked: (Country country) {
+                          print("${country.name}");
+                        },
+                      ),
                     ),
-                  )
-                ],
-              ),
-            ),
-            Container(
-              width: MediaQuery.of(context).size.width,
-              height: 45.0,
-              child: FlatButton(
-                color: _theme.primaryColor,
-                child: Text(
-                  "GET STARTED",
-                  style: _theme.textTheme.body1.merge(
-                    TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 24.0, bottom: 8.0, left: 184.0, right: 24.0),
+                      child: TextField(
+                        controller: _txtNumber,
+                        maxLength: 9,
+                        textAlign: TextAlign.left,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              FontAwesomeIcons.timesCircle,
+                              color: Theme.of(context).accentColor,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _txtNumber.text = "";
+                              });
+                              print("clear textnumber icon pressed.");
+                            },
+                          ),
+                          hintText: "I  Number",
+                          hintStyle: Theme.of(context).textTheme.display2,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide(
+                              width: 0,
+                              style: BorderStyle.none,
+                            ),
+                          ),
+                          contentPadding: EdgeInsets.all(16),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 24.0, left: 24.0, right: 24.0),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    alignment: Alignment.center,
+                    child: new Row(
+                      children: <Widget>[
+                        new Expanded(
+                          child: new FlatButton(
+                            shape: new RoundedRectangleBorder(
+                              borderRadius: new BorderRadius.circular(4.0),
+                            ),
+                            color: Color(0xFFF93963),
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => PhoneOTPView(
+                                            countryCode: "+213",
+                                            // phoneNumber: "666795827",
+                                            // phoneNumber: "662253959",
+                                            phoneNumber: _txtNumber.text,
+                                            onVerificationFailure: () {
+                                              print("khra");
+                                            },
+                                            onVerificationSuccess: () async {
+                                              Navigator.of(context).pop();
+                                              final FirebaseUser currentUser = await FirebaseAuth.instance.currentUser();
+                                              // showToast("Welcome " + currentUser.phoneNumber, Colors.green);
+                                              // await currentUser.delete();
+                                              print("Welcome " + currentUser.phoneNumber);
+                                              Navigator.of(context).pushNamed(Routes.scanNetworkView);
+                                            },
+                                          )));
+                            },
+                            child: new Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 15.0,
+                                horizontal: 10.0,
+                              ),
+                              child: new Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  new Expanded(
+                                    child: Text(
+                                      "Next",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                onPressed: () async {
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => PhoneOTPView(
-                                countryCode: "+213",
-                                // phoneNumber: "666795827",
-                                phoneNumber: "662253959",
-                                onVerificationFailure: () {
-                                  print("khra");
-                                },
-                                onVerificationSuccess: () {
-                                  Navigator.of(context).pop();
-                                  print("nice");
-                                },
-                              )));
-                  return;
-                  print(phoneNumberController.text);
-                  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-                  final PhoneVerificationCompleted verificationCompleted =
-                      (AuthCredential phoneAuthCredential) {
-                    _firebaseAuth
-                        .signInWithCredential(phoneAuthCredential)
-                        .then((AuthResult value) {
-                      if (value.user != null) {
-                        // Handle loogged in state
-                        print(value.user.phoneNumber);
-                        // NAVIGATE TO HOME PAGE
-                      } else {
-                        showToast(
-                            "Error validating OTP, try again", Colors.red);
-                      }
-                    }).catchError((error) {
-                      showToast("Try again in sometime", Colors.red);
-                    });
-                  };
-                  final PhoneVerificationFailed verificationFailed =
-                      (AuthException authException) {
-                    showToast(authException.message, Colors.red);
-                    // setState(() {
-                    //   isCodeSent = false;
-                    // });
-                  };
-
-                  final PhoneCodeSent codeSent =
-                      (String verificationId, [int forceResendingToken]) async {
-                    // setState(() {
-                    //   _verificationId = verificationId;
-                    // });
-                  };
-                  final PhoneCodeAutoRetrievalTimeout codeAutoRetrievalTimeout =
-                      (String verificationId) {
-                    // setState(() {
-                    //   _verificationId = verificationId;
-                    // });
-                  };
-
-                  // TODO: Change country code
-
-                  await _firebaseAuth.verifyPhoneNumber(
-                      phoneNumber: "+213${phoneNumberController.text}",
-                      timeout: const Duration(seconds: 60),
-                      verificationCompleted: verificationCompleted,
-                      verificationFailed: verificationFailed,
-                      codeSent: codeSent,
-                      codeAutoRetrievalTimeout: codeAutoRetrievalTimeout);
-                },
-              ),
-            )
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
-
-  void showToast(message, Color color) {
-    print(message);
-    Fluttertoast.showToast(
-        msg: message,
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIos: 2,
-        backgroundColor: color,
-        textColor: Colors.white,
-        fontSize: 16.0);
-  }
 }
+
+Widget _buildDropdownItem(Country country) => Row(
+      children: <Widget>[
+        CountryPickerUtils.getDefaultFlagImage(country),
+        SizedBox(
+          width: 8.0,
+        ),
+        Text(
+          "+${country.phoneCode}(${country.isoCode})",
+          style: TextStyle(fontSize: 14),
+        ),
+      ],
+    );
+
+// void socialBottomSheet(context) {
+//   showModalBottomSheet(
+//       context: context,
+//       builder: (BuildContext bc) {
+//         return SocialBottomSheet();
+//       });
+// }
