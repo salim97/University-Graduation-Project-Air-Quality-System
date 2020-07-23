@@ -24,6 +24,7 @@ Preferences preferences;
 #include "sensors/MICS6814.h"
 #include "sensors/MQ131.h"
 #include "sensors/SGP30.h"
+#include "ulp.h"
 
 #if defined(ESP32)
 static const char _HEX_CHAR_ARRAY[17] = "0123456789ABCDEF";
@@ -79,6 +80,8 @@ SemaphoreHandle_t xMutex;
 TaskHandle_t Task1;
 TaskHandle_t Task2;
 void setup() {
+  // led ON for 500msec, off for 4500msec , repeat 60 times
+  blink_while_wait_ulp(300, 300, 10);
   // init mutex
   xMutex = xSemaphoreCreateMutex();
 
@@ -220,16 +223,18 @@ void SecondCoreCode(void *parameter) {
 
     init_udp();
     // pinMode(BUILTIN_LED, OUTPUT);
-    pinMode(LED_BUILTIN, OUTPUT);
-    blink_LED();
+    // pinMode(LED_BUILTIN, OUTPUT);
+    // blink_LED();
     Serial.println(preferences.clear());
 
     while (preferences.getBool("FCR", false) == false) {
       processUDP(readAllUDP());
-      Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()) +
-                     ": Waiting for firebase config from local network");
-      delay(1000);
+      // Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()) +
+      //                ": Waiting for firebase config from local network");
+      // delay(1000);
     }
+    ulp_set_led_on_delay(2000);
+    ulp_set_led_off_delay(2000);
 
     while (true) {
       Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()) +
@@ -243,7 +248,7 @@ void SecondCoreCode(void *parameter) {
       delay(1000);
     };
 
-    timer0.start();
+    // timer0.start();
     timer1.start();
 
     sendDataToLocalNetwork();
@@ -269,7 +274,7 @@ void SecondCoreCode(void *parameter) {
       //     ESP_BT.println("LED turned OFF");
       //   }
       // }
-      timer0.update();
+      // timer0.update();
       timer1.update();
 
       processUDP(readAllUDP());
@@ -289,7 +294,7 @@ void sendDataToFirebase() {
 
   String url = "https://pfe-helper.herokuapp.com/";
   // String url =
-      // "https://us-central1-pfe-air-quality.cloudfunctions.net/addRecord";
+  // "https://us-central1-pfe-air-quality.cloudfunctions.net/addRecord";
   // "https://postman-echo.com/post";
 
   while (!httpPOST(url, requestBodyReady()))
@@ -351,7 +356,7 @@ bool httpPOST(String url, String body) {
 String requestBodyReady() {
   String requestBodyReady;
   DynamicJsonDocument doc(4096);
-DeserializationError e;
+  DeserializationError e;
   xSemaphoreTake(xMutex, portMAX_DELAY);
   e = deserializeJson(doc, globalSharedBuffer);
   xSemaphoreGive(xMutex);
