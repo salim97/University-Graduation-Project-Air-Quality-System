@@ -66,7 +66,7 @@ MySensor *mySensorsList[] = {new MyDHT22(), new MyBME680(),   new MySGP30(),
 
 void FirstCoreCode(void *parameter);
 void SecondCoreCode(void *parameter);
-bool jsonHeader();
+String requestBodyReady();
 
 void blink_LED();
 void sendDataToFirebase();
@@ -122,7 +122,7 @@ void setup() {
 void loop() {}
 
 String globalSharedBuffer;
-DynamicJsonDocument doc(2048);
+
 void FirstCoreCode(void *parameter) {
   Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
 
@@ -132,14 +132,15 @@ void FirstCoreCode(void *parameter) {
   for (uint8_t i = 0; i < sizeMySensorsList; i++) {
     mySensorsList[i]->init();
   }
-
+  DynamicJsonDocument doc(2048);
   while (true) {
     Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
     for (uint8_t i = 0; i < sizeMySensorsList; i++) {
       mySensorsList[i]->doMeasure();
     }
 
-    jsonHeader();
+    doc.clear();
+    // jsonHeader();
     // getting data and convert it into JSON
     JsonArray Sensors = doc.createNestedArray("Sensors");
     for (uint8_t i = 0; i < sizeMySensorsList; i++) {
@@ -181,18 +182,6 @@ void SecondCoreCode(void *parameter) {
 
   Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
 
-  while (true) {
-    Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()) +
-                   ": Waiting for flag from Core 0");
-    xSemaphoreTake(xMutex, portMAX_DELAY);
-    if (!globalSharedBuffer.isEmpty()) {
-      xSemaphoreGive(xMutex);
-      break;
-    }
-    xSemaphoreGive(xMutex);
-    delay(1000);
-  };
-
   {
     // BluetoothSerial ESP_BT;            // Object for Bluetooth
     // ESP_BT.begin("Trash Binome :)"); // Name of your Bluetooth Signal
@@ -233,12 +222,26 @@ void SecondCoreCode(void *parameter) {
     // pinMode(BUILTIN_LED, OUTPUT);
     pinMode(LED_BUILTIN, OUTPUT);
     blink_LED();
-    // Serial.println(preferences.clear());
-    while (!jsonHeader()) {
+    Serial.println(preferences.clear());
+
+    while (preferences.getBool("FCR", false) == false) {
       processUDP(readAllUDP());
-      Serial.println("Waiting for firebase config from local network");
+      Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()) +
+                     ": Waiting for firebase config from local network");
       delay(1000);
     }
+
+    while (true) {
+      Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()) +
+                     ": Waiting for flag from Core 0");
+      xSemaphoreTake(xMutex, portMAX_DELAY);
+      if (!globalSharedBuffer.isEmpty()) {
+        xSemaphoreGive(xMutex);
+        break;
+      }
+      xSemaphoreGive(xMutex);
+      delay(1000);
+    };
 
     timer0.start();
     timer1.start();
@@ -285,19 +288,12 @@ void blink_LED() {
 void sendDataToFirebase() {
 
   String url = "https://pfe-helper.herokuapp.com/";
-  // "https://us-central1-pfe-air-quality.cloudfunctions.net/addRecord";
+  // String url =
+      // "https://us-central1-pfe-air-quality.cloudfunctions.net/addRecord";
   // "https://postman-echo.com/post";
 
-  String local;
-  xSemaphoreTake(xMutex, portMAX_DELAY);
-  local = globalSharedBuffer;
-  xSemaphoreGive(xMutex);
-
-  while (!httpPOST(url, local)) {
-    xSemaphoreTake(xMutex, portMAX_DELAY);
-    local = globalSharedBuffer;
-    xSemaphoreGive(xMutex);
-  };
+  while (!httpPOST(url, requestBodyReady()))
+    ;
 }
 
 bool httpPOST(String url, String body) {
@@ -352,25 +348,26 @@ bool httpPOST(String url, String body) {
   return true;
 }
 
-bool jsonHeader() {
-  // clear RAM
-  doc.clear();
-  if (preferences.getString("uid").isEmpty()) return false;
-
+String requestBodyReady() {
+  String requestBodyReady;
+  DynamicJsonDocument doc(4096);
+DeserializationError e;
+  xSemaphoreTake(xMutex, portMAX_DELAY);
+  e = deserializeJson(doc, globalSharedBuffer);
+  xSemaphoreGive(xMutex);
+  Serial.println(e.c_str());
   doc["uid"] = preferences.getString("uid");
   doc["GPS"]["latitude"] = preferences.getFloat("GPS_latitude");
   doc["GPS"]["longitude"] = preferences.getFloat("GPS_longitude");
   doc["upTime"] = millis();
-  Serial.println(preferences.getString("requestDateTime"));
-  Serial.println(preferences.getString("uid"));
-  Serial.println(preferences.getFloat("GPS_latitude"));
-  Serial.println(preferences.getFloat("GPS_longitude"));
-  Serial.println(preferences.getFloat("GPS_altitude"));
-  return true;
+  serializeJson(doc, requestBodyReady);
+  Serial.println(requestBodyReady.length());
+
+  return requestBodyReady;
 }
 
 void processUDP(String command) {
-  DynamicJsonDocument _doc(2048);
+  DynamicJsonDocument _doc(512);
   deserializeJson(_doc, command);
   if (_doc["command"] == "getData") {
     sendDataToLocalNetwork();
@@ -399,7 +396,13 @@ void processUDP(String command) {
     preferences.putFloat("GPS_latitude", _doc["GPS"]["latitude"]);
     preferences.putFloat("GPS_longitude", _doc["GPS"]["longitude"]);
     preferences.putFloat("GPS_altitude", _doc["GPS"]["altitude"]);
-    jsonHeader();
+    preferences.putBool("FCR", true);
+    Serial.println(preferences.getString("requestDateTime"));
+    Serial.println(preferences.getString("uid"));
+    Serial.println(preferences.getFloat("GPS_latitude"));
+    Serial.println(preferences.getFloat("GPS_longitude"));
+    Serial.println(preferences.getFloat("GPS_altitude"));
+    // jsonHeader();
   }
 }
 
@@ -412,31 +415,31 @@ void sendDataToLocalNetwork() {
   sendUDP(local);
 }
 
-void tmp_SecondCoreCode() {
+// void tmp_SecondCoreCode() {
 
-  AsyncWiFiManager wifiManager(&server, &dns);
+//   AsyncWiFiManager wifiManager(&server, &dns);
 
-  wifiManager.setAPCallback(configModeCallback);
-  wifiManager.setSaveConfigCallback(saveConfigCallback);
+//   wifiManager.setAPCallback(configModeCallback);
+//   wifiManager.setSaveConfigCallback(saveConfigCallback);
 
-  if (!wifiManager.autoConnect()) {
-    Serial.println("failed to connect and hit timeout");
-    ESP.restart();
-    delay(1000);
-  }
+//   if (!wifiManager.autoConnect()) {
+//     Serial.println("failed to connect and hit timeout");
+//     ESP.restart();
+//     delay(1000);
+//   }
 
-  wifi_config_t conf;
-  esp_wifi_get_config(WIFI_IF_STA, &conf);
-  Serial.println("SSID: " +
-                 String(reinterpret_cast<const char *>(conf.sta.ssid)));
-  Serial.println("PASS: " +
-                 String(reinterpret_cast<const char *>(conf.sta.password)));
+//   wifi_config_t conf;
+//   esp_wifi_get_config(WIFI_IF_STA, &conf);
+//   Serial.println("SSID: " +
+//                  String(reinterpret_cast<const char *>(conf.sta.ssid)));
+//   Serial.println("PASS: " +
+//                  String(reinterpret_cast<const char *>(conf.sta.password)));
 
-  init_udp();
-  pinMode(LED_BUILTIN, OUTPUT);
-  blink_LED();
+//   init_udp();
+//   pinMode(LED_BUILTIN, OUTPUT);
+//   blink_LED();
 
-  while (true) {
-    processUDP(readAllUDP());
-  }
-}
+//   while (true) {
+//     processUDP(readAllUDP());
+//   }
+// }

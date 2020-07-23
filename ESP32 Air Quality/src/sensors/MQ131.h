@@ -3,21 +3,32 @@
 #include "MySensor.h"
 #include <MQUnifiedsensor.h>
 
-
-/************************Hardware Related Macros************************************/
-#define         Board                   ("ESP-32") // Wemos ESP-32 or other board, whatever have ESP32 core.
-#define         Pin                     (27)  //GPIO27 for your ESP32 
-/***********************Software Related Macros************************************/
-#define         Type                    ("MQ-131") //MQ3 or other MQ Sensor, if change this verify your a and b values.
-#define         Voltage_Resolution      (3.3) // 3V3 <- IMPORTANT. Source: https://randomnerdtutorials.com/esp32-adc-analog-read-arduino-ide/
-#define         ADC_Bit_Resolution      (12) // ESP-32 bit resolution. Source: https://randomnerdtutorials.com/esp32-adc-analog-read-arduino-ide/
-#define         RatioMQ131CleanAir        (15) // Ratio of your sensor, for this example an MQ-131
+/************************Hardware Related
+ * Macros************************************/
+#define Board                                                                  \
+  ("ESP-32")     // Wemos ESP-32 or other board, whatever have ESP32 core.
+#define Pin (27) // GPIO27 for your ESP32
+/***********************Software Related
+ * Macros************************************/
+#define Type                                                                   \
+  ("MQ-131") // MQ3 or other MQ Sensor, if change this verify your a and b
+             // values.
+#define Voltage_Resolution                                                     \
+  (3.3) // 3V3 <- IMPORTANT. Source:
+        // https://randomnerdtutorials.com/esp32-adc-analog-read-arduino-ide/
+#define ADC_Bit_Resolution                                                     \
+  (12) // ESP-32 bit resolution. Source:
+       // https://randomnerdtutorials.com/esp32-adc-analog-read-arduino-ide/
+#define RatioMQ131CleanAir                                                     \
+  (15) // Ratio of your sensor, for this example an MQ-131
 
 // Declare Sensor
 MQUnifiedsensor mq131(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin, Type);
 
 class MQ131 : public MySensor {
 private:
+  bool internalError = false;
+
 public:
   virtual void init() {
     // Set math model to calculate the PPM concentration and the value of
@@ -68,15 +79,15 @@ public:
     if (isinf(calcR0)) {
       Serial.println("Warning: Conection issue founded, R0 is infite (Open "
                      "circuit detected) please check your wiring and supply");
-      while (1)
-        ;
+      internalError = true;
+      return ;
     }
     if (calcR0 == 0) {
       Serial.println(
           "Warning: Conection issue founded, R0 is zero (Analog pin with short "
           "circuit to ground) please check your wiring and supply");
-      while (1)
-        ;
+      internalError = true;
+      return ;
     }
     /*****************************  MQ CAlibration
      * ********************************************/
@@ -84,12 +95,14 @@ public:
   }
 
   virtual bool doMeasure() {
+    if( internalError == true) return false ;
     mq131.update(); // Update data, the arduino will be read the voltage on the
-                    // analog pin
+    // analog pin
+    return true;
   }
 
   virtual void toJSON(JsonArray &Sensors) {
-
+if( internalError == true) return  ;
     {
       JsonObject Sensors_0 = Sensors.createNestedObject();
       Sensors_0["sensor"] = "MQ131";
