@@ -1,3 +1,4 @@
+// https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 // https://arduinojson.org/v6/assistant/
 // https://randomnerdtutorials.com/esp32-dual-core-arduino-ide/
 // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/freertos-smp.html
@@ -65,6 +66,47 @@ String _getESP32ChipID() {
 MySensor *mySensorsList[] = {new MyDHT22(), new MyBME680(),   new MySGP30(),
                              new MyMHZ19(), new MyMICS6814(), new MQ131()};
 
+#define LED_RED_PIN 26
+#define LED_GREEN_PIN 25
+#define LED_BLUE_PIN 33
+enum DeviceStatus {
+  none,
+  waitingForWiFiConfig,
+  waitingForServerConfig,
+  everythingIsOK
+};
+DeviceStatus currentDeviceStatus;
+void setDeviceStatus(DeviceStatus deviceStatus) {
+  switch (deviceStatus) {
+  case none:
+    digitalWrite(LED_RED_PIN, LOW);
+    digitalWrite(LED_GREEN_PIN, LOW);
+    digitalWrite(LED_BLUE_PIN, LOW);
+    break;
+  case waitingForWiFiConfig:
+    digitalWrite(LED_RED_PIN, HIGH);
+    digitalWrite(LED_GREEN_PIN, LOW);
+    digitalWrite(LED_BLUE_PIN, LOW);
+    break;
+  case waitingForServerConfig:
+    digitalWrite(LED_RED_PIN, LOW);
+    digitalWrite(LED_GREEN_PIN, LOW);
+    digitalWrite(LED_BLUE_PIN, HIGH);
+    break;
+  case everythingIsOK:
+    digitalWrite(LED_RED_PIN, LOW);
+    digitalWrite(LED_GREEN_PIN, HIGH);
+    digitalWrite(LED_BLUE_PIN, LOW);
+    break;
+  default:
+    digitalWrite(LED_RED_PIN, LOW);
+    digitalWrite(LED_GREEN_PIN, LOW);
+    digitalWrite(LED_BLUE_PIN, LOW);
+    break;
+  }
+  currentDeviceStatus = deviceStatus;
+}
+
 void FirstCoreCode(void *parameter);
 void SecondCoreCode(void *parameter);
 String requestBodyReady();
@@ -79,9 +121,40 @@ void tmp_SecondCoreCode();
 SemaphoreHandle_t xMutex;
 TaskHandle_t Task1;
 TaskHandle_t Task2;
+
+SemaphoreHandle_t semaphore = nullptr;
+void IRAM_ATTR isr() { xSemaphoreGiveFromISR(semaphore, NULL); }
+void resetFactoryButton(void *parameter) {
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
+  pinMode(0, INPUT);
+  // Create a binary semaphore
+  semaphore = xSemaphoreCreateBinary();
+
+  // Trigger the interrupt when going from HIGH -> LOW ( == pushing button)
+  attachInterrupt(0, isr, FALLING);
+  for (;;) {
+    if (xSemaphoreTake(semaphore, portMAX_DELAY) == pdTRUE) {
+      Serial.println("Oh, button pushed!\n");
+      for (int i = 0; i < 10; i++) {
+        digitalWrite(
+            LED_BUILTIN,
+            !(digitalRead(LED_BUILTIN))); // Invert Current State of LED
+        delay(500);
+      }
+      // reset settings - for testing
+      // wifiManager.resetSettings();
+      WiFi.disconnect(true, true);
+      preferences.clear();
+      delay(100);
+      ESP.restart();
+    }
+  }
+}
+
 void setup() {
   // led ON for 500msec, off for 4500msec , repeat 60 times
-  blink_while_wait_ulp(300, 300, 10);
+  // blink_while_wait_ulp(300, 300, 10);
   // init mutex
   xMutex = xSemaphoreCreateMutex();
 
@@ -89,6 +162,12 @@ void setup() {
   // Device to serial monitor feedback
   while (!Serial)
     ;
+
+  pinMode(LED_RED_PIN, OUTPUT);
+  pinMode(LED_GREEN_PIN, OUTPUT);
+  pinMode(LED_BLUE_PIN, OUTPUT);
+  setDeviceStatus(DeviceStatus::none);
+
   // Open Preferences with my-app namespace. Each application module, library,
   // etc has to use a namespace name to prevent key name collisions. We will
   // open storage in RW-mode (second parameter has to be false). Note: Namespace
@@ -96,6 +175,10 @@ void setup() {
   preferences.begin("firebaseConfig", false);
   // jsonHeader();
   // tmp_SecondCoreCode();
+
+  // Associate button_task method as a callback
+  xTaskCreate(resetFactoryButton, "resetFactoryButton", 4096, NULL, 10, NULL);
+
   delay(500);
   // create a task that will be executed in the FirstCoreCode() function, with
   // priority 1 and executed on core 0
@@ -171,16 +254,15 @@ void configModeCallback(AsyncWiFiManager *myWiFiManager) {
   // if you used auto generated SSID, print it
   Serial.println(myWiFiManager->getConfigPortalSSID());
   configMode = true;
+  setDeviceStatus(DeviceStatus::waitingForWiFiConfig);
 }
 void saveConfigCallback() {
   Serial.println("-----------------------------------------------------");
   Serial.println("Should save config");
   configMode = false;
 }
-
 AsyncWebServer server(80);
 DNSServer dns;
-
 void SecondCoreCode(void *parameter) {
 
   Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
@@ -191,15 +273,10 @@ void SecondCoreCode(void *parameter) {
     // Serial.println("Bluetooth Device is Ready to Pair");
 
     AsyncWiFiManager wifiManager(&server, &dns);
-    // reset settings - for testing
-    // wifiManager.resetSettings();
-    // WiFi.disconnect(true, true);
-
     // set callback that gets called when connecting to previous WiFi fails, and
     // enters Access Point mode
     wifiManager.setAPCallback(configModeCallback);
     wifiManager.setSaveConfigCallback(saveConfigCallback);
-    // get the AP name  the config portal, so it can be used in the callback
 
     // fetches ssid and pass and tries to connect
     // if it does not connect it starts an access point with the specified name
@@ -225,16 +302,17 @@ void SecondCoreCode(void *parameter) {
     // pinMode(BUILTIN_LED, OUTPUT);
     // pinMode(LED_BUILTIN, OUTPUT);
     // blink_LED();
-    Serial.println(preferences.clear());
 
     while (preferences.getBool("FCR", false) == false) {
       processUDP(readAllUDP());
-      // Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()) +
-      //                ": Waiting for firebase config from local network");
-      // delay(1000);
+      Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()) +
+                     ": Waiting for firebase config from local network");
+      delay(1000);
+        setDeviceStatus(DeviceStatus::waitingForServerConfig);
     }
-    ulp_set_led_on_delay(2000);
-    ulp_set_led_off_delay(2000);
+    setDeviceStatus(DeviceStatus::everythingIsOK);
+    // ulp_set_led_on_delay(2000);
+    // ulp_set_led_off_delay(2000);
 
     while (true) {
       Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()) +
