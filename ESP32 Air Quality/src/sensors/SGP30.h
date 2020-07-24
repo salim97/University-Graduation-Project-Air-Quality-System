@@ -7,19 +7,18 @@ class MySGP30 : public MySensor {
 private:
   Adafruit_SGP30 sgp;
   bool internalError = false;
+
 public:
-  MySGP30(){};
-  virtual void init() {
+  virtual bool init() {
     if (!sgp.begin()) {
       Serial.println("Failed to start SGP30 gas sensor - check wiring.");
-      while (1)
-        ;
+      return false;
     }
     Serial.print("Found SGP30 serial #");
     Serial.print(sgp.serialnumber[0], HEX);
     Serial.print(sgp.serialnumber[1], HEX);
     Serial.println(sgp.serialnumber[2], HEX);
-
+    return doMeasure();
     // If you have a baseline measurement from before you can assign it to
     // start, to 'self-calibrate' sgp.setIAQBaseline(0x8E68, 0x8F41);  // Will
     // vary for each sensor!
@@ -79,6 +78,5 @@ public:
     }
   }
 };
-
 
 #endif

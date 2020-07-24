@@ -18,6 +18,7 @@
 #include <esp_wifi.h>
 Preferences preferences;
 
+
 #include "mynetwork.h"
 #include "sensors/BME680.h"
 #include "sensors/DHT22.h"
@@ -25,8 +26,7 @@ Preferences preferences;
 #include "sensors/MICS6814.h"
 #include "sensors/MQ131.h"
 #include "sensors/SGP30.h"
-#include "ulp.h"
-
+#include "co-processor.h"
 #if defined(ESP32)
 static const char _HEX_CHAR_ARRAY[17] = "0123456789ABCDEF";
 static String _byteToHexString(uint8_t *buf, uint8_t length,
@@ -63,49 +63,10 @@ String _getESP32ChipID() {
 #define APName "ESP" + String(ESP.getChipId());
 #endif
 
-MySensor *mySensorsList[] = {new MyDHT22(), new MyBME680(),   new MySGP30(),
-                             new MyMHZ19(), new MyMICS6814(), new MQ131()};
+MySensor *mySensorsList[] = {new MyDHT22(), new MyBME680(), new MySGP30(),
+                            //  new MyMHZ19(), new MyMICS6814(), new MQ131()};
+                             new MyMHZ19(), new MyMICS6814()};
 
-#define LED_RED_PIN 26
-#define LED_GREEN_PIN 25
-#define LED_BLUE_PIN 33
-enum DeviceStatus {
-  none,
-  waitingForWiFiConfig,
-  waitingForServerConfig,
-  everythingIsOK
-};
-DeviceStatus currentDeviceStatus;
-void setDeviceStatus(DeviceStatus deviceStatus) {
-  switch (deviceStatus) {
-  case none:
-    digitalWrite(LED_RED_PIN, LOW);
-    digitalWrite(LED_GREEN_PIN, LOW);
-    digitalWrite(LED_BLUE_PIN, LOW);
-    break;
-  case waitingForWiFiConfig:
-    digitalWrite(LED_RED_PIN, HIGH);
-    digitalWrite(LED_GREEN_PIN, LOW);
-    digitalWrite(LED_BLUE_PIN, LOW);
-    break;
-  case waitingForServerConfig:
-    digitalWrite(LED_RED_PIN, LOW);
-    digitalWrite(LED_GREEN_PIN, LOW);
-    digitalWrite(LED_BLUE_PIN, HIGH);
-    break;
-  case everythingIsOK:
-    digitalWrite(LED_RED_PIN, LOW);
-    digitalWrite(LED_GREEN_PIN, HIGH);
-    digitalWrite(LED_BLUE_PIN, LOW);
-    break;
-  default:
-    digitalWrite(LED_RED_PIN, LOW);
-    digitalWrite(LED_GREEN_PIN, LOW);
-    digitalWrite(LED_BLUE_PIN, LOW);
-    break;
-  }
-  currentDeviceStatus = deviceStatus;
-}
 
 void FirstCoreCode(void *parameter);
 void SecondCoreCode(void *parameter);
@@ -125,17 +86,18 @@ TaskHandle_t Task2;
 SemaphoreHandle_t semaphore = nullptr;
 void IRAM_ATTR isr() { xSemaphoreGiveFromISR(semaphore, NULL); }
 void resetFactoryButton(void *parameter) {
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, LOW);
-  pinMode(0, INPUT);
+// TODO : hold 2 seconds
   // Create a binary semaphore
   semaphore = xSemaphoreCreateBinary();
-
+  pinMode(0, INPUT);
   // Trigger the interrupt when going from HIGH -> LOW ( == pushing button)
   attachInterrupt(0, isr, FALLING);
   for (;;) {
     if (xSemaphoreTake(semaphore, portMAX_DELAY) == pdTRUE) {
-      Serial.println("Oh, button pushed!\n");
+      Serial.println("Reset Factory Button was pushed!\n");
+      pinMode(LED_BUILTIN, OUTPUT);
+      digitalWrite(LED_BUILTIN, LOW);
+
       for (int i = 0; i < 10; i++) {
         digitalWrite(
             LED_BUILTIN,
@@ -153,6 +115,7 @@ void resetFactoryButton(void *parameter) {
 }
 
 void setup() {
+
   // led ON for 500msec, off for 4500msec , repeat 60 times
   // blink_while_wait_ulp(300, 300, 10);
   // init mutex
@@ -163,11 +126,23 @@ void setup() {
   while (!Serial)
     ;
 
-  pinMode(LED_RED_PIN, OUTPUT);
-  pinMode(LED_GREEN_PIN, OUTPUT);
-  pinMode(LED_BLUE_PIN, OUTPUT);
-  setDeviceStatus(DeviceStatus::none);
+  startulp();
+  // RTC_SLOW_MEM[0] = 1U;
 
+  // while (true) {
+  //   RTC_SLOW_MEM[1] = 0U;
+  //   delay(1000);
+  //   RTC_SLOW_MEM[1] = 1U;
+  //   delay(1000);
+  //   RTC_SLOW_MEM[2] = 0U;
+  //   delay(1000);
+  //   RTC_SLOW_MEM[2] = 1U;
+  //   delay(1000);
+  //   RTC_SLOW_MEM[3] = 0U;
+  //   delay(1000);
+  //   RTC_SLOW_MEM[3] = 1U;
+  //   delay(1000);
+  // }
   // Open Preferences with my-app namespace. Each application module, library,
   // etc has to use a namespace name to prevent key name collisions. We will
   // open storage in RW-mode (second parameter has to be false). Note: Namespace
@@ -211,19 +186,31 @@ String globalSharedBuffer;
 
 void FirstCoreCode(void *parameter) {
   Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
-
+  setCoreSensorStatus(false);
   const uint8_t sizeMySensorsList =
       sizeof(mySensorsList) / sizeof(mySensorsList[0]);
 
   for (uint8_t i = 0; i < sizeMySensorsList; i++) {
-    mySensorsList[i]->init();
+    if (!mySensorsList[i]->init()) {
+      Serial.println("ALLLLEERRRTT ----------------------");
+      setCoreSensorStatus(true);
+    }
   }
   DynamicJsonDocument doc(2048);
   while (true) {
     Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
+    // bool oneSensorIsDown = false ;
     for (uint8_t i = 0; i < sizeMySensorsList; i++) {
-      mySensorsList[i]->doMeasure();
+      // mySensorsList[i]->doMeasure();
+      if (!mySensorsList[i]->doMeasure()) {
+        Serial.println("ALLLLEERRRTT ----------------------");
+        setCoreSensorStatus(true);
+      }
+      // if(!mySensorsList[i]->doMeasure())
+      // setCoreSensorStatus( true);
+      // oneSensorIsDown =  oneSensorIsDown || !mySensorsList[i]->doMeasure() ;
     }
+    //  setCoreSensorStatus( oneSensorIsDown);
 
     doc.clear();
     // jsonHeader();
@@ -266,7 +253,7 @@ DNSServer dns;
 void SecondCoreCode(void *parameter) {
 
   Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
-
+  setDeviceStatus(DeviceStatus::booting);
   {
     // BluetoothSerial ESP_BT;            // Object for Bluetooth
     // ESP_BT.begin("Trash Binome :)"); // Name of your Bluetooth Signal
@@ -308,7 +295,7 @@ void SecondCoreCode(void *parameter) {
       Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()) +
                      ": Waiting for firebase config from local network");
       delay(1000);
-        setDeviceStatus(DeviceStatus::waitingForServerConfig);
+      setDeviceStatus(DeviceStatus::waitingForServerConfig);
     }
     setDeviceStatus(DeviceStatus::everythingIsOK);
     // ulp_set_led_on_delay(2000);

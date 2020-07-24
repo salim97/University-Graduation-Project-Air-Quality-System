@@ -19,7 +19,7 @@ private:
   bool internalError = false;
 
 public:
-  virtual void init() {
+  virtual bool init() {
     mySerial.begin(BAUDRATE); // (Uno example) device to MH-Z19 serial start
     myMHZ19.begin(
         mySerial); // *Serial(Stream) refence must be passed to library begin().
@@ -27,6 +27,7 @@ public:
                                // autoCalibration(false))
     // myMHZ19.autoCalibration(false); // Turn auto calibration ON (OFF
     // autoCalibration(false))
+    return doMeasure();
   }
 
   virtual bool doMeasure() {

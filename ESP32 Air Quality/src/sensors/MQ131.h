@@ -30,7 +30,8 @@ private:
   bool internalError = false;
 
 public:
-  virtual void init() {
+  virtual bool init() {
+
     // Set math model to calculate the PPM concentration and the value of
     // constants
     mq131.setRegressionMethod(1); //_PPM =  a*ratio^b
@@ -80,21 +81,23 @@ public:
       Serial.println("Warning: Conection issue founded, R0 is infite (Open "
                      "circuit detected) please check your wiring and supply");
       internalError = true;
-      return ;
+      return false ;
     }
     if (calcR0 == 0) {
       Serial.println(
           "Warning: Conection issue founded, R0 is zero (Analog pin with short "
           "circuit to ground) please check your wiring and supply");
       internalError = true;
-      return ;
+      return false;
     }
     /*****************************  MQ CAlibration
      * ********************************************/
     mq131.serialDebug(true);
+    return true ;
   }
 
   virtual bool doMeasure() {
+ 
     if( internalError == true) return false ;
     mq131.update(); // Update data, the arduino will be read the voltage on the
     // analog pin
@@ -102,12 +105,14 @@ public:
   }
 
   virtual void toJSON(JsonArray &Sensors) {
+  
 if( internalError == true) return  ;
     {
       JsonObject Sensors_0 = Sensors.createNestedObject();
       Sensors_0["sensor"] = "MQ131";
       Sensors_0["name"] = "Ozone";
-      Sensors_0["value"] = mq131.readSensor();
+      // Sensors_0["value"] = mq131.readSensor();
+      Sensors_0["value"] = analogRead(Pin);
       Sensors_0["metric"] = "ppm";
       Sensors_0["isCalibrated"] = false;
     }

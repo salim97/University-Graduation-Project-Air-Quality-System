@@ -7,7 +7,7 @@
 
 class MySensor {
 public:
-  virtual void init() = 0;
+  virtual bool init() = 0;
   virtual bool doMeasure() = 0;
   virtual void toJSON(JsonArray &Sensors) = 0;
 };

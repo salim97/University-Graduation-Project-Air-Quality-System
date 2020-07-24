@@ -16,7 +16,7 @@ private:
   bool internalError = false;
 
 public:
-  virtual void init() {
+  virtual bool init() {
     dht.begin();
     Serial.println(F("DHT22"));
     event2.relative_humidity = 0;
@@ -67,6 +67,7 @@ public:
     dht.humidity().getSensor(&sensor);
     // Set delay between sensor readings based on sensor details.
     delayMS = sensor.min_delay / 1000;
+    return doMeasure();
   }
 
   virtual bool doMeasure() {
