@@ -56,7 +56,7 @@ void sendUDP(String msg) {
   msg += " ";
   // convert string to char array
   int UDP_PACKET_SIZE = msg.length();
-  uint8_t tmpBuffer[UDP_PACKET_SIZE - 1];
+  uint8_t tmpBuffer[UDP_PACKET_SIZE];
   // msg.toCharArray(tmpBuffer, UDP_PACKET_SIZE) ;
   for (int i = 0; i < UDP_PACKET_SIZE; i++)
     tmpBuffer[i] = msg[i];
@@ -65,7 +65,8 @@ void sendUDP(String msg) {
   udp.write(tmpBuffer, UDP_PACKET_SIZE);
   udp.endPacket();
   memset(tmpBuffer, 0, UDP_PACKET_SIZE);
-  // Serial.println("sendUDP: "+msg) ;
+  Serial.println("sendUDP: "+msg) ;
+  Serial.println(msg.length()) ;
   // Serial.println(localIP+" sendUDP: "+msg) ;
 
   // Serial.println(jsonOutput) ;
@@ -85,7 +86,7 @@ String upTimeToString() {
 void networkBroadcatLog(String msg, bool isError = false) {
 
   String _jsonOutput;
-  DynamicJsonDocument _doc(2048);
+  DynamicJsonDocument _doc(4096);
 
   _doc.clear();
   _jsonOutput.clear();

@@ -63,9 +63,9 @@ String _getESP32ChipID() {
 #define APName "ESP" + String(ESP.getChipId());
 #endif
 
-MySensor *mySensorsList[] = {new MyDHT22(), new MyBME680(), new MySGP30(),
-                            //  new MyMHZ19(), new MyMICS6814(), new MQ131()};
-                             new MyMHZ19(), new MyMICS6814()};
+MySensor *mySensorsList[] = {new MQ131(),new MyDHT22(), new MyBME680(), new MySGP30(),
+                             new MyMHZ19(), new MyMICS6814() };
+                            //  new MyMHZ19(), new MyMICS6814()};
 
 
 void FirstCoreCode(void *parameter);
@@ -125,7 +125,12 @@ void setup() {
   // Device to serial monitor feedback
   while (!Serial)
     ;
-
+  // pinMode(27, INPUT);
+  // while(true)
+  // {
+  //   Serial.println(analogRead(27));
+  //   delay(100);
+  // }
   startulp();
   // RTC_SLOW_MEM[0] = 1U;
 
@@ -196,21 +201,21 @@ void FirstCoreCode(void *parameter) {
       setCoreSensorStatus(true);
     }
   }
-  DynamicJsonDocument doc(2048);
+  DynamicJsonDocument doc(4096);
   while (true) {
     Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
-    // bool oneSensorIsDown = false ;
+    bool oneSensorIsDown = false ;
     for (uint8_t i = 0; i < sizeMySensorsList; i++) {
       // mySensorsList[i]->doMeasure();
       if (!mySensorsList[i]->doMeasure()) {
         Serial.println("ALLLLEERRRTT ----------------------");
-        setCoreSensorStatus(true);
+        // setCoreSensorStatus(true);
       }
       // if(!mySensorsList[i]->doMeasure())
       // setCoreSensorStatus( true);
-      // oneSensorIsDown =  oneSensorIsDown || !mySensorsList[i]->doMeasure() ;
+      oneSensorIsDown =  oneSensorIsDown || !mySensorsList[i]->doMeasure() ;
     }
-    //  setCoreSensorStatus( oneSensorIsDown);
+     setCoreSensorStatus( oneSensorIsDown);
 
     doc.clear();
     // jsonHeader();
@@ -272,8 +277,8 @@ void SecondCoreCode(void *parameter) {
     if (!wifiManager.autoConnect()) {
       Serial.println("failed to connect and hit timeout");
       // reset and try again, or maybe put it to deep sleep
-      ESP.restart();
       delay(1000);
+      ESP.restart();
     }
 
     // if you get here you have connected to the WiFi
@@ -445,7 +450,7 @@ void processUDP(String command) {
   }
   if (_doc["command"] == "scanNetwork") {
     String __jsonOutput;
-    DynamicJsonDocument __doc(2048);
+    DynamicJsonDocument __doc(4096);
 
     __doc.clear();
     __jsonOutput.clear();
@@ -472,6 +477,21 @@ void processUDP(String command) {
     Serial.println(preferences.getFloat("GPS_latitude"));
     Serial.println(preferences.getFloat("GPS_longitude"));
     Serial.println(preferences.getFloat("GPS_altitude"));
+    setDeviceStatus(DeviceStatus::booting);
+    delay(1000);
+    setDeviceStatus(DeviceStatus::everythingIsOK);
+
+    String __jsonOutput;
+    DynamicJsonDocument __doc(4096);
+    __doc.clear();
+    __jsonOutput.clear();
+    __doc["ip"] = localIP;
+    __doc["upTime"] = upTimeToString();
+    __doc["deviceName"] = APName;
+    __doc["lastRequest"] = true;
+    serializeJsonPretty(__doc, Serial);
+    serializeJson(__doc, __jsonOutput);
+    sendUDP(__jsonOutput);
     // jsonHeader();
   }
 }
@@ -483,6 +503,7 @@ void sendDataToLocalNetwork() {
   xSemaphoreGive(xMutex);
   if (local.isEmpty()) return;
   sendUDP(local);
+  
 }
 
 // void tmp_SecondCoreCode() {

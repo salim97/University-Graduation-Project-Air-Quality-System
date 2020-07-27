@@ -15,7 +15,6 @@ class ScanNetworkView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return ViewModelBuilder<ScanNetworkViewModel>.reactive(
       onModelReady: (model) => model.initState(),
       viewModelBuilder: () => ScanNetworkViewModel(),
@@ -24,59 +23,77 @@ class ScanNetworkView extends StatelessWidget {
         ScanNetworkViewModel model,
         Widget child,
       ) {
+        if (model.waitingForResponse)
+          return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              home: Scaffold(
+                body: Center(
+                    child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text("Waiting for response"),
+                   CircularProgressIndicator()
+                  ],
+                )),
+              ));
 
-      // if (model.serviceStatus != ServiceStatus.enabled)
-      // return MaterialApp(
-      //     debugShowCheckedModeBanner: false,
-      //     home: Scaffold(
-      //       body: Center(
-      //           child: Column(
-      //         mainAxisAlignment: MainAxisAlignment.center,
-      //         crossAxisAlignment: CrossAxisAlignment.center,
-      //         children: <Widget>[
-      //           Text("Please enable GPS..."),
-      //           RaisedButton(
-      //             color: Colors.green,
-      //             child: Text("Turn On"),
-      //             onPressed: () async {
-      //               final AndroidIntent intent = new AndroidIntent(
-      //                 action: 'android.settings.LOCATION_SOURCE_SETTINGS',
-      //               );
-      //               await intent.launch();
-      //             },
-      //           )
-      //         ],
-      //       )),
-      //     ));
+        if (model.requestWasSend)
+          return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              home: Scaffold(
+                body: Center(
+                    child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text("Your ESP32 now is synched with server"),
+                    RaisedButton(
+                      color: Colors.green,
+                      child: Text("Go Home"),
+                      onPressed: () async {
+                        model.navigationService.popRepeated(1);
+
+                        // final AndroidIntent intent = new AndroidIntent(
+                        //   action: 'android.settings.LOCATION_SOURCE_SETTINGS',
+                        // );
+                        // await intent.launch();
+                      },
+                    )
+                  ],
+                )),
+              ));
 
         return new Scaffold(
           key: _scaffoldKey,
-          appBar: new AppBar(title:  Text('Network Scan')),
+          appBar: new AppBar(title: Text('Network Scan')),
           floatingActionButton: FloatingActionButton(
             onPressed: () => model.refreshIndicatorKey.currentState.show(),
             child: Icon(Icons.network_check),
             backgroundColor: Theme.of(context).primaryColor,
           ),
-          body: LiquidPullToRefresh(
-              key: model.refreshIndicatorKey,
-              onRefresh: model.onRefresh,
-              showChildOpacityTransition: true,
-              child: new ListView.builder(
-                  itemCount: model.devices.length,
-                  itemBuilder: (BuildContext ctxt, int index) {
-                    return ListTile(
-                        onTap: () {
-                          // _scaffoldKey.currentState.showSnackBar(SnackBar(
-                          //   content: Text("Ncha'allah brabi :)"),
-                          //   duration: Duration(seconds: 1),
-                          // ));
-                           model.syncWithDevice(index);
-                        },
-                        leading: Icon(Icons.developer_board),
-                        title: Text(model.devices.elementAt(index).name),
-                        subtitle: Text("ip = "+model.devices.elementAt(index).ip+" , uptime = "+model.devices.elementAt(index).upTime)
-                        );
-                  })),
+          body: Stack(children: <Widget>[
+            LiquidPullToRefresh(
+                key: model.refreshIndicatorKey,
+                onRefresh: model.onRefresh,
+                showChildOpacityTransition: true,
+                child: new ListView.builder(
+                    itemCount: model.devices.length,
+                    itemBuilder: (BuildContext ctxt, int index) {
+                      return ListTile(
+                          onTap: () {
+                            // _scaffoldKey.currentState.showSnackBar(SnackBar(
+                            //   content: Text("Ncha'allah brabi :)"),
+                            //   duration: Duration(seconds: 1),
+                            // ));
+                            model.syncWithDevice(index);
+                          },
+                          leading: Icon(Icons.developer_board),
+                          title: Text(model.devices.elementAt(index).name),
+                          subtitle:
+                              Text("ip = " + model.devices.elementAt(index).ip + " , uptime = " + model.devices.elementAt(index).upTime));
+                    })),
+          ]),
         );
       },
     );

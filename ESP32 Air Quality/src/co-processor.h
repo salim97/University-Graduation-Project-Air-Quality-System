@@ -1,5 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////////
 // ULP section
+// https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/ulp_instruction_set.html
+// https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/ulp_macros.html
+// https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
 // https://www.espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf
 // RTC_MUX        Pin         Summary                   |  Analog  Function
 // RTC GPIO Num | GPIO Num  | Pad Name    |  1          |   2      | 3

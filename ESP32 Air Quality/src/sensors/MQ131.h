@@ -111,8 +111,8 @@ if( internalError == true) return  ;
       JsonObject Sensors_0 = Sensors.createNestedObject();
       Sensors_0["sensor"] = "MQ131";
       Sensors_0["name"] = "Ozone";
-      // Sensors_0["value"] = mq131.readSensor();
-      Sensors_0["value"] = analogRead(Pin);
+      Sensors_0["value"] = mq131.readSensor();
+      // Sensors_0["value"] = analogRead(Pin);
       Sensors_0["metric"] = "ppm";
       Sensors_0["isCalibrated"] = false;
     }

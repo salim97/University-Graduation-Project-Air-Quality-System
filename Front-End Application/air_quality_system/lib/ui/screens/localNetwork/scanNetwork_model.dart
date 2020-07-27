@@ -7,6 +7,7 @@ import 'package:air_quality_system/datamodels/esp_network_log_datamodel.dart';
 import 'package:air_quality_system/datamodels/localNetowrkDevice_datamodel.dart';
 import 'package:air_quality_system/datamodels/sensor_datamodel.dart';
 import 'package:android_intent/android_intent.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get_ip/get_ip.dart';
@@ -20,11 +21,14 @@ import 'package:stacked_services/stacked_services.dart';
 // class HomeViewModel extends FutureViewModel<void> {
 class ScanNetworkViewModel extends IndexTrackingViewModel {
   final DialogService _dialogService = locator<DialogService>();
+  final NavigationService navigationService = locator<NavigationService>();
 
   // ServiceStatus serviceStatus = ServiceStatus.disabled;
   List<LocalNetworkDevice> devices = List<LocalNetworkDevice>();
   RawDatagramSocket socket;
   String phoneIPaddress;
+  bool requestWasSend = false;
+  bool waitingForResponse = false;
   void initState() async {
     // LocationPermissions().checkServiceStatus().then((ServiceStatus serviceStatus) {
     //   print(serviceStatus);
@@ -49,6 +53,15 @@ class ScanNetworkViewModel extends IndexTrackingViewModel {
         print('Datagram from ${d.address.address}:${d.port}: ${message}');
         if (!isJSON(message)) return;
         Map<String, dynamic> _json = json.decode(message);
+        if (_json["lastRequest"] == true) {
+          requestWasSend = true;
+          waitingForResponse = false;
+          notifyListeners();
+          return;
+        }
+        requestWasSend = false;
+        waitingForResponse = false;
+        notifyListeners();
         if (LocalNetworkDevice.isJSONvalide(_json)) {
           devices.insert(0, LocalNetworkDevice.fromJson(_json));
         }
@@ -101,13 +114,17 @@ class ScanNetworkViewModel extends IndexTrackingViewModel {
     print(permission);
     if (permission == PermissionStatus.granted) {
       Position position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      final FirebaseUser currentUser = await FirebaseAuth.instance.currentUser();
       var json = jsonEncode({
         "command": "setData",
-        "uid": "Lf7gh5IDYxZgOmUXKhtaHSk6j9y2",
+        "uid": currentUser.uid,
         "requestDateTime": DateTime.now().toString(),
         "GPS": {"latitude": position.latitude, "longitude": position.longitude, "altitude": position.altitude}
       });
       udpBroadcast(json);
+      requestWasSend = false;
+      waitingForResponse = true;
+      notifyListeners();
     } else {
       await _dialogService.showDialog(
         title: "GPS ERROR",

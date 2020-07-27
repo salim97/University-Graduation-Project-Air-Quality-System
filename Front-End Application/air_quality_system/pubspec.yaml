@@ -52,6 +52,7 @@ dependencies:
   udp: ^3.0.3
   material_design_icons_flutter:
   get_ip: ^0.4.0
+  # progress_hud: ^1.1.0
 
   # weather
   queries: "^0.0.15"

@@ -20,8 +20,7 @@ public:
     Serial.println(F("BME680 async test"));
     if (!bme.begin()) {
       Serial.println("Failed to start BME680 gas sensor - check wiring.");
-      while (1)
-        ;
+      return false;
     }
     // Set up oversampling and filter initialization
     bme.setTemperatureOversampling(BME680_OS_8X);
@@ -29,6 +28,7 @@ public:
     bme.setPressureOversampling(BME680_OS_4X);
     bme.setIIRFilterSize(BME680_FILTER_SIZE_3);
     bme.setGasHeater(320, 150); // 320*C for 150 ms
+    
     return doMeasure();
   }
   virtual bool doMeasure() {

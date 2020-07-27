@@ -147,7 +147,7 @@ class _PhoneAuthViewState extends State<PhoneAuthView> {
                                               // showToast("Welcome " + currentUser.phoneNumber, Colors.green);
                                               // await currentUser.delete();
                                               print("Welcome " + currentUser.phoneNumber);
-                                              Navigator.of(context).pushNamed(Routes.scanNetworkView);
+                                              Navigator.of(context).pushReplacementNamed(Routes.scanNetworkView);
                                             },
                                           )));
                             },

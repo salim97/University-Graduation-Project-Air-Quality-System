@@ -137,17 +137,17 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FeatureDiscovery.discoverFeatures(
-        context,
-        const <String>{
-          feature1,
-          feature2,
-          feature3,
-          feature4,
-        },
-      );
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   FeatureDiscovery.discoverFeatures(
+    //     context,
+    //     const <String>{
+    //       feature1,
+    //       feature2,
+    //       feature3,
+    //       feature4,
+    //     },
+    //   );
+    // });
   }
 
   @override
