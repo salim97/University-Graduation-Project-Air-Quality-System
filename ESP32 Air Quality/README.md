@@ -16,9 +16,13 @@ The ESP32 is the ESP8266 successor. It adds an extra CPU core, faster Wi-Fi, mor
     + [X] adding local network commandes using UDP broadcast 
     + [X] send data to firebase periodically
     + [ ] update https certificate
+    + [ ] local network TCP engine
 - Dual Core ESP32
     + [X] adding mutex (mutual exclusion) 
     + [X] synchronization
+- ULP coprocessor
+    + [X] read state of core 0 and core 1 from RTC memory
+    + [X] for each state play led animation on externals leds
 
     
 
