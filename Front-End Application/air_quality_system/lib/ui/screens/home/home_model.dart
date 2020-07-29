@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:air_quality_system/app/locator.dart';
@@ -5,6 +6,7 @@ import 'package:air_quality_system/datamodels/device_dataModel.dart';
 import 'package:air_quality_system/services/Rest_API.dart';
 import 'package:air_quality_system/services/firebase_auth.dart';
 import 'package:air_quality_system/services/firestore_db.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map/plugin_api.dart';
@@ -42,9 +44,29 @@ class HomeViewModel extends BaseViewModel {
     'O3': MdiIcons.molecule,
   };
 
+  final Connectivity _connectivity = Connectivity();
+  StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  bool isInternetAvailable = true;
   // @override
   void initState() async {
     print("=================== initState ");
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
+      switch (result) {
+        case ConnectivityResult.wifi:
+          isInternetAvailable = true;
+          break;
+        case ConnectivityResult.mobile:
+          isInternetAvailable = true;
+          break;
+        case ConnectivityResult.none:
+          isInternetAvailable = false;
+          break;
+        default:
+          isInternetAvailable = true;
+          break;
+      }
+      notifyListeners();
+    });
 
     // getMyLocation();
     // print(firebaseAuthService.firebaseUser?.uid);
@@ -57,7 +79,7 @@ class HomeViewModel extends BaseViewModel {
     dropDownMenuItems = getDropDownMenuItems();
     currentGas = _gas.keys.first;
     currentGasLegend = _gas.values.first;
-    // refresh();
+    refresh();
 
     notifyListeners();
   }
@@ -72,6 +94,11 @@ class HomeViewModel extends BaseViewModel {
 
   bool loadingDataFromBackend = false;
   refresh({String sensor = "Temperature"}) async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.none) {
+      return;
+    }
+
     // await firebaseAuthService.signInAnonymously();
     // return;
     loadingDataFromBackend = true;
@@ -164,7 +191,7 @@ class HomeViewModel extends BaseViewModel {
                   //   Text(sensor.sensorName),
                   // ),
                   DataCell(
-                    Text(sensor.sensorName+"_"+sensor.metricName),
+                    Text(sensor.sensorName + "_" + sensor.metricName),
                   ),
                   DataCell(
                     Text(sensor.value),
@@ -172,7 +199,7 @@ class HomeViewModel extends BaseViewModel {
                 ]),
               ));
           dataTable = SingleChildScrollView(
-                      child: DataTable(
+            child: DataTable(
               columns: [
                 // DataColumn(
                 //   label: Text('Sensor Name'),

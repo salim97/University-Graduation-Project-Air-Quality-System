@@ -99,7 +99,7 @@ class MyApp extends StatelessWidget {
       // theme: ThemeScheme.light(),
       // initialRoute: Routes.startupViewRoute,
       home: FeatureDiscovery(
-          recordStepsInSharedPreferences: true,
+          recordStepsInSharedPreferences: false,
           child: HomeView()),
     );
   }

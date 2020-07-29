@@ -64,6 +64,8 @@ dependencies:
   font_awesome_flutter: ^8.4.0
   feature_discovery: ^0.12.0+2
   liquid_pull_to_refresh: ^2.0.0
+  shared_preferences: ^0.5.8
+  connectivity: ^0.4.9
   # showcaseview: ^0.1.5
   # pull_to_refresh: ^1.6.0
   # rounded_loading_button: ^1.0.0

@@ -19,7 +19,7 @@ class _PhoneAuthViewState extends State<PhoneAuthView> {
 
   @override
   void initState() {
-    _txtNumber.text = "662253959";
+    // _txtNumber.text = "662253959";
     // _txtNumber.addListener(() {
     //   setState(() {
     //     _txtNumberHint = _txtNumber.text;

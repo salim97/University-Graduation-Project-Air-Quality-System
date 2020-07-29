@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map/plugin_api.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stacked/stacked.dart';
 import 'home_model.dart';
 import 'package:latlong/latlong.dart';
@@ -134,20 +135,30 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     animationControllerMenu.forward();
   }
 
+  Future checkFirstSeen() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool _seen = (prefs.getBool('seen') ?? false);
+
+    if (!_seen) {
+      await prefs.setBool('seen', true);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        FeatureDiscovery.discoverFeatures(
+          context,
+          const <String>{
+            feature1,
+            feature2,
+            feature3,
+            feature4,
+          },
+        );
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   FeatureDiscovery.discoverFeatures(
-    //     context,
-    //     const <String>{
-    //       feature1,
-    //       feature2,
-    //       feature3,
-    //       feature4,
-    //     },
-    //   );
-    // });
+    checkFirstSeen();
   }
 
   @override
@@ -181,7 +192,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     );
 
     return ViewModelBuilder<HomeViewModel>.reactive(
-      builder: (context, model, child) => kIsWeb
+      builder: (context, model, child) {
+        if(model.isInternetAvailable == false )
+        {
+          return Scaffold(body: Center(child: Text("This app need internet in order to work"),),);
+        }
+        return kIsWeb
           ? webUI(context, model, child)
           : WillPopScope(
               onWillPop: () async {
@@ -330,7 +346,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           onButtonClicked: () {
                             FeatureDiscovery.discoverFeatures(
                               context,
-                              const <String>{feature1, feature2, feature3, feature4,},
+                              const <String>{
+                                feature1,
+                                feature2,
+                                feature3,
+                                feature4,
+                              },
                             );
                           },
                         ),
@@ -402,7 +423,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   ),
                 ),
               ),
-            ),
+            );
+      },
       viewModelBuilder: () => HomeViewModel(),
       onModelReady: (model) =>
           model.initState(), // TODO: khrebch fiha apre, prc initstate ta3 fluter w hadi custom je pense pas 3andhom meme behavior

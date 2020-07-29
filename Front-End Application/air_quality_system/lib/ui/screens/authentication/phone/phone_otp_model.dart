@@ -101,7 +101,7 @@ class PhoneOTPViewModel extends BaseViewModel {
       // _addStatus(PhoneAuthState.);
       // if (onFailed != null) onFailed();
       if (exception.message.contains('not authorized'))
-        description = 'App not authroized';
+        description = 'App not authorized';
       else if (exception.message.contains('network'))
         description = 'Please check your internet connection and try again';
       else
