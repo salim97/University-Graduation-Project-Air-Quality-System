@@ -6,7 +6,7 @@ The ESP8266 is a low-cost Wi-Fi microchip, they call it the king of IOT( interne
 # Current Status
 
 - Sensors
-    + [ ] wiring & schema
+    + [x] wiring & schema
     + [X] read data from sensor
     + [X] data to JSON format
     + [X] adding polymorphisme to sensor classes in order to regroup them into list object and make code clean & dynamic
