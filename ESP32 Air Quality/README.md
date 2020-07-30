@@ -101,7 +101,7 @@ in this project i'm using DOIT ESP32 DevKit Board with SGP30, BME680, DHT22, MIC
 | MHZ19    | Serial port | 2         |
 | MQ131    | Analog      | 1         |
 
-![](Schematic_PFE_Air_Quality_2020-07-16_12-40-15.png)
+![](ESP32_DevKit_V1.png)
 
 See also: https://easyeda.com/benabadji.mohammed.salim/pfe-air-quality
 
