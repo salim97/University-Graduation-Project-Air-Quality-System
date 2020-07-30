@@ -23,7 +23,13 @@ The ESP8266 is a low-cost Wi-Fi microchip, they call it the king of IOT( interne
     
 
 # hardware Setup
-in this project i'm using Wemos D1 mini Board 
+in this project i'm using Wemos D1 mini Board with SGP30, BME680, MHZ19 modules
+
+
+
+![](ESP8266_Wemos_D1_Mini.png)
+
+See also: https://easyeda.com/benabadji.mohammed.salim/pfe-air-quality
 
 
 
