@@ -13,6 +13,7 @@ this is a contributed air quality system made in algeria from people to people, 
 - once device is configured in user environement, the device will send data periodically to backend
 - backend will store data recieved from devices and provide a way to secure writing data into database using user authentication using SMS OTP
 - frontend will display data stored in backend for mobile ( Android / IOS ) and Web 
+![](/Doc/project_overview.png)
 
 ## Device
 we managed to create two devices one based on ESP8266 for low cost, and other based on ESP32 for maximum features
