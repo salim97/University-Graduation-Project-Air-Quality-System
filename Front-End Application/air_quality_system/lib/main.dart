@@ -4,16 +4,10 @@ import 'dart:io';
 
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'app/locator.dart';
 import 'app/router.gr.dart';
-import 'ui/screens/authentication/phone/phone_auth_view.dart';
-import 'ui/screens/authentication/unauth_view.dart';
 import 'ui/screens/home/home_view.dart';
-import 'ui/screens/localNetwork/localNetwork_view.dart';
-import 'ui/screens/localNetwork/scanNetwork_view.dart';
-import 'ui/styles/theme_data.dart';
 
 void setupDialogUi() {
   var dialogService = locator<DialogService>();
@@ -74,11 +68,13 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       onGenerateRoute: Router().onGenerateRoute,
-      navigatorKey: locator<NavigationService>().navigatorKey,     
-       theme: ThemeData(
+      navigatorKey: locator<NavigationService>().navigatorKey,
+      theme: ThemeData(
         dividerColor: Color(0xFFECEDF1),
         brightness: Brightness.light,
         backgroundColor: Colors.white,
@@ -90,17 +86,13 @@ class MyApp extends StatelessWidget {
           title: TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold),
           subtitle: TextStyle(fontSize: 16),
           body1: TextStyle(fontSize: 14.0, fontFamily: 'Montserrat'),
-          display1: TextStyle(
-              fontSize: 14.0, fontFamily: 'Montserrat1', color: Colors.white),
-          display2: TextStyle(
-              fontSize: 14.0, fontFamily: 'Montserrat', color: Colors.black54),
+          display1: TextStyle(fontSize: 14.0, fontFamily: 'Montserrat1', color: Colors.white),
+          display2: TextStyle(fontSize: 14.0, fontFamily: 'Montserrat', color: Colors.black54),
         ),
       ),
       // theme: ThemeScheme.light(),
       // initialRoute: Routes.startupViewRoute,
-      home: FeatureDiscovery(
-          recordStepsInSharedPreferences: false,
-          child: HomeView()),
+      home: FeatureDiscovery(recordStepsInSharedPreferences: false, child: HomeView()),
     );
   }
 }
