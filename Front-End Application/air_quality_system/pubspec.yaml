@@ -33,9 +33,9 @@ dependencies:
   # state management
   stacked: ^1.7.1
   stacked_hooks: 0.1.1+3
+  stacked_services: ^0.5.2
   # navigation
   auto_route:
-  stacked_services: ^0.4.3
   curved_navigation_bar: ^0.3.3
 
   # inversion of control

@@ -140,6 +140,7 @@ class _PhoneOTPViewState extends State<PhoneOTPView> {
             ),
           ),
         ),
+      
       ),
       viewModelBuilder: () => PhoneOTPViewModel(
         countryCode: widget.countryCode,
@@ -190,4 +191,5 @@ class _PhoneOTPViewState extends State<PhoneOTPView> {
     }
     return Container();
   }
+
 }

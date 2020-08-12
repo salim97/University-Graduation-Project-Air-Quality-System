@@ -28,6 +28,16 @@ class DeviceDataModel {
       if (!alreadyExist) sensors.add(newElement);
     });
     gps = new GPSDataModel.fromJson(json);
+
+    sensors.forEach((sensor) {
+        if(sensor.value.contains("."))
+        {
+          sensor .value = double.parse(sensor.value).toStringAsFixed(3) ;
+        }
+  
+
+    });
+
     // sensors.removeWhere((value) => value.senses.isEmpty); // remove non existing sensors
   }
 

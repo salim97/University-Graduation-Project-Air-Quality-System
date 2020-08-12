@@ -193,237 +193,232 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
     return ViewModelBuilder<HomeViewModel>.reactive(
       builder: (context, model, child) {
-        if(model.isInternetAvailable == false )
-        {
-          return Scaffold(body: Center(child: Text("This app need internet in order to work"),),);
+        if (model.isInternetAvailable == false) {
+          return Scaffold(
+            body: Center(
+              child: Text("This app need internet in order to work"),
+            ),
+          );
         }
         return kIsWeb
-          ? webUI(context, model, child)
-          : WillPopScope(
-              onWillPop: () async {
-                if (model.dataTable != null) {
-                  model.dataTable = null;
-                  model.notifyListeners();
-                  return false;
-                } else
-                  return true;
-                // return false;
-              },
-              child: Scaffold(
-                body: Center(
-                  child: SizedBox(
-                    width: screenWidth,
-                    height: screenHeight,
-                    child: Stack(
-                      children: <Widget>[
-                        FlutterMap(
-                          mapController: model.mapController,
-                          options: MapOptions(
-                            center: LatLng(35.691124, -0.618778),
-                            zoom: 14.0,
-                          ),
-                          layers: [
-                            TileLayerOptions(
-                              urlTemplate: "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
-                              subdomains: ['a', 'b', 'c'],
+            ? webUI(context, model, child)
+            : Scaffold(
+                body: SafeArea(
+                  child: Center(
+                    child: SizedBox(
+                      width: screenWidth,
+                      height: screenHeight,
+                      child: Stack(
+                        children: <Widget>[
+                          FlutterMap(
+                            mapController: model.mapController,
+                            options: MapOptions(
+                              center: LatLng(35.691124, -0.618778),
+                              zoom: 14.0,
                             ),
-                            MarkerLayerOptions(markers: model.markers)
-                          ],
-                        ),
-                        ExploreWidget(
-                          title: isExploreOpen ? "Weather Forecast" : "Weather",
-                          icon: DescribedFeatureOverlay(
-                              featureId: feature4,
-                              tapTarget: iconWeather,
-                              backgroundColor: Colors.green,
-                              targetColor: Colors.blue,
-                              onOpen: () async {
-                                print('Tapped tap target of $feature1.');
-                                return true;
-                              },
-                              title: const Text('Weather forecast', style: TextStyle(fontSize: 22.0)),
-                              description: const Text('Get weather forecast of your current location', style: TextStyle(fontSize: 18.0)),
-                              child: iconWeather),
-                          currentExplorePercent: currentExplorePercent,
-                          currentSearchPercent: currentSearchPercent,
-                          animateExplore: animateExplore,
-                          isExploreOpen: isExploreOpen,
-                          onVerticalDragUpdate: onExploreVerticalUpdate,
-                          onPanDown: () => animationControllerExplore?.stop(),
-                        ),
-                        //explore content
-                        ExploreContentWidget(
-                          currentExplorePercent: currentExplorePercent,
-                        ),
-
-                        //search menu background
-                        offsetSearch != 0
-                            ? Positioned(
-                                bottom: realH(88),
-                                left: realW((standardWidth - 320) / 2),
-                                width: realW(320),
-                                height: realH(400 * currentSearchPercent),
-                                child: Opacity(
-                                  opacity: currentSearchPercent,
-                                  child: DecoratedBox(
-                                    decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.7),
-                                        borderRadius:
-                                            BorderRadius.only(topLeft: Radius.circular(realW(33)), topRight: Radius.circular(realW(33)))),
-                                  ),
-                                ),
-                              )
-                            : const Padding(
-                                padding: const EdgeInsets.all(0),
+                            layers: [
+                              TileLayerOptions(
+                                urlTemplate: "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+                                subdomains: ['a', 'b', 'c'],
                               ),
-                        //search menu
-                        SearchMenuWidget(
-                          currentSearchPercent: currentSearchPercent,
-                          gas: model.gas,
-                          onCurrentSearchChanged: model.onCurrentSearchChanged,
-                        ),
-                        //search
-                        SearchWidget(
-                          mainIcon: DescribedFeatureOverlay(
-                              featureId: feature1,
-                              tapTarget: iconMenu,
-                              backgroundColor: Colors.green,
-                              onOpen: () async {
-                                print('Tapped tap target of $feature1.');
-                                return true;
-                              },
-                              title: const Text('Map menu', style: TextStyle(fontSize: 22.0)),
-                              description: const Text(
-                                  'click on this mapbutton to select target chemical ( Temperature, humidity, CO2 ...etc ) to be displayed in the map',
-                                  style: TextStyle(fontSize: 18.0)),
-                              child: iconMenu),
-                          currentSearchPercent: currentSearchPercent,
-                          currentExplorePercent: currentExplorePercent,
-                          isSearchOpen: isSearchOpen,
-                          animateSearch: animateSearch,
-                          onHorizontalDragUpdate: onSearchHorizontalDragUpdate,
-                          onPanDown: () => animationControllerSearch?.stop(),
-                        ),
-
-                        MapButton(
-                          currentSearchPercent: currentSearchPercent,
-                          currentExplorePercent: currentExplorePercent,
-                          bottom: 148,
-                          offsetX: -68,
-                          width: 68,
-                          height: 71,
-                          childWidget: model.loadingDataFromBackend
-                              ? CircularProgressIndicator()
-                              : DescribedFeatureOverlay(
-                                  featureId: feature2,
-                                  tapTarget: iconRefresh,
-                                  backgroundColor: Colors.green,
-                                  onOpen: () async {
-                                    print('Tapped tap target of $feature1.');
-                                    return true;
-                                  },
-                                  title: const Text('Map Refresh', style: TextStyle(fontSize: 22.0)),
-                                  description: const Text('Get latest 10 min data and display it to map', style: TextStyle(fontSize: 18.0)),
-                                  child: iconRefresh,
-                                ),
-                          onButtonClicked: () async {
-                            model.refresh();
-                          },
-                        ),
-
-                        MapButton(
-                          currentSearchPercent: currentSearchPercent,
-                          currentExplorePercent: currentExplorePercent,
-                          bottom: 250,
-                          offsetX: -68,
-                          width: 68,
-                          height: 71,
-                          childWidget: Icon(
-                            Icons.help,
-                            size: 34,
-                            color: Colors.blue,
+                              MarkerLayerOptions(markers: model.markers)
+                            ],
                           ),
-                          onButtonClicked: () {
-                            FeatureDiscovery.discoverFeatures(
-                              context,
-                              const <String>{
-                                feature1,
-                                feature2,
-                                feature3,
-                                feature4,
-                              },
-                            );
-                          },
-                        ),
-                        //menu button
-                        Positioned(
-                          bottom: realH(53),
-                          left: realW(-71 * (currentExplorePercent + currentSearchPercent)),
-                          child: GestureDetector(
-                            onTap: () {
-                              animateMenu(true);
-                            },
-                            child: Opacity(
-                              opacity: 1 - (currentSearchPercent + currentExplorePercent),
-                              child: Container(
-                                width: realW(71),
-                                height: realH(71),
-                                alignment: Alignment.centerLeft,
-                                padding: EdgeInsets.only(left: realW(17)),
-                                child: DescribedFeatureOverlay(
-                                    featureId: feature3,
-                                    tapTarget: iconDrawer,
+                          model.gas_legend_index < model.gas_legend.length
+                              ? Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  left: 0,
+                                  height: screenHeight * 0.2,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.25),
+                                      borderRadius: BorderRadius.all(Radius.circular(36)),
+                                    ),
+                                    child: Image.asset(
+                                      model.gas_legend.values.elementAt(model.gas_legend_index),
+                                      fit: BoxFit.fill,
+                                    ),
+                                  ),
+                                )
+                              : Container(),
+
+                          ExploreWidget(
+                            title: isExploreOpen ? "Weather Forecast" : "Weather",
+                            icon: DescribedFeatureOverlay(
+                                featureId: feature4,
+                                tapTarget: iconWeather,
+                                backgroundColor: Colors.green,
+                                targetColor: Colors.blue,
+                                onOpen: () async {
+                                  print('Tapped tap target of $feature1.');
+                                  return true;
+                                },
+                                title: const Text('Weather forecast', style: TextStyle(fontSize: 22.0)),
+                                description: const Text('Get weather forecast of your current location', style: TextStyle(fontSize: 18.0)),
+                                child: iconWeather),
+                            currentExplorePercent: currentExplorePercent,
+                            currentSearchPercent: currentSearchPercent,
+                            animateExplore: animateExplore,
+                            isExploreOpen: isExploreOpen,
+                            onVerticalDragUpdate: onExploreVerticalUpdate,
+                            onPanDown: () => animationControllerExplore?.stop(),
+                          ),
+                          //explore content
+                          ExploreContentWidget(
+                            currentExplorePercent: currentExplorePercent,
+                          ),
+
+                          //search menu background
+                          offsetSearch != 0
+                              ? Positioned(
+                                  bottom: realH(88),
+                                  left: realW((standardWidth - 320) / 2),
+                                  width: realW(320),
+                                  height: realH(400 * currentSearchPercent),
+                                  child: Opacity(
+                                    opacity: currentSearchPercent,
+                                    child: DecoratedBox(
+                                      decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.7),
+                                          borderRadius:
+                                              BorderRadius.only(topLeft: Radius.circular(realW(33)), topRight: Radius.circular(realW(33)))),
+                                    ),
+                                  ),
+                                )
+                              : const Padding(
+                                  padding: const EdgeInsets.all(0),
+                                ),
+                          //search menu
+                          SearchMenuWidget(
+                            currentSearchPercent: currentSearchPercent,
+                            gas: model.gas,
+                            onCurrentSearchChanged: model.onCurrentSearchChanged,
+                          ),
+                          //search
+                          SearchWidget(
+                            mainIcon: DescribedFeatureOverlay(
+                                featureId: feature1,
+                                tapTarget: iconMenu,
+                                backgroundColor: Colors.green,
+                                onOpen: () async {
+                                  print('Tapped tap target of $feature1.');
+                                  return true;
+                                },
+                                title: const Text('Map menu', style: TextStyle(fontSize: 22.0)),
+                                description: const Text(
+                                    'click on this mapbutton to select target chemical ( Temperature, humidity, CO2 ...etc ) to be displayed in the map',
+                                    style: TextStyle(fontSize: 18.0)),
+                                child: iconMenu),
+                            currentSearchPercent: currentSearchPercent,
+                            currentExplorePercent: currentExplorePercent,
+                            isSearchOpen: isSearchOpen,
+                            animateSearch: animateSearch,
+                            onHorizontalDragUpdate: onSearchHorizontalDragUpdate,
+                            onPanDown: () => animationControllerSearch?.stop(),
+                          ),
+
+                          MapButton(
+                            currentSearchPercent: currentSearchPercent,
+                            currentExplorePercent: currentExplorePercent,
+                            bottom: 148,
+                            offsetX: -68,
+                            width: 68,
+                            height: 71,
+                            childWidget: model.loadingDataFromBackend
+                                ? CircularProgressIndicator()
+                                : DescribedFeatureOverlay(
+                                    featureId: feature2,
+                                    tapTarget: iconRefresh,
                                     backgroundColor: Colors.green,
                                     onOpen: () async {
                                       print('Tapped tap target of $feature1.');
                                       return true;
                                     },
-                                    title: const Text('App Drawer', style: TextStyle(fontSize: 22.0)),
-                                    description: const Text('Access to more functionality of the App', style: TextStyle(fontSize: 18.0)),
-                                    child: iconDrawer),
-                                decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.75),
-                                    borderRadius:
-                                        BorderRadius.only(bottomRight: Radius.circular(realW(36)), topRight: Radius.circular(realW(36))),
-                                    boxShadow: [
-                                      BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.3), blurRadius: realW(36)),
-                                    ]),
+                                    title: const Text('Map Refresh', style: TextStyle(fontSize: 22.0)),
+                                    description:
+                                        const Text('Get latest 10 min data and display it to map', style: TextStyle(fontSize: 18.0)),
+                                    child: iconRefresh,
+                                  ),
+                            onButtonClicked: () async {
+                              model.refresh();
+                            },
+                          ),
+
+                          MapButton(
+                            currentSearchPercent: currentSearchPercent,
+                            currentExplorePercent: currentExplorePercent,
+                            bottom: 250,
+                            offsetX: -68,
+                            width: 68,
+                            height: 71,
+                            childWidget: Icon(
+                              Icons.help,
+                              size: 34,
+                              color: Colors.blue,
+                            ),
+                            onButtonClicked: () {
+                              FeatureDiscovery.discoverFeatures(
+                                context,
+                                const <String>{
+                                  feature1,
+                                  feature2,
+                                  feature3,
+                                  feature4,
+                                },
+                              );
+                            },
+                          ),
+                          //menu button
+                          Positioned(
+                            bottom: realH(53),
+                            left: realW(-71 * (currentExplorePercent + currentSearchPercent)),
+                            child: GestureDetector(
+                              onTap: () {
+                                animateMenu(true);
+                              },
+                              child: Opacity(
+                                opacity: 1 - (currentSearchPercent + currentExplorePercent),
+                                child: Container(
+                                  width: realW(71),
+                                  height: realH(71),
+                                  alignment: Alignment.centerLeft,
+                                  padding: EdgeInsets.only(left: realW(17)),
+                                  child: DescribedFeatureOverlay(
+                                      featureId: feature3,
+                                      tapTarget: iconDrawer,
+                                      backgroundColor: Colors.green,
+                                      onOpen: () async {
+                                        print('Tapped tap target of $feature1.');
+                                        return true;
+                                      },
+                                      title: const Text('App Drawer', style: TextStyle(fontSize: 22.0)),
+                                      description: const Text('Access to more functionality of the App', style: TextStyle(fontSize: 18.0)),
+                                      child: iconDrawer),
+                                  decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.75),
+                                      borderRadius:
+                                          BorderRadius.only(bottomRight: Radius.circular(realW(36)), topRight: Radius.circular(realW(36))),
+                                      boxShadow: [
+                                        BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.3), blurRadius: realW(36)),
+                                      ]),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        //menu
-                        MenuWidget(
-                          currentMenuPercent: currentMenuPercent,
-                          animateMenu: animateMenu,
-                          name: "Benda Benda",
-                          phoneNumber: "06666666666",
-                        ),
-
-                        model.dataTable != null
-                            ? Positioned.fill(
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: Container(
-                                    width: screenWidth * 0.8,
-                                    height: screenHeight * 0.8,
-                                    decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.75),
-                                        borderRadius: BorderRadius.all(Radius.circular(realW(36))),
-                                        boxShadow: [
-                                          BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.3), blurRadius: realW(36)),
-                                        ]),
-                                    child: model.dataTable,
-                                  ),
-                                ),
-                              )
-                            : Container()
-                      ],
+                          //menu
+                          MenuWidget(
+                            currentMenuPercent: currentMenuPercent,
+                            animateMenu: animateMenu,
+                            name: "Benda Benda",
+                            phoneNumber: "06666666666",
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
+              );
       },
       viewModelBuilder: () => HomeViewModel(),
       onModelReady: (model) =>

@@ -435,7 +435,7 @@ packages:
       name: get
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.14.1"
+    version: "3.4.3"
   get_ip:
     dependency: "direct main"
     description:
@@ -881,7 +881,7 @@ packages:
       name: stacked_services
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.3"
+    version: "0.5.2"
   stream_channel:
     dependency: transitive
     description:

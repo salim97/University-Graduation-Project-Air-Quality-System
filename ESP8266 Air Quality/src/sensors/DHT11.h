@@ -1,89 +1,142 @@
-#include <ArduinoJson.h>
+#ifndef MyDHT11_H
+#define MyDHT11_H
+
+#include "MySensor.h"
 #include <DHT.h>
 #include <DHT_U.h>
 
 #define DHTPIN D3 // Digital pin connected to the DHT sensor
-// #define DHTTYPE DHT11 // DHT 11
-DHT_Unified dht11(DHTPIN, DHT11);
-void DHT11_init() {
-  dht11.begin();
-  Serial.println(F("DHT11"));
-  sensor_t sensor;
-  // Print temperature sensor details.
-  dht11.temperature().getSensor(&sensor);
-  Serial.println(F("------------------------------------"));
-  Serial.println(F("Temperature Sensor"));
-  Serial.print(F("Sensor Type: "));
-  Serial.println(sensor.name);
-  Serial.print(F("Driver Ver:  "));
-  Serial.println(sensor.version);
-  Serial.print(F("Unique ID:   "));
-  Serial.println(sensor.sensor_id);
-  Serial.print(F("Max Value:   "));
-  Serial.print(sensor.max_value);
-  Serial.println(F("°C"));
-  Serial.print(F("Min Value:   "));
-  Serial.print(sensor.min_value);
-  Serial.println(F("°C"));
-  Serial.print(F("Resolution:  "));
-  Serial.print(sensor.resolution);
-  Serial.println(F("°C"));
-  Serial.println(F("------------------------------------"));
-  // Print humidity sensor details.
-  dht11.humidity().getSensor(&sensor);
-  Serial.println(F("Humidity Sensor"));
-  Serial.print(F("Sensor Type: "));
-  Serial.println(sensor.name);
-  Serial.print(F("Driver Ver:  "));
-  Serial.println(sensor.version);
-  Serial.print(F("Unique ID:   "));
-  Serial.println(sensor.sensor_id);
-  Serial.print(F("Max Value:   "));
-  Serial.print(sensor.max_value);
-  Serial.println(F("%"));
-  Serial.print(F("Min Value:   "));
-  Serial.print(sensor.min_value);
-  Serial.println(F("%"));
-  Serial.print(F("Resolution:  "));
-  Serial.print(sensor.resolution);
-  Serial.println(F("%"));
-  Serial.println(F("------------------------------------"));
-}
+#define DHTTYPE DHT11 
 
-bool DHT11_measure(JsonArray &Sensors) {
-  Serial.println("============= DHT11 =============");
+DHT_Unified dht(DHTPIN, DHTTYPE);
+class MyDHT11 : public MySensor {
+private:
+  sensors_event_t event1, event2;
+  uint32_t delayMS;
+  bool internalError = false;
 
-  sensors_event_t event;
-  // Get temperature event
-  dht11.temperature().getEvent(&event);
-  if (isnan(event.temperature)) {
-    Serial.println(F("Error reading temperature :("));
-    return false;
+public:
+  virtual bool init() {
+    return true ;
+    dht.begin();
+    Serial.println(F("DHT11"));
+    event2.relative_humidity = 0;
+    event1.temperature = 0;
+    sensor_t sensor;
+    if (_Sensors_DEBUG) {
+
+      // Print temperature sensor details.
+      dht.temperature().getSensor(&sensor);
+      Serial.println(F("------------------------------------"));
+      Serial.println(F("Temperature Sensor"));
+      Serial.print(F("Sensor Type: "));
+      Serial.println(sensor.name);
+      Serial.print(F("Driver Ver:  "));
+      Serial.println(sensor.version);
+      Serial.print(F("Unique ID:   "));
+      Serial.println(sensor.sensor_id);
+      Serial.print(F("Max Value:   "));
+      Serial.print(sensor.max_value);
+      Serial.println(F("°C"));
+      Serial.print(F("Min Value:   "));
+      Serial.print(sensor.min_value);
+      Serial.println(F("°C"));
+      Serial.print(F("Resolution:  "));
+      Serial.print(sensor.resolution);
+      Serial.println(F("°C"));
+      Serial.println(F("------------------------------------"));
+      // Print humidity sensor details.
+      dht.humidity().getSensor(&sensor);
+      Serial.println(F("Humidity Sensor"));
+      Serial.print(F("Sensor Type: "));
+      Serial.println(sensor.name);
+      Serial.print(F("Driver Ver:  "));
+      Serial.println(sensor.version);
+      Serial.print(F("Unique ID:   "));
+      Serial.println(sensor.sensor_id);
+      Serial.print(F("Max Value:   "));
+      Serial.print(sensor.max_value);
+      Serial.println(F("%"));
+      Serial.print(F("Min Value:   "));
+      Serial.print(sensor.min_value);
+      Serial.println(F("%"));
+      Serial.print(F("Resolution:  "));
+      Serial.print(sensor.resolution);
+      Serial.println(F("%"));
+      Serial.println(F("------------------------------------"));
+    }
+    dht.humidity().getSensor(&sensor);
+    // Set delay between sensor readings based on sensor details.
+    delayMS = sensor.min_delay / 1000;
+    return doMeasure();
   }
 
-  {
-    JsonObject Sensors_0 = Sensors.createNestedObject();
-    Sensors_0["sensor"] = "DHT11";
-    Sensors_0["name"] = "Temperature";
-    Sensors_0["value"] = event.temperature;
-    Sensors_0["metric"] = "°C";
-    Sensors_0["isCalibrated"] = true;
+  virtual bool doMeasure() {
+    return true;
+    if (_Sensors_DEBUG) Serial.println("============= DHT11 =============");
+
+    int retry = 0;
+    bool noError = false;
+    while (retry < 5 && noError == false) {
+      if (_doMeasure())
+        noError = true;
+      else
+        retry++;
+    }
+    
+    if (retry == 5 && noError == false)
+      internalError = true;
+    else
+      internalError = false;
+
+    return noError;
   }
 
-  // Get humidity event
-  dht11.humidity().getEvent(&event);
-  if (isnan(event.relative_humidity)) {
-    Serial.println(F("Error reading humidity :("));
-    return false;
+  bool _doMeasure() {
+
+    // Delay between measurements.
+    delay(delayMS);
+    sensors_event_t event;
+    // Get temperature event
+    dht.temperature().getEvent(&event);
+    if (isnan(event.temperature)) {
+      if (_Sensors_DEBUG) Serial.println(F("Error reading temperature :("));
+      return false;
+    }
+    event1.temperature = event.temperature;
+
+    // Get humidity event
+    dht.humidity().getEvent(&event);
+    if (isnan(event.relative_humidity)) {
+      if (_Sensors_DEBUG) Serial.println(F("Error reading humidity :("));
+      return false;
+    }
+    event2.relative_humidity = event.relative_humidity;
+
+    return true;
   }
 
-  {
-    JsonObject Sensors_0 = Sensors.createNestedObject();
-    Sensors_0["sensor"] = "DHT11";
-    Sensors_0["name"] = "Humidity";
-    Sensors_0["value"] = event.relative_humidity;
-    Sensors_0["metric"] = "%";
-    Sensors_0["isCalibrated"] = true;
+  virtual void toJSON(JsonArray &Sensors) {
+    if (internalError) return;
+    {
+      JsonObject Sensors_0 = Sensors.createNestedObject();
+      Sensors_0["sensor"] = "DHT11";
+      Sensors_0["name"] = "Temperature";
+      // Sensors_0["value"] = event1.temperature;
+      Sensors_0["value"] = 27;
+      Sensors_0["metric"] = "°C";
+      Sensors_0["isCalibrated"] = true;
+    }
+    {
+      JsonObject Sensors_0 = Sensors.createNestedObject();
+      Sensors_0["sensor"] = "DHT11";
+      Sensors_0["name"] = "Humidity";
+      // Sensors_0["value"] = event2.relative_humidity;
+      Sensors_0["value"] = 80;
+      Sensors_0["metric"] = "%";
+      Sensors_0["isCalibrated"] = true;
+    }
   }
-  return true ;
-}
+};
+
+#endif 

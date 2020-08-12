@@ -16,9 +16,10 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <esp_wifi.h>
+#include <EasyButton.h>
 Preferences preferences;
 
-
+#include "co-processor.h"
 #include "mynetwork.h"
 #include "sensors/BME680.h"
 #include "sensors/DHT22.h"
@@ -26,7 +27,6 @@ Preferences preferences;
 #include "sensors/MICS6814.h"
 #include "sensors/MQ131.h"
 #include "sensors/SGP30.h"
-#include "co-processor.h"
 #if defined(ESP32)
 static const char _HEX_CHAR_ARRAY[17] = "0123456789ABCDEF";
 static String _byteToHexString(uint8_t *buf, uint8_t length,
@@ -63,10 +63,9 @@ String _getESP32ChipID() {
 #define APName "ESP" + String(ESP.getChipId());
 #endif
 
-MySensor *mySensorsList[] = {new MQ131(),new MyDHT22(), new MyBME680(), new MySGP30(),
-                             new MyMHZ19(), new MyMICS6814() };
-                            //  new MyMHZ19(), new MyMICS6814()};
-
+MySensor *mySensorsList[] = {new MQ131(),   new MyDHT22(), new MyBME680(),
+                             new MySGP30(), new MyMHZ19(), new MyMICS6814()};
+//  new MyMHZ19(), new MyMICS6814()};
 
 void FirstCoreCode(void *parameter);
 void SecondCoreCode(void *parameter);
@@ -83,36 +82,8 @@ SemaphoreHandle_t xMutex;
 TaskHandle_t Task1;
 TaskHandle_t Task2;
 
-SemaphoreHandle_t semaphore = nullptr;
-void IRAM_ATTR isr() { xSemaphoreGiveFromISR(semaphore, NULL); }
-void resetFactoryButton(void *parameter) {
-// TODO : hold 2 seconds
-  // Create a binary semaphore
-  semaphore = xSemaphoreCreateBinary();
-  pinMode(0, INPUT);
-  // Trigger the interrupt when going from HIGH -> LOW ( == pushing button)
-  attachInterrupt(0, isr, FALLING);
-  for (;;) {
-    if (xSemaphoreTake(semaphore, portMAX_DELAY) == pdTRUE) {
-      Serial.println("Reset Factory Button was pushed!\n");
-      pinMode(LED_BUILTIN, OUTPUT);
-      digitalWrite(LED_BUILTIN, LOW);
-
-      for (int i = 0; i < 10; i++) {
-        digitalWrite(
-            LED_BUILTIN,
-            !(digitalRead(LED_BUILTIN))); // Invert Current State of LED
-        delay(500);
-      }
-      // reset settings - for testing
-      // wifiManager.resetSettings();
-      WiFi.disconnect(true, true);
-      preferences.clear();
-      delay(100);
-      ESP.restart();
-    }
-  }
-}
+// Instance of the button.
+EasyButton resetFactoryButton(0);
 
 void setup() {
 
@@ -125,29 +96,9 @@ void setup() {
   // Device to serial monitor feedback
   while (!Serial)
     ;
-  // pinMode(27, INPUT);
-  // while(true)
-  // {
-  //   Serial.println(analogRead(27));
-  //   delay(100);
-  // }
-  startulp();
-  // RTC_SLOW_MEM[0] = 1U;
 
-  // while (true) {
-  //   RTC_SLOW_MEM[1] = 0U;
-  //   delay(1000);
-  //   RTC_SLOW_MEM[1] = 1U;
-  //   delay(1000);
-  //   RTC_SLOW_MEM[2] = 0U;
-  //   delay(1000);
-  //   RTC_SLOW_MEM[2] = 1U;
-  //   delay(1000);
-  //   RTC_SLOW_MEM[3] = 0U;
-  //   delay(1000);
-  //   RTC_SLOW_MEM[3] = 1U;
-  //   delay(1000);
-  // }
+  startulp();
+
   // Open Preferences with my-app namespace. Each application module, library,
   // etc has to use a namespace name to prevent key name collisions. We will
   // open storage in RW-mode (second parameter has to be false). Note: Namespace
@@ -156,8 +107,26 @@ void setup() {
   // jsonHeader();
   // tmp_SecondCoreCode();
 
-  // Associate button_task method as a callback
-  xTaskCreate(resetFactoryButton, "resetFactoryButton", 4096, NULL, 10, NULL);
+  // Initialize the button.
+  resetFactoryButton.begin();
+  // Add the callback function to be called when the button is pressed.
+  resetFactoryButton.onPressed([]() {
+    Serial.println("Reset Factory Button was pushed!\n");
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, LOW);
+
+    for (int i = 0; i < 10; i++) {
+      digitalWrite(LED_BUILTIN,
+                   !(digitalRead(LED_BUILTIN))); // Invert Current State of LED
+      delay(500);
+    }
+    // reset settings - for testing
+    // wifiManager.resetSettings();
+    WiFi.disconnect(true, true);
+    preferences.clear();
+    delay(100);
+    ESP.restart();
+  });
 
   delay(500);
   // create a task that will be executed in the FirstCoreCode() function, with
@@ -185,7 +154,7 @@ void setup() {
   delay(500);
 }
 
-void loop() {}
+void loop() { resetFactoryButton.read(); }
 
 String globalSharedBuffer;
 
@@ -204,7 +173,7 @@ void FirstCoreCode(void *parameter) {
   DynamicJsonDocument doc(4096);
   while (true) {
     Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
-    bool oneSensorIsDown = false ;
+    bool oneSensorIsDown = false;
     for (uint8_t i = 0; i < sizeMySensorsList; i++) {
       // mySensorsList[i]->doMeasure();
       if (!mySensorsList[i]->doMeasure()) {
@@ -213,9 +182,9 @@ void FirstCoreCode(void *parameter) {
       }
       // if(!mySensorsList[i]->doMeasure())
       // setCoreSensorStatus( true);
-      oneSensorIsDown =  oneSensorIsDown || !mySensorsList[i]->doMeasure() ;
+      oneSensorIsDown = oneSensorIsDown || !mySensorsList[i]->doMeasure();
     }
-     setCoreSensorStatus( oneSensorIsDown);
+    setCoreSensorStatus(oneSensorIsDown);
 
     doc.clear();
     // jsonHeader();
@@ -503,7 +472,6 @@ void sendDataToLocalNetwork() {
   xSemaphoreGive(xMutex);
   if (local.isEmpty()) return;
   sendUDP(local);
-  
 }
 
 // void tmp_SecondCoreCode() {

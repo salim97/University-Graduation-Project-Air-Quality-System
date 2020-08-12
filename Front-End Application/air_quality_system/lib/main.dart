@@ -7,54 +7,22 @@ import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'app/locator.dart';
 import 'app/router.gr.dart';
+import 'ui/screens/contribute/contribute_view.dart';
 import 'ui/screens/home/home_view.dart';
 
 void setupDialogUi() {
   var dialogService = locator<DialogService>();
 
   dialogService.registerCustomDialogUi((context, dialogRequest) => Dialog(
+        backgroundColor: Colors.transparent,
         child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                dialogRequest.title,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 23),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Text(
-                dialogRequest.description,
-                style: TextStyle(
-                  fontSize: 18,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              GestureDetector(
-                onTap: () => dialogService.completeDialog(DialogResponse()),
-                child: Container(
-                  child: dialogRequest.showIconInMainButton ? Icon(Icons.check_circle) : Text(dialogRequest.mainButtonTitle),
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.redAccent,
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-              )
-            ],
-          ),
+          padding: const EdgeInsets.all(2),
+          height: MediaQuery.of(context).size.height * 0.8,
+          // width: MediaQuery.of(context).size.width,
+          decoration: BoxDecoration(color: Colors.white.withOpacity(0.90), borderRadius: BorderRadius.all(Radius.circular(36)), boxShadow: [
+            BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.3), blurRadius: 36),
+          ]),
+          child: dialogRequest.customData as Widget,
         ),
       ));
 }
@@ -68,8 +36,6 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       onGenerateRoute: Router().onGenerateRoute,
@@ -92,7 +58,9 @@ class MyApp extends StatelessWidget {
       ),
       // theme: ThemeScheme.light(),
       // initialRoute: Routes.startupViewRoute,
-      home: FeatureDiscovery(recordStepsInSharedPreferences: false, child: HomeView()),
+      // home: FeatureDiscovery(recordStepsInSharedPreferences: false, child: HomeView()),
+      home: Contribute(),
     );
   }
 }
+

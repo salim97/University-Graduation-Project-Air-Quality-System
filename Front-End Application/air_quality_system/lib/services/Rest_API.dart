@@ -23,6 +23,7 @@ class RestAPI {
     } catch (e) {
       return Future.error(e.toString());
     }
+    
     List<DeviceDataModel> posts = List<DeviceDataModel>();
       JsonDecoder decoder = new JsonDecoder();
       var map = decoder.convert(response.body);

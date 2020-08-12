@@ -9,7 +9,8 @@ import 'package:stacked_services/stacked_services.dart';
 
 enum OTP_Status { sending_sms, sms_was_send, success, failed }
 
-class PhoneOTPViewModel extends BaseViewModel {
+class PhoneAuthViewModel extends BaseViewModel {
+  bool getPhoneNumberPage = false  ;
   final DialogService _dialogService = locator<DialogService>();
   final NavigationService _navigationService = locator<NavigationService>();
   final MyFirebaseAuthService _myFirebaseAuthService = locator<MyFirebaseAuthService>();
@@ -24,22 +25,15 @@ class PhoneOTPViewModel extends BaseViewModel {
 
   TextEditingController controller;
   void initState() async {
-    controller = TextEditingController();
-    controller.text = "";
-    verifyPhone();
-    notifyListeners();
+    // controller = TextEditingController();
+    // controller.text = "";
+    // verifyPhone();
+    // notifyListeners();
   }
-
-  final String countryCode;
-  final String phoneNumber;
-  final VoidCallback onVerificationSuccess;
-  final VoidCallback onVerificationFailure;
-  PhoneOTPViewModel({
-    @required this.countryCode,
-    @required this.phoneNumber,
-    @required this.onVerificationSuccess,
-    @required this.onVerificationFailure,
-  });
+  String countryCode = "+213";
+  String phoneNumber = "662253959";
+  VoidCallback onVerificationSuccess;
+  VoidCallback onVerificationFailure;
 
   String verificationId;
   String smsCode;
