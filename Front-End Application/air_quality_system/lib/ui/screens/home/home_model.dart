@@ -27,8 +27,8 @@ class HomeViewModel extends BaseViewModel {
   MapController mapController = new MapController();
 
   final MyFirebaseAuthService firebaseAuthService = locator<MyFirebaseAuthService>();
-  final RestAPI restAPIService = locator<RestAPI>();
-  final MyFirestoreDB myFirestoreDBservice = locator<MyFirestoreDB>();
+  final RestAPIService restAPIService = locator<RestAPIService>();
+  final MyFirestoreDBService myFirestoreDBservice = locator<MyFirestoreDBService>();
   final DialogService _dialogService = locator<DialogService>();
   // final SnackbarService _snackbarService = locator<SnackbarService>();
   // final NavigationService _navigationService = locator<NavigationService>();

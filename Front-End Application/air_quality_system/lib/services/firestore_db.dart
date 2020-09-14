@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// The service responsible for networking requests
 // @lazySingleton
-class MyFirestoreDB {
+class MyFirestoreDBService {
   // static const endpoint = 'https://jsonplaceholder.typicode.com';
 
   // var client = new http.Client();

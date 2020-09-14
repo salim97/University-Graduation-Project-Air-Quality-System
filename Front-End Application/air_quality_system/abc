@@ -1,0 +1,1177 @@
+[_$ThirdPartyServicesModule
+  |
+  +dialogService: DialogService;
+  +localNetworkEngine: LocalNetworkEngineService;
+  +myFirebaseAuth: MyFirebaseAuthService;
+  +myFirestoreDB: MyFirestoreDBService;
+  +myGPS: MyGPSService;
+  +navigationService: NavigationService;
+  +restAPI: RestAPIService;
+  +snackbarService: SnackbarService
+]
+
+[_$ThirdPartyServicesModule]o-[DialogService]
+[_$ThirdPartyServicesModule]o-[LocalNetworkEngineService]
+[_$ThirdPartyServicesModule]o-[MyFirebaseAuthService]
+[_$ThirdPartyServicesModule]o-[MyFirestoreDBService]
+[_$ThirdPartyServicesModule]o-[MyGPSService]
+[_$ThirdPartyServicesModule]o-[NavigationService]
+[_$ThirdPartyServicesModule]o-[RestAPIService]
+[_$ThirdPartyServicesModule]o-[SnackbarService]
+[<abstract>ThirdPartyServicesModule]<:-[_$ThirdPartyServicesModule]
+
+[$Router
+  |
+  +homeView: HomeView;
+  +unAuth: UnAuth;
+  +localNetworkView: LocalNetworkView;
+  +scanNetworkView: ScanNetworkView;
+  +esptouchView: ESPTouchView;
+  +contributeView: ContributeView;
+  +mapPickerView: MapPickerView;
+  +phoneAuthView: PhoneAuthView
+]
+
+[$Router]o-[HomeView]
+[$Router]o-[UnAuth]
+[$Router]o-[LocalNetworkView]
+[$Router]o-[ScanNetworkView]
+[$Router]o-[ESPTouchView]
+[$Router]o-[ContributeView]
+[$Router]o-[MapPickerView]
+[$Router]o-[PhoneAuthView]
+
+[<abstract>Routes
+  |
+  <static>+homeView: String;
+  <static>+unAuth: String;
+  <static>+localNetworkView: String;
+  <static>+scanNetworkView: String;
+  <static>+esptouchView: String;
+  <static>+contributeView: String;
+  <static>+mapPickerView: String;
+  <static>+phoneAuthView: String;
+  <static>+all: Set<String>
+]
+
+[Router
+  |
+  +allRoutes: Set<String>;
+  <static>+navigator: ExtendedNavigatorState<RouterBase>
+  |
+  +Route onGenerateRoute()
+]
+
+[Router]o-[ExtendedNavigatorState<T>]
+[<abstract>RouterBase]<:-[Router]
+
+[ContributeViewArguments
+  |
+  +key: Key
+]
+
+[ContributeViewArguments]o-[<abstract>Key]
+
+[MapPickerViewArguments
+  |
+  +key: Key
+]
+
+[MapPickerViewArguments]o-[<abstract>Key]
+
+[DeviceDataModel
+  |
+  +upTime: String;
+  +timeStamp: int;
+  +sensors: List<SensorDataModel>;
+  +gps: GPSDataModel
+  |
+  +dynamic fromJson();
+  +dynamic removeNULLmetric();
+  +Map regroupSensorsByName();
+  +List getTemperature();
+  +List getHumidity();
+  +List getPressure();
+  +List getCO2()
+]
+
+[DeviceDataModel]o-[GPSDataModel]
+
+[ESPNetworkLogDataModel
+  |
+  +ip: String;
+  +upTime: String;
+  +msg: String;
+  +isError: bool
+  |
+  <static>+bool isJSONvalide()
+]
+
+[ForecastDataModel
+  |
+  +forecastList: List<ForecastWeatherDataModel>
+  |
+  <static>+ForecastDataModel fromJson()
+]
+
+[ForecastWeatherDataModel
+  |
+  +temperature: String;
+  +condition: ConditionDataModel;
+  +dateTime: DateTime;
+  +pressure: double;
+  +humidity: double;
+  +wind: double
+  |
+  <static>-ForecastWeatherDataModel _fromJson()
+]
+
+[ForecastWeatherDataModel]o-[ConditionDataModel]
+
+[ConditionDataModel
+  |
+  +id: int;
+  +description: String
+  |
+  +String getAssetString()
+]
+
+[GPSDataModel
+  |
+  +latitude: double;
+  +longitude: double;
+  +altitude: double
+  |
+  +String toString()
+]
+
+[LocalNetworkDevice
+  |
+  +ip: String;
+  +upTime: String;
+  +name: String
+  |
+  <static>+bool isJSONvalide()
+]
+
+[SensorDataModel
+  |
+  +value: String;
+  +metric: String;
+  +metricName: String;
+  +sensorName: String;
+  +isCalibrated: bool;
+  +timeStamp: String;
+  +values: List<String>
+  |
+  +dynamic updateTimeStamp();
+  +String uid();
+  +IconData getIcon()
+]
+
+[MyApp
+  |
+  +Widget build()
+]
+
+[<abstract>StatelessWidget]<:-[MyApp]
+
+[MyFirebaseAuthService
+  |
+  -_firebaseUser: FirebaseUser;
+  -_isUserConnectedToFirebase: bool;
+  -_auth: FirebaseAuth;
+  -_verificationId: String;
+  -_forceResendingToken: int;
+  +firebaseUser: dynamic;
+  +isUserConnectedToFirebase: dynamic
+  |
+  +Future verifyPhoneNumber();
+  +Future signInWithPhoneNumber();
+  +Future signIn();
+  +Future signInAnonymously()
+]
+
+[MyFirebaseAuthService]o-[FirebaseUser]
+[MyFirebaseAuthService]o-[FirebaseAuth]
+
+[MyFirestoreDBService
+  |
+  +client: dynamic
+  |
+  +Future getLastdata()
+]
+
+[MyGPSService
+]
+
+[LocalNetworkEngineService
+  |
+  +devices: List<LocalNetworkDevice>;
+  +socket: RawDatagramSocket;
+  +phoneIPaddress: String
+  |
+  -dynamic _init();
+  +dynamic scanLocalNetwork();
+  +dynamic udpBroadcast();
+  +bool isJSON()
+]
+
+[LocalNetworkEngineService]o-[<abstract>RawDatagramSocket]
+
+[RestAPIService
+  |
+  <static>-_instance: RestAPIService
+  |
+  <static>+RestAPIService getInstance();
+  +Future getLast10minRecords();
+  +Future getForecast()
+]
+
+[RestAPIService]o-[RestAPIService]
+
+[Endpoints
+  |
+  <static>-_ENDPOINT: String;
+  <static>+WEATHER_BY_CITY_ID: String;
+  <static>+FORECAST_BY_CITY_ID: String;
+  <static>+FIREBASE_FUNCTION_GET_LAST_10MIN_RECORDS: String
+]
+
+[<abstract>ThirdPartyServicesModule
+  |
+  +navigationService: NavigationService;
+  +dialogService: DialogService;
+  +snackbarService: SnackbarService;
+  +myFirebaseAuth: MyFirebaseAuthService;
+  +myFirestoreDB: MyFirestoreDBService;
+  +myGPS: MyGPSService;
+  +restAPI: RestAPIService;
+  +localNetworkEngine: LocalNetworkEngineService
+]
+
+[<abstract>ThirdPartyServicesModule]o-[NavigationService]
+[<abstract>ThirdPartyServicesModule]o-[DialogService]
+[<abstract>ThirdPartyServicesModule]o-[SnackbarService]
+[<abstract>ThirdPartyServicesModule]o-[MyFirebaseAuthService]
+[<abstract>ThirdPartyServicesModule]o-[MyFirestoreDBService]
+[<abstract>ThirdPartyServicesModule]o-[MyGPSService]
+[<abstract>ThirdPartyServicesModule]o-[RestAPIService]
+[<abstract>ThirdPartyServicesModule]o-[LocalNetworkEngineService]
+
+[PhoneAuthView
+  |
+  +_PhoneAuthViewState createState()
+]
+
+[<abstract>StatefulWidget]<:-[PhoneAuthView]
+
+[_PhoneAuthViewState
+  |
+  -_txtNumber: TextEditingController;
+  -_txtNumberHint: String
+  |
+  +void initState();
+  +Widget build()
+]
+
+[_PhoneAuthViewState]o-[TextEditingController]
+[<abstract>State<T>]<:-[_PhoneAuthViewState]
+
+[OTP_Status
+  |
+  +index: int;
+  <static>+values: List<OTP_Status>;
+  <static>+sending_sms: OTP_Status;
+  <static>+sms_was_send: OTP_Status;
+  <static>+success: OTP_Status;
+  <static>+failed: OTP_Status
+]
+
+[OTP_Status]o-[OTP_Status]
+
+[PhoneOTPViewModel
+  |
+  -_dialogService: DialogService;
+  -_navigationService: NavigationService;
+  -_myFirebaseAuthService: MyFirebaseAuthService;
+  -_otpStatus: OTP_Status;
+  +controller: TextEditingController;
+  +countryCode: String;
+  +phoneNumber: String;
+  +onVerificationSuccess: void Function();
+  +onVerificationFailure: void Function();
+  +verificationId: String;
+  +smsCode: String;
+  +otpStatus: OTP_Status
+  |
+  +void initState();
+  +Future verifyPhone();
+  +dynamic manualVerification();
+  +dynamic resendSMS()
+]
+
+[PhoneOTPViewModel]o-[DialogService]
+[PhoneOTPViewModel]o-[NavigationService]
+[PhoneOTPViewModel]o-[MyFirebaseAuthService]
+[PhoneOTPViewModel]o-[OTP_Status]
+[PhoneOTPViewModel]o-[TextEditingController]
+[PhoneOTPViewModel]o-[void Function()]
+[BaseViewModel]<:-[PhoneOTPViewModel]
+
+[PhoneOTPView
+  |
+  +countryCode: String;
+  +phoneNumber: String;
+  +onVerificationSuccess: void Function();
+  +onVerificationFailure: void Function();
+  +progressIndicatorColor: Color;
+  +appBar: Widget
+  |
+  +_PhoneOTPViewState createState()
+]
+
+[PhoneOTPView]o-[void Function()]
+[PhoneOTPView]o-[Color]
+[PhoneOTPView]o-[<abstract>Widget]
+[<abstract>StatefulWidget]<:-[PhoneOTPView]
+
+[_PhoneOTPViewState
+  |
+  +myFocusNode: FocusNode
+  |
+  +void initState();
+  +dynamic openKeyboard();
+  +dynamic closeKeyboard();
+  +Widget build();
+  +Widget codeStatus()
+]
+
+[_PhoneOTPViewState]o-[FocusNode]
+[<abstract>State<T>]<:-[_PhoneOTPViewState]
+
+[UnAuth
+  |
+  +Widget build()
+]
+
+[<abstract>StatelessWidget]<:-[UnAuth]
+
+[ContributeView
+  |
+  +_ContributeViewState createState()
+]
+
+[<abstract>StatefulWidget]<:-[ContributeView]
+
+[_ContributeViewState
+  |
+  -_currentstep: int;
+  +spr: List<Step>
+  |
+  -void _movetonext();
+  -void _movetostart();
+  -void _showcontent();
+  +Widget build();
+  -Widget _buildVerticalControls()
+]
+
+[<abstract>State<T>]<:-[_ContributeViewState]
+
+[DeviceSyncViewModel
+  |
+  -_dialogService: DialogService;
+  +navigationService: NavigationService;
+  -_localNetworkEngine: LocalNetworkEngineService;
+  +devices: List<LocalNetworkDevice>;
+  +refreshIndicatorKey: GlobalKey<LiquidPullToRefreshState>;
+  +remoteAP: String
+  |
+  +void initState();
+  +Future onRefresh();
+  +dynamic connectToAQDeviceAP();
+  +Future checkIfConnectedToAQDeviceAP()
+]
+
+[DeviceSyncViewModel]o-[DialogService]
+[DeviceSyncViewModel]o-[NavigationService]
+[DeviceSyncViewModel]o-[LocalNetworkEngineService]
+[DeviceSyncViewModel]o-[<abstract>GlobalKey<T>]
+[IndexTrackingViewModel]<:-[DeviceSyncViewModel]
+
+[DeviceSyncView
+  |
+  -_scaffoldKey: GlobalKey<ScaffoldState>
+  |
+  +Widget build()
+]
+
+[DeviceSyncView]o-[<abstract>GlobalKey<T>]
+[<abstract>StatelessWidget]<:-[DeviceSyncView]
+
+[ESPTouchView
+  |
+  +_ESPTouchViewState createState()
+]
+
+[<abstract>StatefulWidget]<:-[ESPTouchView]
+
+[_ESPTouchViewState
+  |
+  -_formKey: GlobalKey<FormState>;
+  -_ssid: TextEditingController;
+  -_bssid: TextEditingController;
+  -_password: TextEditingController;
+  -_wifiObject: WifiInfoWrapper;
+  -_dialogService: DialogService;
+  +fetchingWifiInfo: bool
+  |
+  +void initState();
+  +Future initPlatformState();
+  +void fetchWifiInfo();
+  +void dispose();
+  +Widget build();
+  +dynamic createTask();
+  +Widget form()
+]
+
+[_ESPTouchViewState]o-[<abstract>GlobalKey<T>]
+[_ESPTouchViewState]o-[TextEditingController]
+[_ESPTouchViewState]o-[WifiInfoWrapper]
+[_ESPTouchViewState]o-[DialogService]
+[<abstract>State<T>]<:-[_ESPTouchViewState]
+
+[TaskRoute
+  |
+  +task: ESPTouchTask
+  |
+  +State createState()
+]
+
+[TaskRoute]o-[ESPTouchTask]
+[<abstract>StatefulWidget]<:-[TaskRoute]
+
+[TaskRouteState
+  |
+  -_stream: Stream<ESPTouchResult>;
+  -_streamSubscription: StreamSubscription<ESPTouchResult>;
+  -_timer: Timer;
+  -_results: List<ESPTouchResult>
+  |
+  +void initState();
+  +void dispose();
+  +Widget waitingState();
+  +Widget error();
+  +dynamic copyValue();
+  +Widget noneState();
+  +Widget resultList();
+  +Widget build()
+]
+
+[TaskRouteState]o-[<abstract>Stream<T>]
+[TaskRouteState]o-[<abstract>StreamSubscription<T>]
+[TaskRouteState]o-[<abstract>Timer]
+[<abstract>State<T>]<:-[TaskRouteState]
+
+[MapPickerViewModel
+  |
+  +permissionHandler: PermissionHandler;
+  +permissions: Map<PermissionGroup, PermissionStatus>;
+  +markers: Map<MarkerId, Marker>;
+  +googleMapController: GoogleMapController;
+  -_userMarkerID: MarkerId;
+  +gettingUserPosition: bool;
+  +userMarker: dynamic
+  |
+  +void initState();
+  +dynamic setUserPosition();
+  +void getUserPosition();
+  -Future _gpsService();
+  -Future _requestPermission();
+  +Future requestLocationPermission();
+  -Future _checkGps()
+]
+
+[MapPickerViewModel]o-[PermissionHandler]
+[MapPickerViewModel]o-[GoogleMapController]
+[MapPickerViewModel]o-[MarkerId]
+[BaseViewModel]<:-[MapPickerViewModel]
+
+[MapPickerView
+  |
+  +_MapPickerViewState createState()
+]
+
+[<abstract>StatefulWidget]<:-[MapPickerView]
+
+[_MapPickerViewState
+  |
+  +Widget build()
+]
+
+[<abstract>State<T>]<:-[_MapPickerViewState]
+
+[OTP_Status
+  |
+  +index: int;
+  <static>+values: List<OTP_Status>;
+  <static>+sending_sms: OTP_Status;
+  <static>+sms_was_send: OTP_Status;
+  <static>+success: OTP_Status;
+  <static>+failed: OTP_Status
+]
+
+[OTP_Status]o-[OTP_Status]
+
+[PhoneAuthViewModel
+  |
+  +getPhoneNumberPage: bool;
+  -_dialogService: DialogService;
+  -_navigationService: NavigationService;
+  -_myFirebaseAuthService: MyFirebaseAuthService;
+  -_otpStatus: OTP_Status;
+  +controller: TextEditingController;
+  +countryCode: String;
+  +phoneNumber: String;
+  +onVerificationSuccess: void Function();
+  +onVerificationFailure: void Function();
+  +verificationId: String;
+  +smsCode: String;
+  +otpStatus: OTP_Status
+  |
+  +void initState();
+  +Future verifyPhone();
+  +dynamic manualVerification();
+  +dynamic resendSMS()
+]
+
+[PhoneAuthViewModel]o-[DialogService]
+[PhoneAuthViewModel]o-[NavigationService]
+[PhoneAuthViewModel]o-[MyFirebaseAuthService]
+[PhoneAuthViewModel]o-[OTP_Status]
+[PhoneAuthViewModel]o-[TextEditingController]
+[PhoneAuthViewModel]o-[void Function()]
+[BaseViewModel]<:-[PhoneAuthViewModel]
+
+[PhoneAuthView
+  |
+  +_PhoneAuthViewState createState()
+]
+
+[<abstract>StatefulWidget]<:-[PhoneAuthView]
+
+[_PhoneAuthViewState
+  |
+  -_txtNumber: TextEditingController;
+  -_txtNumberHint: String;
+  +myFocusNode: FocusNode;
+  -_paddingPhoneNumber: double
+  |
+  +void initState();
+  +dynamic openKeyboard();
+  +dynamic closeKeyboard();
+  +Widget build();
+  +Widget getPhoneNumber();
+  +Widget getOTPcode()
+]
+
+[_PhoneAuthViewState]o-[TextEditingController]
+[_PhoneAuthViewState]o-[FocusNode]
+[<abstract>State<T>]<:-[_PhoneAuthViewState]
+
+[ForecastDetailView
+  |
+  +weather: ForecastWeatherDataModel
+  |
+  <static>+MaterialPageRoute getRoute();
+  +Widget build();
+  +dynamic weatherInfo()
+]
+
+[ForecastDetailView]o-[ForecastWeatherDataModel]
+[<abstract>StatelessWidget]<:-[ForecastDetailView]
+
+[ForecastModel
+  |
+  +restAPIService: RestAPIService;
+  +forecastByDay: List<List<ForecastWeatherDataModel>>;
+  +currentPage: int;
+  +pageCount: int;
+  +currentDateTime: DateTime;
+  +errorMSG: String
+  |
+  +void initState();
+  +List groupForecastListByDay();
+  +Future futureToRun();
+  +void onError()
+]
+
+[ForecastModel]o-[RestAPIService]
+[<abstract>FutureViewModel<T>]<:-[ForecastModel]
+
+[ForecastView
+  |
+  +Widget build()
+]
+
+[<abstract>StatelessWidget]<:-[ForecastView]
+
+[_ForecastWeekTabs
+  |
+  +dateTime: DateTime;
+  +currentPage: int;
+  +pageCount: int
+  |
+  +Widget build()
+]
+
+[<abstract>StatelessWidget]<:-[_ForecastWeekTabs]
+
+[ForecastList
+  |
+  -_forecast: List<ForecastWeatherDataModel>
+  |
+  +Widget build()
+]
+
+[<abstract>StatelessWidget]<:-[ForecastList]
+
+[_ForecastListItem
+  |
+  +weather: ForecastWeatherDataModel
+  |
+  +void clicked();
+  +Widget build()
+]
+
+[_ForecastListItem]o-[ForecastWeatherDataModel]
+[<abstract>StatelessWidget]<:-[_ForecastListItem]
+
+[HomeViewModel
+  |
+  +myLocation: LatLng;
+  +markers: List<Marker>;
+  -_mapZoom: double;
+  +mapController: MapController;
+  +firebaseAuthService: MyFirebaseAuthService;
+  +restAPIService: RestAPIService;
+  +myFirestoreDBservice: MyFirestoreDBService;
+  -_dialogService: DialogService;
+  +gas: Map<String, IconData>;
+  +gas_legend_index: int;
+  +gas_legend: Map<String, String>;
+  -_connectivity: Connectivity;
+  -_connectivitySubscription: StreamSubscription<ConnectivityResult>;
+  +isInternetAvailable: bool;
+  +loadingDataFromBackend: bool;
+  +dataTable: Widget;
+  -_gas: Map<String, String>;
+  +dropDownMenuItems: List<DropdownMenuItem<String>>;
+  +currentGas: String;
+  +currentGasLegend: String
+  |
+  +void initState();
+  +dynamic onCurrentSearchChanged();
+  +dynamic refresh();
+  +Color legendTemperature();
+  +Color legendHumidity();
+  +Color legendPressure();
+  +dynamic addMarker();
+  +void changedDropDownItem();
+  +List getDropDownMenuItems();
+  +void onError();
+  +Future getMyLocation()
+]
+
+[HomeViewModel]o-[LatLng]
+[HomeViewModel]o-[<abstract>MapController]
+[HomeViewModel]o-[MyFirebaseAuthService]
+[HomeViewModel]o-[RestAPIService]
+[HomeViewModel]o-[MyFirestoreDBService]
+[HomeViewModel]o-[DialogService]
+[HomeViewModel]o-[Connectivity]
+[HomeViewModel]o-[<abstract>StreamSubscription<T>]
+[HomeViewModel]o-[<abstract>Widget]
+[BaseViewModel]<:-[HomeViewModel]
+
+[HomeView
+  |
+  +_HomeViewState createState()
+]
+
+[<abstract>StatefulWidget]<:-[HomeView]
+
+[_HomeViewState
+  |
+  +animationControllerExplore: AnimationController;
+  +animationControllerSearch: AnimationController;
+  +animationControllerMenu: AnimationController;
+  +curve: CurvedAnimation;
+  +animation: Animation<double>;
+  +animationW: Animation<double>;
+  +animationR: Animation<double>;
+  +offsetExplore: double;
+  +offsetSearch: double;
+  +offsetMenu: double;
+  +isExploreOpen: bool;
+  +isSearchOpen: bool;
+  +isMenuOpen: bool;
+  +currentExplorePercent: dynamic;
+  +currentSearchPercent: dynamic;
+  +currentMenuPercent: dynamic
+  |
+  +void onSearchHorizontalDragUpdate();
+  +void onExploreVerticalUpdate();
+  +void animateExplore();
+  +void animateSearch();
+  +void animateMenu();
+  +Future checkFirstSeen();
+  +void initState();
+  +Widget build();
+  +dynamic webUI()
+]
+
+[_HomeViewState]o-[AnimationController]
+[_HomeViewState]o-[CurvedAnimation]
+[_HomeViewState]o-[<abstract>Animation<T>]
+[<abstract>State<T>]<:-[_HomeViewState]
+[<abstract>TickerProviderStateMixin<T>]<:-[_HomeViewState]
+
+[LocalNetworkViewModel
+  |
+  +devices: DeviceDataModel;
+  +logs: List<ESPNetworkLogDataModel>;
+  +socket: RawDatagramSocket;
+  +phoneIPaddress: String
+  |
+  +void initState();
+  +void onError();
+  +dynamic refresh();
+  +bool isJSON()
+]
+
+[LocalNetworkViewModel]o-[DeviceDataModel]
+[LocalNetworkViewModel]o-[<abstract>RawDatagramSocket]
+[IndexTrackingViewModel]<:-[LocalNetworkViewModel]
+
+[LocalNetworkView
+  |
+  +Widget build();
+  +Widget getViewForIndex()
+]
+
+[<abstract>StatelessWidget]<:-[LocalNetworkView]
+
+[ScanNetworkViewModel
+  |
+  -_dialogService: DialogService;
+  +navigationService: NavigationService;
+  +devices: List<LocalNetworkDevice>;
+  +socket: RawDatagramSocket;
+  +phoneIPaddress: String;
+  +requestWasSend: bool;
+  +waitingForResponse: bool;
+  +refreshIndicatorKey: GlobalKey<LiquidPullToRefreshState>
+  |
+  +void initState();
+  +Future onRefresh();
+  +dynamic syncWithDevice();
+  +dynamic udpBroadcast();
+  +bool isJSON()
+]
+
+[ScanNetworkViewModel]o-[DialogService]
+[ScanNetworkViewModel]o-[NavigationService]
+[ScanNetworkViewModel]o-[<abstract>RawDatagramSocket]
+[ScanNetworkViewModel]o-[<abstract>GlobalKey<T>]
+[IndexTrackingViewModel]<:-[ScanNetworkViewModel]
+
+[ScanNetworkView
+  |
+  -_scaffoldKey: GlobalKey<ScaffoldState>
+  |
+  +Widget build()
+]
+
+[ScanNetworkView]o-[<abstract>GlobalKey<T>]
+[<abstract>StatelessWidget]<:-[ScanNetworkView]
+
+[$Colors
+  |
+  <static>+empress: Color;
+  <static>+ghostWhite: Color;
+  <static>+quartz: Color;
+  <static>+blueHaze: Color;
+  <static>+lavender: Color;
+  <static>+blueParis: Color
+]
+
+[$Colors]o-[Color]
+
+[$Asset
+  |
+  <static>+dotFull: String;
+  <static>+dotEmpty: String;
+  <static>+backgroundParis: String;
+  <static>+pressure: String;
+  <static>+humidity: String;
+  <static>+wind: String
+]
+
+[ThemeScheme
+  |
+  <static>+dynamic dark();
+  <static>+ThemeData light()
+]
+
+[CodeInput
+  |
+  +length: int;
+  +focusNode: FocusNode;
+  +controller: TextEditingController;
+  +keyboardType: TextInputType;
+  +inputFormatters: List<TextInputFormatter>;
+  +builder: Widget Function(bool, String);
+  +onChanged: void Function(String);
+  +onFilled: void Function(String)
+  |
+  <static>-List _createInputFormatters();
+  +_CodeInputState createState()
+]
+
+[CodeInput]o-[FocusNode]
+[CodeInput]o-[TextEditingController]
+[CodeInput]o-[TextInputType]
+[CodeInput]o-[Widget Function(bool, String)]
+[CodeInput]o-[void Function(String)]
+[<abstract>StatefulWidget]<:-[CodeInput]
+
+[_CodeInputState
+  |
+  +controller: TextEditingController;
+  +text: String
+  |
+  +Widget build()
+]
+
+[_CodeInputState]o-[TextEditingController]
+[<abstract>State<T>]<:-[_CodeInputState]
+
+[<abstract>CodeInputBuilders
+  |
+  <static>+null containerized();
+  <static>+null circle();
+  <static>+null darkCircle()
+]
+
+[CountryPickerDropdown
+  |
+  +itemFilter: bool Function(Country);
+  +itemBuilder: Widget Function(Country);
+  +initialValue: String;
+  +onValuePicked: void Function(Country)
+  |
+  +_CountryPickerDropdownState createState()
+]
+
+[CountryPickerDropdown]o-[bool Function(Country)]
+[CountryPickerDropdown]o-[Widget Function(Country)]
+[CountryPickerDropdown]o-[void Function(Country)]
+[<abstract>StatefulWidget]<:-[CountryPickerDropdown]
+
+[_CountryPickerDropdownState
+  |
+  -_countries: List<Country>;
+  -_selectedCountry: Country
+  |
+  +void initState();
+  +Widget build();
+  -Widget _buildDefaultMenuItem()
+]
+
+[_CountryPickerDropdownState]o-[Country]
+[<abstract>State<T>]<:-[_CountryPickerDropdownState]
+
+[CountryPickerUtils
+  |
+  <static>+Country getCountryByIsoCode();
+  <static>+String getFlagImageAssetPath();
+  <static>+Widget getDefaultFlagImage();
+  <static>+Country getCountryByPhoneCode()
+]
+
+[DotPageIndicator
+  |
+  +currentPage: int;
+  +pagesCount: int
+  |
+  +Widget build()
+]
+
+[<abstract>StatelessWidget]<:-[DotPageIndicator]
+
+[TextWithExponent
+  |
+  +text: String;
+  +exponentText: String;
+  +textSize: double;
+  +exponentTextSize: double
+  |
+  +Widget build()
+]
+
+[<abstract>StatelessWidget]<:-[TextWithExponent]
+
+[ExploreContentWidget
+  |
+  +currentExplorePercent: double;
+  +placeName: List<String>
+  |
+  +Widget build()
+]
+
+[<abstract>StatelessWidget]<:-[ExploreContentWidget]
+
+[ExploreWidget
+  |
+  +currentSearchPercent: double;
+  +currentExplorePercent: double;
+  +animateExplore: dynamic Function(bool);
+  +onVerticalDragUpdate: dynamic Function(DragUpdateDetails);
+  +onPanDown: dynamic Function();
+  +isExploreOpen: bool;
+  +title: String;
+  +icon: Widget
+  |
+  +Widget build();
+  -void _dispatchExploreOffset()
+]
+
+[ExploreWidget]o-[dynamic Function(bool)]
+[ExploreWidget]o-[dynamic Function(DragUpdateDetails)]
+[ExploreWidget]o-[dynamic Function()]
+[ExploreWidget]o-[<abstract>Widget]
+[<abstract>StatelessWidget]<:-[ExploreWidget]
+
+[MapButton
+  |
+  +currentSearchPercent: double;
+  +currentExplorePercent: double;
+  +bottom: double;
+  +offsetX: double;
+  +width: double;
+  +height: double;
+  +icon: IconData;
+  +childWidget: Widget;
+  +iconColor: Color;
+  +isRight: bool;
+  +gradient: Gradient;
+  +onButtonClicked: void Function()
+  |
+  +Widget build()
+]
+
+[MapButton]o-[IconData]
+[MapButton]o-[<abstract>Widget]
+[MapButton]o-[Color]
+[MapButton]o-[<abstract>Gradient]
+[MapButton]o-[void Function()]
+[<abstract>StatelessWidget]<:-[MapButton]
+
+[MenuWidget
+  |
+  +currentMenuPercent: num;
+  +animateMenu: dynamic Function(bool);
+  +name: String;
+  +phoneNumber: String
+  |
+  +_MenuWidgetState createState()
+]
+
+[MenuWidget]o-[dynamic Function(bool)]
+[<abstract>StatefulWidget]<:-[MenuWidget]
+
+[_MenuWidgetState
+  |
+  +menuItems: List<String>;
+  +subMenuItems: List<String>;
+  +currentSelectedItem: String
+  |
+  +void initState();
+  +dynamic onMenuItemClicked();
+  +Widget build()
+]
+
+[<abstract>State<T>]<:-[_MenuWidgetState]
+
+[SearchMenuWidget
+  |
+  +currentSearchPercent: double;
+  +gas: Map<String, IconData>;
+  +onCurrentSearchChanged: dynamic Function(String)
+  |
+  +_SearchMenuWidgetState createState()
+]
+
+[SearchMenuWidget]o-[dynamic Function(String)]
+[<abstract>StatefulWidget]<:-[SearchMenuWidget]
+
+[_SearchMenuWidgetState
+  |
+  +currentSelectedItem: String
+  |
+  +void initState();
+  +dynamic onMenuItemClicked();
+  +Widget build();
+  -dynamic _buildSearchMenuItem()
+]
+
+[<abstract>State<T>]<:-[_SearchMenuWidgetState]
+
+[SearchWidget
+  |
+  +currentExplorePercent: double;
+  +currentSearchPercent: double;
+  +animateSearch: dynamic Function(bool);
+  +isSearchOpen: bool;
+  +onHorizontalDragUpdate: dynamic Function(DragUpdateDetails);
+  +onPanDown: dynamic Function();
+  +mainIcon: Widget
+  |
+  +Widget build();
+  -void _dispatchSearchOffset()
+]
+
+[SearchWidget]o-[dynamic Function(bool)]
+[SearchWidget]o-[dynamic Function(DragUpdateDetails)]
+[SearchWidget]o-[dynamic Function()]
+[SearchWidget]o-[<abstract>Widget]
+[<abstract>StatelessWidget]<:-[SearchWidget]
+
+[ClippedView
+  |
+  +child: Widget;
+  +clipDirection: Axis
+  |
+  +Widget build()
+]
+
+[ClippedView]o-[<abstract>Widget]
+[ClippedView]o-[Axis]
+[<abstract>StatelessWidget]<:-[ClippedView]
+
+[DeviceTile
+  |
+  +sensors: List<SensorDataModel>;
+  +onTap: void Function();
+  +onHistoryDataTap: void Function();
+  +expanded: bool
+  |
+  +_DeviceTileState createState()
+]
+
+[DeviceTile]o-[void Function()]
+[<abstract>StatefulWidget]<:-[DeviceTile]
+
+[_DeviceTileState
+  |
+  +isChartOpen: bool;
+  +chartSample: int
+  |
+  -Widget _buildHeader();
+  -Widget _buildCard();
+  -Widget _buildDataCard();
+  +Widget build()
+]
+
+[<abstract>State<T>]<:-[_DeviceTileState]
+
+[DeviceTileList
+  |
+  +devices: DeviceDataModel;
+  +onHistoryDataTap: dynamic Function(SensorDataModel)
+  |
+  +_DeviceTileListState createState()
+]
+
+[DeviceTileList]o-[DeviceDataModel]
+[DeviceTileList]o-[dynamic Function(SensorDataModel)]
+[<abstract>StatefulWidget]<:-[DeviceTileList]
+
+[_DeviceTileListState
+  |
+  +selectedIndex: int;
+  +expanded: Map<String, bool>
+  |
+  +void initState();
+  +Widget build()
+]
+
+[<abstract>State<T>]<:-[_DeviceTileListState]
+
+[NavBar
+  |
+  +itemTapped: void Function(int);
+  +currentIndex: int;
+  +items: List<NavBarItemData>;
+  +selectedItem: NavBarItemData
+  |
+  +Widget build()
+]
+
+[NavBar]o-[void Function(int)]
+[NavBar]o-[NavBarItemData]
+[<abstract>StatelessWidget]<:-[NavBar]
+
+[NavBarItemData
+  |
+  +title: String;
+  +icon: IconData;
+  +selectedColor: Color;
+  +width: double
+]
+
+[NavBarItemData]o-[IconData]
+[NavBarItemData]o-[Color]
+
+[NavbarButton
+  |
+  +data: NavBarItemData;
+  +isSelected: bool;
+  +onTap: void Function()
+  |
+  +_NavbarButtonState createState()
+]
+
+[NavbarButton]o-[NavBarItemData]
+[NavbarButton]o-[void Function()]
+[<abstract>StatefulWidget]<:-[NavbarButton]
+
+[_NavbarButtonState
+  |
+  -_iconAnimController: AnimationController;
+  -_wasSelected: bool;
+  -_animScale: double
+  |
+  +void initState();
+  +Widget build();
+  -void _startAnimIfSelectedChanged()
+]
+
+[_NavbarButtonState]o-[AnimationController]
+[<abstract>State<T>]<:-[_NavbarButtonState]
+[<abstract>SingleTickerProviderStateMixin<T>]<:-[_NavbarButtonState]
+
+[Rotation3d
+  |
+  <static>+degrees2Radians: double;
+  +child: Widget;
+  +rotationX: double;
+  +rotationY: double;
+  +rotationZ: double
+  |
+  +Widget build()
+]
+
+[Rotation3d]o-[<abstract>Widget]
+[<abstract>StatelessWidget]<:-[Rotation3d]

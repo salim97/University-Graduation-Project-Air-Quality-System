@@ -1,0 +1,55 @@
+[Records]o-[GPS]
+[Records]o-[Sensors]
+
+[Records
+|
+uid : String
+timestamp: int
+GPS : JSON
+Sensors : JSON
+]
+
+[GPS
+|
+latitude : double
+latitude : double
+]
+
+[Sensors
+|
+sensor : String
+name : String
+value : String
+metric : String
+isCalibrated : bool
+]
+
+[Users]o-[AQdevices]
+
+[Users
+|
+uid : String
+phoneNumber : String
+lastRecordTimeStamp : int
+creationTime: String
+lastSignInTime: String
+AQdevices: JSON
+]
+
+[AQdevices
+|
+MACaddress: String
+id: String
+]
+
+[Bridge]o-[Users]
+[Bridge]o-[Records]
+
+[Bridge
+|
+userUID : String
+recordUID : String
+]
+
+
+  

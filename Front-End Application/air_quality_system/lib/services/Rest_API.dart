@@ -6,12 +6,12 @@ import 'package:http/http.dart' as http;
 
 import 'dart:async';
 
-class RestAPI {
-  static RestAPI _instance;
+class RestAPIService {
+  static RestAPIService _instance;
 
-  static RestAPI getInstance() {
+  static RestAPIService getInstance() {
     if (_instance == null) {
-      _instance = new RestAPI();
+      _instance = new RestAPIService();
     }
     return _instance;
   }

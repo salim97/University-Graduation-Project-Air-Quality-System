@@ -8,6 +8,9 @@ import 'package:stacked_services/stacked_services.dart';
 import 'app/locator.dart';
 import 'app/router.gr.dart';
 import 'ui/screens/contribute/contribute_view.dart';
+import 'ui/screens/contribute/device_sync_view.dart';
+import 'ui/screens/contribute/esptouch/esp_touch_view.dart';
+import 'ui/screens/contribute/map_picker_view.dart';
 import 'ui/screens/home/home_view.dart';
 
 void setupDialogUi() {
@@ -44,7 +47,7 @@ class MyApp extends StatelessWidget {
         dividerColor: Color(0xFFECEDF1),
         brightness: Brightness.light,
         backgroundColor: Colors.white,
-        primaryColor: Color(0xFFF93963),
+        primaryColor: Colors.blue, //Color(0xFFF93963),
         accentColor: Colors.cyan[600],
         fontFamily: 'Montserrat',
         textTheme: TextTheme(
@@ -58,8 +61,8 @@ class MyApp extends StatelessWidget {
       ),
       // theme: ThemeScheme.light(),
       // initialRoute: Routes.startupViewRoute,
-      // home: FeatureDiscovery(recordStepsInSharedPreferences: false, child: HomeView()),
-      home: Contribute(),
+      home: FeatureDiscovery(recordStepsInSharedPreferences: false, child: HomeView()),
+      // home: ESPTouchView(),
     );
   }
 }

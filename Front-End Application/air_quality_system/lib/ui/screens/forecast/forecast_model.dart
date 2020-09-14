@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 class ForecastModel extends FutureViewModel<List<List<ForecastWeatherDataModel>>> {
-  final RestAPI restAPIService = locator<RestAPI>();
+  final RestAPIService restAPIService = locator<RestAPIService>();
   List<List<ForecastWeatherDataModel>> forecastByDay = List<List<ForecastWeatherDataModel>>();
 
   int currentPage = 0;

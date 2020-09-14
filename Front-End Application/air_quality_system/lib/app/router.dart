@@ -3,9 +3,12 @@
 
 import 'package:air_quality_system/ui/screens/authentication/phone/phone_auth_view.dart';
 import 'package:air_quality_system/ui/screens/authentication/unauth_view.dart';
-import 'package:air_quality_system/ui/screens/contribute/scanNetwork_view.dart';
+import 'package:air_quality_system/ui/screens/contribute/map_picker_view.dart';
 import 'package:air_quality_system/ui/screens/home/home_view.dart';
 import 'package:air_quality_system/ui/screens/localNetwork/localNetwork_view.dart';
+import 'package:air_quality_system/ui/screens/localNetwork/scanNetwork_view.dart';
+import 'package:air_quality_system/ui/screens/contribute/esptouch/esp_touch_view.dart';
+import 'package:air_quality_system/ui/screens/contribute/contribute_view.dart';
 
 import 'package:auto_route/auto_route_annotations.dart';
 
@@ -14,10 +17,14 @@ import 'package:auto_route/auto_route_annotations.dart';
 class $Router {
   @initial
   HomeView homeView;
-  PhoneAuthView phoneAuthView;
   UnAuth unAuth;
   LocalNetworkView localNetworkView;
   ScanNetworkView scanNetworkView;
+  ESPTouchView esptouchView;
+  ContributeView contributeView;
+  MapPickerView mapPickerView;
+  PhoneAuthView phoneAuthView;
+
 }
 
 

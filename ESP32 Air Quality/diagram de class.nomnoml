@@ -1,0 +1,78 @@
+[<abstract>MySensor.h]<:-[MySGP30.h]
+[<abstract>MySensor.h]<:-[MQ131.h]
+[<abstract>MySensor.h]<:-[MyDHT22.h]
+[<abstract>MySensor.h]<:-[MyBME680.h]
+[<abstract>MySensor.h]<:-[MyMHZ19.h]
+[<abstract>MySensor.h]<:-[MyMICS6814.h]
+
+[MySGP30.h
+  |
+  +sgp: Adafruit_SGP30
+  +internalError: bool
+  |
+  +bool init()
+  +bool doMeasure()
+  +void toJSON(JsonArray &Sensors)
+]
+
+[MQ131.h
+  |
+  +internalError: bool
+  |
+  +bool init()
+  +bool doMeasure()
+  +void toJSON(JsonArray &Sensors)
+]
+[MyDHT22.h
+  |
+  +event1: sensors_event_t
+  +internalError: bool
+  |
+  +bool init()
+  +bool doMeasure()
+  +void toJSON(JsonArray &Sensors)
+]
+[MyBME680.h
+  |
+  +bme: Adafruit_BME680
+  +internalError: bool
+  |
+  +bool init()
+  +bool doMeasure()
+  +void toJSON(JsonArray &Sensors)
+]
+[MyMHZ19.h
+  |
+  +myMHZ19: MHZ19
+  +internalError: bool
+  |
+  +bool init()
+  +bool doMeasure()
+  +void toJSON(JsonArray &Sensors)
+]
+[MyMICS6814.h
+  |
+  +bool init()
+  +bool doMeasure()
+  +void toJSON(JsonArray &Sensors)
+]
+
+
+[Main.cpp
+  |
+  +mySensorsList: **MySensor
+  |
+  +void setup()
+  +bool loop()
+  +void FirstCoreCode(void *parameter)
+  +void SecondCoreCode(void *parameter)
+  +String requestBodyReady()
+  +void blink_LED()
+  +void sendDataToFirebase()
+  +void sendDataToLocalNetwork()
+  +void processUDP(String command)
+  +bool httpPOST(String url, String body)
+  +void tmp_SecondCoreCode()
+]
+
+[Main.cpp]o-[MySensor.h]

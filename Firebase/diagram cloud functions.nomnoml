@@ -1,0 +1,32 @@
+
+
+[<start>st]->[<choice>check point 1]
+[check point 1] no ->[<state>return http status code 401]
+[check point 1] -> yes [<choice>check point 2]
+
+[check point 2] no ->[<state>return http status code 401]
+[check point 2] -> yes [<choice>check point 3]
+
+[check point 3] no ->[<state>return http status code 401]
+[check point 3] -> yes [<choice>check point 4]
+
+[check point 4] no ->[<state>return http status code 401]
+[check point 4]  -> yes[<choice>check point 5]
+
+[check point 5] no ->[<state>return http status code 401]
+[check point 5]  -> yes[<choice>check point 6]
+
+[check point 6] no ->[<state>return http status code 401]
+[check point 6]  -> yes[<choice>check point 7]
+
+[check point 7] no ->[<state>return http status code 401]
+[check point 7]  -> yes[<choice>check point 8]
+
+[check point 8] no ->[<state>return http status code 401]
+[check point 8]  -> yes[<state>return http status code 201 .....]
+
+
+[return http status code 401]->[<end>e]
+[return http status code 201 .....]->[<end>e]
+
+

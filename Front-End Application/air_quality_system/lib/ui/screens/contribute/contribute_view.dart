@@ -1,17 +1,18 @@
+import 'package:air_quality_system/ui/screens/contribute/map_picker_view.dart';
 import 'package:air_quality_system/ui/screens/contribute/phone_auth_view.dart';
 import 'package:flutter/material.dart';
 
-import 'scanNetwork_view.dart';
+import 'device_sync_view.dart';
 
-class Contribute extends StatefulWidget {
-  Contribute({Key key}) : super(key: key);
+class ContributeView extends StatefulWidget {
+  ContributeView({Key key}) : super(key: key);
 
   @override
-  _ContributeState createState() => _ContributeState();
+  _ContributeViewState createState() => _ContributeViewState();
 }
 
-class _ContributeState extends State<Contribute> {
-  int _currentstep = 1;
+class _ContributeViewState extends State<ContributeView> {
+  int _currentstep = 0;
 
   void _movetonext() {
     setState(() {
@@ -58,6 +59,7 @@ class _ContributeState extends State<Contribute> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text("Contribute"),),
         body: new Stepper(
       steps: [
         // const Step( title:  ,'SubTitle1', 'This is Content', state: StepState.indexed, true)
@@ -70,14 +72,14 @@ class _ContributeState extends State<Contribute> {
 
         Step(
             title: const Text('WiFi'),
-            content:  ScanNetworkView(),
-            state: _currentstep == 0 ? StepState.editing : StepState.complete,
+            content:  MapPickerView(),
+            state: _currentstep == 1 ? StepState.editing : StepState.complete,
             isActive: true),
 
         Step(
             title: const Text('Server'),
             content: const Text('This is Content2'),
-            state: _currentstep == 0 ? StepState.editing : StepState.complete,
+            state: _currentstep == 2 ? StepState.editing : StepState.complete,
             isActive: true),
       ],
       type: StepperType.horizontal,

@@ -58,23 +58,23 @@ class _PhoneAuthViewState extends State<PhoneAuthView> {
       onModelReady: (model) => model.initState(),
     );
   }
-
+  double _paddingPhoneNumber = 12.0;
   Widget getPhoneNumber(model) {
     return Column(
       children: <Widget>[
         Padding(
-          padding: const EdgeInsets.all(32.0),
+          padding:  EdgeInsets.all(_paddingPhoneNumber),
           child: Text("Enter your phone number", textAlign: TextAlign.center, style: Theme.of(context).textTheme.title),
         ),
         Padding(
-          padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 36.0),
+          padding:  EdgeInsets.only(left: _paddingPhoneNumber, right: _paddingPhoneNumber, bottom: 36.0),
           child: Text("Make sure you can receive SMS to this number so that we can send you a code",
               textAlign: TextAlign.center, style: Theme.of(context).textTheme.subtitle),
         ),
         Stack(
           children: <Widget>[
             Padding(
-              padding: EdgeInsets.only(top: 24.0, bottom: 8.0, left: 24.0, right: 24.0),
+              padding: EdgeInsets.only(top: 24.0, bottom: 8.0, left: _paddingPhoneNumber, right: _paddingPhoneNumber),
               child: TextFormField(
                 // controller: _txtNumber,
                 textAlign: TextAlign.left,
@@ -96,7 +96,7 @@ class _PhoneAuthViewState extends State<PhoneAuthView> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 36.0, bottom: 8.0, left: 36.0, right: 24.0),
+              padding:  EdgeInsets.only(top: 36.0, bottom: 8.0, left: _paddingPhoneNumber+12.0, right: _paddingPhoneNumber),
               child: CountryPickerDropdown(
                 initialValue: 'dz',
                 itemBuilder: _buildDropdownItem,
@@ -106,7 +106,7 @@ class _PhoneAuthViewState extends State<PhoneAuthView> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 24.0, bottom: 8.0, left: 184.0, right: 24.0),
+              padding:  EdgeInsets.only(top: 24.0, bottom: 8.0, left: _paddingPhoneNumber + 150.0, right: _paddingPhoneNumber),
               child: TextField(
                 controller: _txtNumber,
                 maxLength: 9,

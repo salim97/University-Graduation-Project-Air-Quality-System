@@ -5,7 +5,7 @@ import 'package:injectable/injectable.dart';
 
 /// The service responsible for networking requests
 // @lazySingleton
-class MyGPS {
+class MyGPSService {
 
 
   // Future<void> getMyLocation() async {

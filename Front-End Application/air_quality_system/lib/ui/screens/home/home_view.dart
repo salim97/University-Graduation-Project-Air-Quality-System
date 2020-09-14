@@ -410,8 +410,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           MenuWidget(
                             currentMenuPercent: currentMenuPercent,
                             animateMenu: animateMenu,
-                            name: "Benda Benda",
-                            phoneNumber: "06666666666",
+                            name: "Air Quality System",
+                            phoneNumber: "",
                           ),
                         ],
                       ),

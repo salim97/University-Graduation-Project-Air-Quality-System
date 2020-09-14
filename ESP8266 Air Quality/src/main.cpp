@@ -58,6 +58,7 @@ void setup() {
   // Device to serial monitor feedback
   while (!Serial)
     ;
+
   // Initialize the button.
   resetFactoryButton.begin();
   // Add the callback function to be called when the button is pressed.
@@ -114,6 +115,9 @@ void initWiFi() {
   // AsyncWebServer server(80);
   DNSServer dns;
   AsyncWiFiManager wifiManager(&server, &dns);
+  wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 31, 1),
+                                  IPAddress(192, 168, 31, 1),
+                                  IPAddress(255, 255, 255, 0));
   // reset settings - for testing
   // wifiManager.resetSettings();
   // WiFi.disconnect(true, true);
@@ -127,6 +131,27 @@ void initWiFi() {
     // if you used auto generated SSID, print it
     Serial.println(myWiFiManager->getConfigPortalSSID());
     configMode = true;
+
+    WiFi.mode(WIFI_STA);
+    delay(500);
+
+    WiFi.beginSmartConfig();
+
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+      if (WiFi.smartConfigDone()) {
+        Serial.println("WiFi Smart Config Done.");
+      }
+    }
+
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+    ESP.restart();
+    return;
+
   });
   wifiManager.setSaveConfigCallback([]() {
     Serial.println("-----------------------------------------------------");
@@ -138,7 +163,7 @@ void initWiFi() {
   // if it does not connect it starts an access point with the specified name
   // here  "AutoConnectAP"
   // and goes into a blocking loop awaiting configuration
-  if (!wifiManager.autoConnect()) {
+  if (!wifiManager.autoConnect("AQ device config mode")) {
     Serial.println("failed to connect and hit timeout");
     // reset and try again, or maybe put it to deep sleep
     ESP.restart();
@@ -148,6 +173,7 @@ void initWiFi() {
 }
 
 void loop() {
+
   resetFactoryButton.read();
   if (configMode) return;
   led_breathe.Update();

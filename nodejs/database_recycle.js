@@ -7,7 +7,8 @@ const path = require('path');
 const admin = require('firebase-admin');
 // you need firebase admin sdk to be able to connecte into firestore DB
 // https://console.firebase.google.com/u/0/project/pfe-air-quality/settings/serviceaccounts/adminsdk
-const serviceAcount = require('./pfe-air-quality-firebase-adminsdk-6mmp3-893c99e074.json'); //
+// const serviceAcount = require('./pfe-air-quality-firebase-adminsdk-6mmp3-893c99e074.json'); //
+const serviceAcount = require('./pfe-air-quality-firebase-adminsdk-6mmp3-e1a52b63ce.json'); //
 
 const { exit } = require('process');
 admin.initializeApp({
@@ -32,8 +33,8 @@ const jsonToFirestore = async (fileName) => {
 };
 
 
-// importFirestoreDBtoLocalJSONfile('old_db2.json');
- readLocalJSONfile('old_db.json');
+importFirestoreDBtoLocalJSONfile('database-backup-2020-09-01.json');
+//  readLocalJSONfile('old_db.json');
 // exportLocalJSONfileToFirestore('new_db.json');
 // jsonToFirestore("new_db.json");
 

@@ -19,7 +19,7 @@
 #include <EasyButton.h>
 Preferences preferences;
 
-#include "co-processor.h"
+//#include "co-processor.h"
 #include "mynetwork.h"
 #include "sensors/BME680.h"
 #include "sensors/DHT22.h"
@@ -63,8 +63,9 @@ String _getESP32ChipID() {
 #define APName "ESP" + String(ESP.getChipId());
 #endif
 
-MySensor *mySensorsList[] = {new MQ131(),   new MyDHT22(), new MyBME680(),
+MySensor *mySensorsList[] = {  new MyDHT22(), new MyBME680(),
                              new MySGP30(), new MyMHZ19(), new MyMICS6814()};
+                        // new MQ131(),      
 //  new MyMHZ19(), new MyMICS6814()};
 
 void FirstCoreCode(void *parameter);
@@ -97,13 +98,21 @@ void setup() {
   while (!Serial)
     ;
 
-  startulp();
+  // startulp(); //co-processor.h
 
   // Open Preferences with my-app namespace. Each application module, library,
   // etc has to use a namespace name to prevent key name collisions. We will
   // open storage in RW-mode (second parameter has to be false). Note: Namespace
   // name is limited to 15 chars.
   preferences.begin("firebaseConfig", false);
+
+  preferences.putString("requestDateTime", "requestDateTime");
+  preferences.putString("uid", "Lf7gh5IDYxZgOmUXKhtaHSk6j9y2");
+  preferences.putFloat("GPS_latitude", 35.69352);
+  preferences.putFloat("GPS_longitude",-0.61404);
+  preferences.putFloat("GPS_altitude", -0.61404);
+  preferences.putBool("FCR", true);
+
   // jsonHeader();
   // tmp_SecondCoreCode();
 
@@ -160,14 +169,14 @@ String globalSharedBuffer;
 
 void FirstCoreCode(void *parameter) {
   Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
-  setCoreSensorStatus(false);
+  // setCoreSensorStatus(false);//co-processor.h
   const uint8_t sizeMySensorsList =
       sizeof(mySensorsList) / sizeof(mySensorsList[0]);
 
   for (uint8_t i = 0; i < sizeMySensorsList; i++) {
     if (!mySensorsList[i]->init()) {
       Serial.println("ALLLLEERRRTT ----------------------");
-      setCoreSensorStatus(true);
+         (true);
     }
   }
   DynamicJsonDocument doc(4096);
@@ -184,7 +193,7 @@ void FirstCoreCode(void *parameter) {
       // setCoreSensorStatus( true);
       oneSensorIsDown = oneSensorIsDown || !mySensorsList[i]->doMeasure();
     }
-    setCoreSensorStatus(oneSensorIsDown);
+    // setCoreSensorStatus(oneSensorIsDown);//co-processor.h
 
     doc.clear();
     // jsonHeader();
@@ -215,7 +224,7 @@ void configModeCallback(AsyncWiFiManager *myWiFiManager) {
   // if you used auto generated SSID, print it
   Serial.println(myWiFiManager->getConfigPortalSSID());
   configMode = true;
-  setDeviceStatus(DeviceStatus::waitingForWiFiConfig);
+  // setDeviceStatus(DeviceStatus::waitingForWiFiConfig);//co-processor.h
 }
 void saveConfigCallback() {
   Serial.println("-----------------------------------------------------");
@@ -227,7 +236,7 @@ DNSServer dns;
 void SecondCoreCode(void *parameter) {
 
   Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
-  setDeviceStatus(DeviceStatus::booting);
+  // setDeviceStatus(DeviceStatus::booting);//co-processor.h
   {
     // BluetoothSerial ESP_BT;            // Object for Bluetooth
     // ESP_BT.begin("Trash Binome :)"); // Name of your Bluetooth Signal
@@ -269,9 +278,9 @@ void SecondCoreCode(void *parameter) {
       Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()) +
                      ": Waiting for firebase config from local network");
       delay(1000);
-      setDeviceStatus(DeviceStatus::waitingForServerConfig);
+      // setDeviceStatus(DeviceStatus::waitingForServerConfig);//co-processor.h
     }
-    setDeviceStatus(DeviceStatus::everythingIsOK);
+    // setDeviceStatus(DeviceStatus::everythingIsOK);//co-processor.h
     // ulp_set_led_on_delay(2000);
     // ulp_set_led_off_delay(2000);
 
@@ -330,10 +339,9 @@ void blink_LED() {
 }
 
 void sendDataToFirebase() {
-
-  String url = "https://pfe-helper.herokuapp.com/";
-  // String url =
-  // "https://us-central1-pfe-air-quality.cloudfunctions.net/addRecord";
+return ;
+  // String url = "https://pfe-helper.herokuapp.com/";
+  String url = "https://us-central1-pfe-air-quality.cloudfunctions.net/addRecord";
   // "https://postman-echo.com/post";
 
   while (!httpPOST(url, requestBodyReady()))
@@ -446,9 +454,9 @@ void processUDP(String command) {
     Serial.println(preferences.getFloat("GPS_latitude"));
     Serial.println(preferences.getFloat("GPS_longitude"));
     Serial.println(preferences.getFloat("GPS_altitude"));
-    setDeviceStatus(DeviceStatus::booting);
+    // setDeviceStatus(DeviceStatus::booting);//co-processor.h
     delay(1000);
-    setDeviceStatus(DeviceStatus::everythingIsOK);
+    // setDeviceStatus(DeviceStatus::everythingIsOK);//co-processor.h
 
     String __jsonOutput;
     DynamicJsonDocument __doc(4096);
