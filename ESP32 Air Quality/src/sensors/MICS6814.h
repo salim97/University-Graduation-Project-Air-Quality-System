@@ -10,6 +10,7 @@ MICS6814 mics6814(PIN_CO, PIN_NO2, PIN_NH3);
 
 class MyMICS6814 : public MySensor{
 public:
+  virtual String sensorName() { return "MICS6814"; }
   virtual bool init() {
     Serial.println(F("start calibrating MICS6814 ..."));
     mics6814.calibrate();

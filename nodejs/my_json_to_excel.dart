@@ -32,6 +32,15 @@ class ModelDataCO2 {
   ModelDataCO2({this.date, this.sgp30_eco2, this.mhz19_co2, this.mics6814_co, this.mics6814_no2, this.mics6814_nh3, this.sgp30_tvoc});
 }
 
+class ModelDataDHT11vsDHT22 {
+  String date;
+  double dht22_temperature;
+  double dht11_temperature;
+  double dht22_humidity;
+  double dht11_humidity;
+  ModelDataDHT11vsDHT22({this.date, this.dht11_temperature, this.dht22_temperature, this.dht11_humidity, this.dht22_humidity});
+}
+
 asyncWork() async {
   // SGP30 TVOC
   // MICS6814 NO2 NH3 CO
@@ -40,6 +49,8 @@ asyncWork() async {
   List<ModelDataTemperature> listoftemperature = new List<ModelDataTemperature>();
   List<ModelDataHumidity> listofhumidity = new List<ModelDataHumidity>();
   List<ModelDataCO2> listofco2 = new List<ModelDataCO2>();
+  List<ModelDataDHT11vsDHT22> listofDHT11vsDHT22 = new List<ModelDataDHT11vsDHT22>();
+  List<ModelDataDHT11vsDHT22> listofDHT11vsDHT22_2 = new List<ModelDataDHT11vsDHT22>();
 
   Map records = json.decode(
       await new File("d:/Archive/GITHUB/University-Graduation-Project-Air-Quality-System/nodejs/database-backup-2020-09-01.json")
@@ -57,18 +68,32 @@ asyncWork() async {
     listoftemperature.add(ModelDataTemperature(date: DateTime.fromMillisecondsSinceEpoch(record["timestamp"]).toString().split(".").first));
     listofhumidity.add(ModelDataHumidity(date: DateTime.fromMillisecondsSinceEpoch(record["timestamp"]).toString().split(".").first));
     listofco2.add(ModelDataCO2(date: DateTime.fromMillisecondsSinceEpoch(record["timestamp"]).toString().split(".").first));
-
+    listofDHT11vsDHT22
+        .add(ModelDataDHT11vsDHT22(date: DateTime.fromMillisecondsSinceEpoch(record["timestamp"]).toString().split(".").first));
+    listofDHT11vsDHT22_2
+        .add(ModelDataDHT11vsDHT22(date: DateTime.fromMillisecondsSinceEpoch(record["timestamp"]).toString().split(".").first));
     List<dynamic> sensors = record["Sensors"];
+
     sensors.forEach((sensor) {
-      if (sensor["sensor"] == "DHT22" && sensor["name"] == "Temperature")
+      if (sensor["sensor"] == "DHT22" && sensor["name"] == "Temperature") {
         listoftemperature.last.dht22_temperature = double.parse(sensor["value"].toString());
+        listofDHT11vsDHT22.last.dht22_temperature = double.parse(sensor["value"].toString());
+      }
+      if (sensor["sensor"] == "DHT11" && sensor["name"] == "Temperature") {
+        listofDHT11vsDHT22.last.dht11_temperature = double.parse(sensor["value"].toString());
+      }
       if (sensor["sensor"] == "BME680" && sensor["name"] == "Temperature")
         listoftemperature.last.bme680_temperature = double.parse(sensor["value"].toString());
       if (sensor["sensor"] == "MHZ19" && sensor["name"] == "Temperature")
         listoftemperature.last.mhz19_temperature = double.parse(sensor["value"].toString());
 
-      if (sensor["sensor"] == "DHT22" && sensor["name"] == "Humidity")
+      if (sensor["sensor"] == "DHT22" && sensor["name"] == "Humidity") {
         listofhumidity.last.dht22_humidity = double.parse(sensor["value"].toString());
+        listofDHT11vsDHT22_2.last.dht22_humidity = double.parse(sensor["value"].toString());
+      }
+      if (sensor["sensor"] == "DHT11" && sensor["name"] == "Humidity") {
+        listofDHT11vsDHT22_2.last.dht11_humidity = double.parse(sensor["value"].toString());
+      }
       if (sensor["sensor"] == "BME680" && sensor["name"] == "Humidity")
         listofhumidity.last.bme680_humidity = double.parse(sensor["value"].toString());
 
@@ -86,10 +111,10 @@ asyncWork() async {
   listoftemperature.removeWhere((element) => element.dht22_temperature == null);
   listofhumidity.removeWhere((element) => element.dht22_humidity == null);
   listofco2.removeWhere((element) => element.mhz19_co2 == null);
-  
-  listofco2.forEach((element){
-    if(element.mics6814_nh3 == null) element.mics6814_nh3 = 0 ;
-    if(element.mics6814_nh3 == -1) element.mics6814_nh3 = 0 ;
+
+  listofco2.forEach((element) {
+    if (element.mics6814_nh3 == null) element.mics6814_nh3 = 0;
+    if (element.mics6814_nh3 == -1) element.mics6814_nh3 = 0;
   });
 
   {
@@ -140,6 +165,37 @@ asyncWork() async {
         .writeAsString(textOutPut);
   }
 
+  {
+    String textOutPut = "Date Time , Temperature DHT11, Temperature DHT22\n";
+    listofDHT11vsDHT22.forEach((element) {
+      textOutPut += element.date + "," + element.dht11_temperature.toString() + "," + element.dht22_temperature.toString() + "\n";
+    });
+    var fileCopy = await File(
+            "d:/Archive/GITHUB/University-Graduation-Project-Air-Quality-System/nodejs/comparision between Temperature in two diffirent location.csv")
+        .writeAsString(textOutPut);
+  }
 
+  {
+    String textOutPut = "Date Time , DHT11 Humidity, DHT22 Humidity\n";
+    listofDHT11vsDHT22_2.forEach((element) {
+      textOutPut += element.date + "," + element.dht11_humidity.toString() + "," + element.dht22_humidity.toString() + "\n";
+    });
+    var fileCopy = await File(
+            "d:/Archive/GITHUB/University-Graduation-Project-Air-Quality-System/nodejs/comparision between Humidity in two diffirent location.csv")
+        .writeAsString(textOutPut);
+  }
 
+  // {
+  //   String textOutPut = "Date Timed DHT22, Temperature DHT22\n";
+  //   listoftemperature.forEach((element) {
+
+  //     textOutPut += element.date +
+  //         "," +
+  //         element.dht22_temperature.toString() +
+  //         "\n";
+  //   });
+  //   var fileCopy = await File(
+  //           "d:/Archive/GITHUB/University-Graduation-Project-Air-Quality-System/nodejs/DHT22 Salim.csv")
+  //       .writeAsString(textOutPut);
+  // }
 }

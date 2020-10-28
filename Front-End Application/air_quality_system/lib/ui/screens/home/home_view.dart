@@ -158,11 +158,32 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    checkFirstSeen();
+    //checkFirstSeen();
   }
+
+  Widget iconDrawer = Icon(
+    Icons.menu,
+    size: 34,
+  );
+  Widget iconRefresh = Icon(
+    Icons.refresh,
+    size: 34,
+    color: Colors.blue,
+  );
+  Widget iconMenu = Icon(
+    // MdiIcons.formSelect,
+    MdiIcons.cogOutline,
+    size: 34,
+  );
+  Widget iconWeather = Icon(
+    MdiIcons.weatherPartlySnowyRainy,
+    size: 34,
+    color: Colors.white,
+  );
 
   @override
   Widget build(BuildContext context) {
+    //bool kIsWeb = true;
     screenWidth = MediaQuery.of(context).size.width;
     screenHeight = MediaQuery.of(context).size.height;
     if (screenWidth > standardWidth && kIsWeb) {
@@ -171,26 +192,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     if (screenHeight > standardHeight && kIsWeb) {
       screenHeight = standardHeight;
     }
-    const Widget iconDrawer = Icon(
-      Icons.menu,
-      size: 34,
-    );
-    const Widget iconRefresh = Icon(
-      Icons.refresh,
-      size: 34,
-      color: Colors.blue,
-    );
-    const Widget iconMenu = Icon(
-      // MdiIcons.formSelect,
-      MdiIcons.cogOutline,
-      size: 34,
-    );
-    const Widget iconWeather = Icon(
-      MdiIcons.weatherPartlySnowyRainy,
-      size: 34,
-      color: Colors.white,
-    );
-
+    //print("kIsWeb: "+ kIsWeb.toString());
     return ViewModelBuilder<HomeViewModel>.reactive(
       builder: (context, model, child) {
         if (model.isInternetAvailable == false) {
@@ -427,70 +429,68 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   webUI(context, model, child) {
+    
+    return Scaffold(body: Center(child: Text("NIK MOK"),));
+
     return Scaffold(
-      body: Center(
-        child: SizedBox(
-          width: screenWidth,
-          height: screenHeight,
+      body: SafeArea(
+        child: Center(
           child: Stack(
             children: <Widget>[
               FlutterMap(
                 mapController: model.mapController,
                 options: MapOptions(
                   center: LatLng(35.691124, -0.618778),
-                  zoom: 14,
+                  zoom: 14.0,
                 ),
                 layers: [
                   TileLayerOptions(
                     urlTemplate: "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
                     subdomains: ['a', 'b', 'c'],
                   ),
-                  MarkerLayerOptions(markers: model.markers),
+                  MarkerLayerOptions(markers: model.markers)
                 ],
               ),
-              ExploreWidget(
-                currentExplorePercent: currentExplorePercent,
-                currentSearchPercent: currentSearchPercent,
-                animateExplore: animateExplore,
-                isExploreOpen: isExploreOpen,
-                onVerticalDragUpdate: onExploreVerticalUpdate,
-                onPanDown: () => animationControllerExplore?.stop(),
+              model.gas_legend_index < model.gas_legend.length
+                  ? Align(
+                      alignment: Alignment.topCenter,
+                      child: Container(
+                        height: screenHeight * 0.2,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.25),
+                          borderRadius: BorderRadius.all(Radius.circular(36)),
+                        ),
+                        child: Image.asset(
+                          model.gas_legend.values.elementAt(model.gas_legend_index),
+                          fit: BoxFit.fill,
+                        ),
+                      ),
+                    )
+                  : Container(),
+
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: ExploreWidget(
+                  title: isExploreOpen ? "Weather Forecast" : "Weather",
+                  icon: iconWeather,
+                  currentExplorePercent: currentExplorePercent,
+                  currentSearchPercent: currentSearchPercent,
+                  animateExplore: animateExplore,
+                  isExploreOpen: isExploreOpen,
+                  onVerticalDragUpdate: onExploreVerticalUpdate,
+                  onPanDown: () => animationControllerExplore?.stop(),
+                ),
               ),
               //explore content
               ExploreContentWidget(
                 currentExplorePercent: currentExplorePercent,
               ),
-              //ZOOM IN
-              MapButton(
-                  currentExplorePercent: currentExplorePercent,
-                  currentSearchPercent: currentSearchPercent,
-                  bottom: 243,
-                  offsetX: -71,
-                  width: 71,
-                  height: 71,
-                  isRight: true,
-                  icon: Icons.zoom_in,
-                  onButtonClicked: () {
-                    model.mapController.move(model.mapController.center, model.mapController.zoom + 1);
-                  }),
-              //ZOOM OUT
-              MapButton(
-                  currentExplorePercent: currentExplorePercent,
-                  currentSearchPercent: currentSearchPercent,
-                  bottom: 148,
-                  offsetX: -71,
-                  width: 71,
-                  height: 71,
-                  isRight: true,
-                  icon: Icons.zoom_out,
-                  onButtonClicked: () {
-                    model.mapController.move(model.mapController.center, model.mapController.zoom - 1);
-                  }),
+
               //search menu background
               offsetSearch != 0
                   ? Positioned(
                       bottom: realH(88),
-                      left: realW((standardWidth - 320) / 2),
+                      right: realW((standardWidth - 320) / 2),
                       width: realW(320),
                       height: realH(400 * currentSearchPercent),
                       child: Opacity(
@@ -511,9 +511,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 gas: model.gas,
                 onCurrentSearchChanged: model.onCurrentSearchChanged,
               ),
-
               //search
               SearchWidget(
+                mainIcon: iconMenu,
                 currentSearchPercent: currentSearchPercent,
                 currentExplorePercent: currentExplorePercent,
                 isSearchOpen: isSearchOpen,
@@ -521,10 +521,24 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 onHorizontalDragUpdate: onSearchHorizontalDragUpdate,
                 onPanDown: () => animationControllerSearch?.stop(),
               ),
+
+              MapButton(
+                currentSearchPercent: currentSearchPercent,
+                currentExplorePercent: currentExplorePercent,
+                bottom: 148,
+                offsetX: -68,
+                width: 68,
+                height: 71,
+                childWidget: model.loadingDataFromBackend ? CircularProgressIndicator() : iconRefresh,
+                onButtonClicked: () async {
+                  model.refresh();
+                },
+              ),
             ],
           ),
         ),
       ),
     );
+  
   }
 }

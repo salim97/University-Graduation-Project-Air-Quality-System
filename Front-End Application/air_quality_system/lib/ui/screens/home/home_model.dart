@@ -85,8 +85,12 @@ class HomeViewModel extends BaseViewModel {
     dropDownMenuItems = getDropDownMenuItems();
     currentGas = _gas.keys.first;
     currentGasLegend = _gas.values.first;
-    // refresh();
-
+    refresh();
+    // markers.add(addMarker(text: "80 \n %", point: LatLng(35.698272, -0.645404), color: legendHumidity(80), otherSensors: null));
+    // markers.add(addMarker(text: "74 \n %", point: LatLng(35.687118, -0.636821), color: legendHumidity(74), otherSensors: null));
+    // markers.add(addMarker(text: "94 \n %", point: LatLng(35.706357, -0.625834), color: legendHumidity(95), otherSensors: null));
+    // markers.add(addMarker(text: "76 \n %", point: LatLng(35.688791, -0.629268), color: legendHumidity(76), otherSensors: null));
+    gas_legend_index = 1 ;
     notifyListeners();
   }
 

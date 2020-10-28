@@ -30,6 +30,7 @@ private:
   bool internalError = false;
 
 public:
+  virtual String sensorName() { return "MQ131"; }
   virtual bool init() {
 
     // Set math model to calculate the PPM concentration and the value of

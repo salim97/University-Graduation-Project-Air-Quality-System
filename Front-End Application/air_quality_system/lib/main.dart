@@ -6,12 +6,13 @@ import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'app/locator.dart';
-import 'app/router.gr.dart';
+import 'app/router.gr.dart'  ;
 import 'ui/screens/contribute/contribute_view.dart';
 import 'ui/screens/contribute/device_sync_view.dart';
 import 'ui/screens/contribute/esptouch/esp_touch_view.dart';
 import 'ui/screens/contribute/map_picker_view.dart';
 import 'ui/screens/home/home_view.dart';
+import 'ui/screens/localNetwork/localNetwork_view.dart';
 
 void setupDialogUi() {
   var dialogService = locator<DialogService>();
@@ -61,8 +62,8 @@ class MyApp extends StatelessWidget {
       ),
       // theme: ThemeScheme.light(),
       // initialRoute: Routes.startupViewRoute,
-      home: FeatureDiscovery(recordStepsInSharedPreferences: false, child: HomeView()),
-      // home: ESPTouchView(),
+      // home: FeatureDiscovery(recordStepsInSharedPreferences: false, child: HomeView()),
+       home: LocalNetworkView(),
     );
   }
 }

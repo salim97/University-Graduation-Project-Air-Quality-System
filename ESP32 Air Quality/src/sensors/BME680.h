@@ -1,7 +1,6 @@
 #ifndef MyBME680_H
 #define MyBME680_H
 
-
 #include "MySensor.h"
 #include <Adafruit_BME680.h>
 #include <Adafruit_Sensor.h>
@@ -16,6 +15,7 @@ private:
   bool internalError = false;
 
 public:
+  virtual String sensorName() { return "BME680"; }
   virtual bool init() {
     Serial.println(F("BME680 async test"));
     if (!bme.begin()) {
@@ -28,7 +28,7 @@ public:
     bme.setPressureOversampling(BME680_OS_4X);
     bme.setIIRFilterSize(BME680_FILTER_SIZE_3);
     bme.setGasHeater(320, 150); // 320*C for 150 ms
-    
+
     return doMeasure();
   }
   virtual bool doMeasure() {
@@ -97,8 +97,7 @@ public:
     //   Sensors_0["metric"] = "m";
     //   Sensors_0["isCalibrated"] = true;
     // }
-    
   }
 };
 
-#endif 
+#endif

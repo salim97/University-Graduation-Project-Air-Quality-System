@@ -9,6 +9,7 @@ private:
   bool internalError = false;
 
 public:
+  virtual String sensorName() { return "SGP30"; }
   virtual bool init() {
     if (!sgp.begin()) {
       Serial.println("Failed to start SGP30 gas sensor - check wiring.");

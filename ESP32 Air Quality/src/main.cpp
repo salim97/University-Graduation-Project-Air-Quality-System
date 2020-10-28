@@ -10,23 +10,26 @@
 #include <BluetoothSerial.h>
 #include <ESPAsyncWebServer.h>
 #include <ESPAsyncWiFiManager.h> //https://github.com/tzapu/WiFiManager
+#include <EasyButton.h>
 #include <HTTPClient.h>
 #include <Preferences.h>
 #include <Ticker.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <esp_wifi.h>
-#include <EasyButton.h>
 Preferences preferences;
 
 //#include "co-processor.h"
+#include "My_REST_API.h"
 #include "mynetwork.h"
+#include "MyLocalNetworkEngine.h"
 #include "sensors/BME680.h"
 #include "sensors/DHT22.h"
 #include "sensors/MHZ19.h"
 #include "sensors/MICS6814.h"
 #include "sensors/MQ131.h"
 #include "sensors/SGP30.h"
+/*
 #if defined(ESP32)
 static const char _HEX_CHAR_ARRAY[17] = "0123456789ABCDEF";
 static String _byteToHexString(uint8_t *buf, uint8_t length,
@@ -62,10 +65,11 @@ String _getESP32ChipID() {
 #if defined(ESP8266)
 #define APName "ESP" + String(ESP.getChipId());
 #endif
+*/
 
-MySensor *mySensorsList[] = {  new MyDHT22(), new MyBME680(),
-                             new MySGP30(), new MyMHZ19(), new MyMICS6814()};
-                        // new MQ131(),      
+MySensor *mySensorsList[] = {new MyDHT22(), new MyBME680(), new MySGP30(),
+                             new MyMHZ19(), new MyMICS6814()};
+// new MQ131(),
 //  new MyMHZ19(), new MyMICS6814()};
 
 void FirstCoreCode(void *parameter);
@@ -74,10 +78,15 @@ String requestBodyReady();
 
 void blink_LED();
 void sendDataToFirebase();
-void sendDataToLocalNetwork();
+
 void processUDP(String command);
 bool httpPOST(String url, String body);
 void tmp_SecondCoreCode();
+
+// REST API
+void setServerConfig(AsyncWebServerRequest *request);
+void getServerConfig(AsyncWebServerRequest *request);
+void getSensorsData(AsyncWebServerRequest *request);
 
 SemaphoreHandle_t xMutex;
 TaskHandle_t Task1;
@@ -106,12 +115,15 @@ void setup() {
   // name is limited to 15 chars.
   preferences.begin("firebaseConfig", false);
 
-  preferences.putString("requestDateTime", "requestDateTime");
-  preferences.putString("uid", "Lf7gh5IDYxZgOmUXKhtaHSk6j9y2");
-  preferences.putFloat("GPS_latitude", 35.69352);
-  preferences.putFloat("GPS_longitude",-0.61404);
-  preferences.putFloat("GPS_altitude", -0.61404);
-  preferences.putBool("FCR", true);
+  // preferences.putString("requestDateTime", "requestDateTime");
+  // preferences.putString("uid", "Lf7gh5IDYxZgOmUXKhtaHSk6j9y2");
+  // preferences.putFloat("GPS_latitude", 35.6937001);
+  // preferences.putFloat("GPS_longitude",-0.6139010);
+  // preferences.putFloat("GPS_altitude", -0.61404);
+  // preferences.putBool("FCR", true);
+ // preferences.end();
+  //  preferences.begin("firebaseConfig", true);
+
 
   // jsonHeader();
   // tmp_SecondCoreCode();
@@ -175,23 +187,20 @@ void FirstCoreCode(void *parameter) {
 
   for (uint8_t i = 0; i < sizeMySensorsList; i++) {
     if (!mySensorsList[i]->init()) {
-      Serial.println("ALLLLEERRRTT ----------------------");
-         (true);
+      Serial.println("ALLLLEERRRTT ---------------------- : " + mySensorsList[i]->sensorName() );
+      // setCoreSensorStatus (true);
     }
   }
   DynamicJsonDocument doc(4096);
   while (true) {
     Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()));
-    bool oneSensorIsDown = false;
+    // bool oneSensorIsDown = false;
     for (uint8_t i = 0; i < sizeMySensorsList; i++) {
-      // mySensorsList[i]->doMeasure();
       if (!mySensorsList[i]->doMeasure()) {
-        Serial.println("ALLLLEERRRTT ----------------------");
+        Serial.println("ALLLLEERRRTT ---------------------- : " + mySensorsList[i]->sensorName() );
         // setCoreSensorStatus(true);
       }
-      // if(!mySensorsList[i]->doMeasure())
-      // setCoreSensorStatus( true);
-      oneSensorIsDown = oneSensorIsDown || !mySensorsList[i]->doMeasure();
+      // oneSensorIsDown = oneSensorIsDown || !mySensorsList[i]->doMeasure();
     }
     // setCoreSensorStatus(oneSensorIsDown);//co-processor.h
 
@@ -273,13 +282,25 @@ void SecondCoreCode(void *parameter) {
     // pinMode(LED_BUILTIN, OUTPUT);
     // blink_LED();
 
-    while (preferences.getBool("FCR", false) == false) {
-      processUDP(readAllUDP());
-      Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()) +
-                     ": Waiting for firebase config from local network");
-      delay(1000);
-      // setDeviceStatus(DeviceStatus::waitingForServerConfig);//co-processor.h
-    }
+    server.end();
+    server.on("/status", HTTP_GET, getESP8266status);
+    server.on("/sensors", HTTP_GET, getSensorsData);
+    server.on("/serverConfig", HTTP_POST, setServerConfig);
+    server.on("/serverConfig", HTTP_GET, getServerConfig);
+
+    server.onNotFound([](AsyncWebServerRequest *request) {
+      request->send(404, "text/plain", "Not found");
+    });
+    server.begin();
+    MyLocalNetworkEngine myLocalNetworkEngine;
+    myLocalNetworkEngine.begin();
+    // while (preferences.getBool("FCR", false) == false) {
+    //   processUDP(readAllUDP());
+    //   Serial.println(upTimeToString() + " core " + String(xPortGetCoreID()) +
+    //                  ": Waiting for firebase config from local network");
+    //   delay(1000);
+    //   // setDeviceStatus(DeviceStatus::waitingForServerConfig);//co-processor.h
+    // }
     // setDeviceStatus(DeviceStatus::everythingIsOK);//co-processor.h
     // ulp_set_led_on_delay(2000);
     // ulp_set_led_off_delay(2000);
@@ -299,33 +320,12 @@ void SecondCoreCode(void *parameter) {
     // timer0.start();
     timer1.start();
 
-    sendDataToLocalNetwork();
+
     sendDataToFirebase();
-    // int incoming ;
+
     while (true) {
-
-      // if (configMode) continue;
-
-      // if (ESP_BT.available()) // Check if we receive anything from Bluetooth
-      // {
-      //   incoming = ESP_BT.read(); // Read what we recevive
-      //   Serial.print("Received:");
-      //   Serial.println(incoming);
-
-      //   if (incoming == 49) {
-      //     digitalWrite(LED_BUILTIN, HIGH);
-      //     ESP_BT.println("LED turned ON");
-      //   }
-
-      //   if (incoming == 48) {
-      //     digitalWrite(LED_BUILTIN, LOW);
-      //     ESP_BT.println("LED turned OFF");
-      //   }
-      // }
-      // timer0.update();
       timer1.update();
-
-      processUDP(readAllUDP());
+      myLocalNetworkEngine.udpCheck();
     }
   }
 }
@@ -335,13 +335,14 @@ void blink_LED() {
                !(digitalRead(LED_BUILTIN))); // Invert Current State of LED
   networkBroadcatLog(digitalRead(LED_BUILTIN) ? "BILTIN LED is ON"
                                               : "BILTIN LED is OFF");
-  //  networkBroadcatLog("sowa", false);
+  //  networkBroadcatLog("led is blinking", false);
 }
 
 void sendDataToFirebase() {
-return ;
+  // return ;
   // String url = "https://pfe-helper.herokuapp.com/";
-  String url = "https://us-central1-pfe-air-quality.cloudfunctions.net/addRecord";
+  String url =
+      "https://us-central1-pfe-air-quality.cloudfunctions.net/addRecord";
   // "https://postman-echo.com/post";
 
   while (!httpPOST(url, requestBodyReady()))
@@ -418,68 +419,92 @@ String requestBodyReady() {
   return requestBodyReady;
 }
 
-void processUDP(String command) {
-  DynamicJsonDocument _doc(512);
-  deserializeJson(_doc, command);
-  if (_doc["command"] == "getData") {
-    sendDataToLocalNetwork();
-    return;
-  }
-  if (_doc["command"] == "scanNetwork") {
-    String __jsonOutput;
-    DynamicJsonDocument __doc(4096);
+// void processUDP(String command) {
+//   DynamicJsonDocument _doc(512);
+//   deserializeJson(_doc, command);
+//   if (_doc["command"] == "scanNetwork") {
+//     String __jsonOutput;
+//     DynamicJsonDocument __doc(4096);
 
-    __doc.clear();
-    __jsonOutput.clear();
-    __doc["ip"] = localIP;
-    __doc["upTime"] = upTimeToString();
-    __doc["deviceName"] = APName;
-    serializeJsonPretty(__doc, Serial);
-    serializeJson(__doc, __jsonOutput);
-    sendUDP(__jsonOutput);
-    delay(500);
-    return;
-  }
-  if (_doc["command"] == "setData") {
-    const char *requestDateTime = _doc["requestDateTime"]; // "setData"
-    const char *uid = _doc["uid"]; // "Lf7gh5IDYxZgOmUXKhtaHSk6j9y2"
-    preferences.putString("requestDateTime", requestDateTime);
-    preferences.putString("uid", uid);
-    preferences.putFloat("GPS_latitude", _doc["GPS"]["latitude"]);
-    preferences.putFloat("GPS_longitude", _doc["GPS"]["longitude"]);
-    preferences.putFloat("GPS_altitude", _doc["GPS"]["altitude"]);
-    preferences.putBool("FCR", true);
-    Serial.println(preferences.getString("requestDateTime"));
-    Serial.println(preferences.getString("uid"));
-    Serial.println(preferences.getFloat("GPS_latitude"));
-    Serial.println(preferences.getFloat("GPS_longitude"));
-    Serial.println(preferences.getFloat("GPS_altitude"));
-    // setDeviceStatus(DeviceStatus::booting);//co-processor.h
-    delay(1000);
-    // setDeviceStatus(DeviceStatus::everythingIsOK);//co-processor.h
+//     __doc.clear();
+//     __jsonOutput.clear();
+//     __doc["ip"] = localIP;
+//     __doc["upTime"] = upTimeToString();
+//     __doc["deviceName"] = APName;
+//     serializeJsonPretty(__doc, Serial);
+//     serializeJson(__doc, __jsonOutput);
+//     sendUDP(__jsonOutput);
+//     delay(500);
+//     return;
+//   }
+// }
 
-    String __jsonOutput;
-    DynamicJsonDocument __doc(4096);
-    __doc.clear();
-    __jsonOutput.clear();
-    __doc["ip"] = localIP;
-    __doc["upTime"] = upTimeToString();
-    __doc["deviceName"] = APName;
-    __doc["lastRequest"] = true;
-    serializeJsonPretty(__doc, Serial);
-    serializeJson(__doc, __jsonOutput);
-    sendUDP(__jsonOutput);
-    // jsonHeader();
+//---------------------------------------------------------
+// REST API
+//---------------------------------------------------------
+
+void setServerConfig(AsyncWebServerRequest *request) {
+  String _jsonOutput;
+  DynamicJsonDocument _doc(1024);
+
+  String keys[4] = {"uid", "GPS_latitude", "GPS_longitude", "GPS_altitude"};
+  for (int i = 0; i < 4; i++) {
+    if (request->hasParam(keys[i], true)) {
+      _doc[keys[i]] = request->getParam(keys[i], true)->value();
+    } else {
+      request->send(400, "text/plain", keys[i] + " not found.");
+      return;
+    }
   }
+
+  // const char *requestDateTime = _doc["requestDateTime"]; // "setData"
+  // preferences.putString("requestDateTime", requestDateTime);
+  const char *uid = _doc["uid"]; // "Lf7gh5IDYxZgOmUXKhtaHSk6j9y2"
+  preferences.putString("uid", uid);
+  preferences.putFloat("GPS_latitude", _doc["latitude"]);
+  preferences.putFloat("GPS_longitude", _doc["longitude"]);
+  preferences.putFloat("GPS_altitude", _doc["altitude"]);
+  preferences.putBool("FCR", true);
+
+  serializeJsonPretty(_doc, _jsonOutput);
+  // myServerConfig.setServerConfig(_jsonOutput);
+  request->send(200, "text/plain", _jsonOutput);
 }
 
-void sendDataToLocalNetwork() {
+void getServerConfig(AsyncWebServerRequest *request) {
+
+  String _jsonOutput;
+  DynamicJsonDocument _doc(1024);
+  _doc["uid"] = preferences.getString("uid");
+  _doc["GPS_latitude"] = preferences.getFloat("GPS_latitude");
+  _doc["GPS_longitude"] = preferences.getFloat("GPS_longitude");
+  _doc["GPS_altitude"] = preferences.getFloat("GPS_altitude");
+
+  serializeJsonPretty(_doc, _jsonOutput);
+
+  if (_jsonOutput.isEmpty())
+    request->send(400, "text/plain", "Server Config is empty");
+  else
+    request->send(200, "text/plain", _jsonOutput);
+}
+
+void getSensorsData(AsyncWebServerRequest *request) {
   String local;
   xSemaphoreTake(xMutex, portMAX_DELAY);
   local = globalSharedBuffer;
   xSemaphoreGive(xMutex);
-  if (local.isEmpty()) return;
-  sendUDP(local);
+  DynamicJsonDocument doc(4096);
+  DeserializationError e;
+  e = deserializeJson(doc, local);
+  local.clear();
+  serializeJsonPretty(doc, local);
+
+
+  if (local.isEmpty())
+    request->send(400, "text/plain",
+                  "sensor data is empty, check your sensors!");
+  else
+    request->send(200, "text/plain", local);
 }
 
 // void tmp_SecondCoreCode() {

@@ -19,6 +19,7 @@ private:
   bool internalError = false;
 
 public:
+  virtual String sensorName() { return "MHZ19"; }
   virtual bool init() {
     mySerial.begin(BAUDRATE); // (Uno example) device to MH-Z19 serial start
     myMHZ19.begin(

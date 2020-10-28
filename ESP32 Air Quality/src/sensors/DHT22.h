@@ -16,6 +16,7 @@ private:
   bool internalError = false;
 
 public:
+  virtual String sensorName() { return "DHT22"; }
   virtual bool init() {
     dht.begin();
     Serial.println(F("DHT22"));
