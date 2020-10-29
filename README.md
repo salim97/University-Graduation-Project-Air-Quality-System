@@ -3,6 +3,10 @@ University Graduation Project Air Quality System
 this is a contributed air quality system made in algeria from people to people, inspired from other ready to use solution
 - https://cityair.io/
 - https://kiel.maps.sensor.community/
+
+# Short Screenshot Preview
+[![Alt text](https://img.youtube.com/vi/wNRK7oKOohI/0.jpg)](https://www.youtube.com/watch?v=wNRK7oKOohI)
+
 # Contents
  - [How it works](#how-it-works)
    - [Device](#device)
