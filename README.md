@@ -7,6 +7,10 @@ this is a contributed air quality system made in algeria from people to people, 
 # Short Screenshot Preview
 [![Alt text](https://img.youtube.com/vi/wNRK7oKOohI/0.jpg)](https://www.youtube.com/watch?v=wNRK7oKOohI)
 
+# User Applications
+[Link to Web Application](https://pfe-air-quality.firebaseapp.com/) 
+[Link to Android Mobile Application](https://pfe-air-quality.firebaseapp.com/) 
+
 # Contents
  - [How it works](#how-it-works)
    - [Device](#device)
