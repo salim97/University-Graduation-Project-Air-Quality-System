@@ -1,4 +1,5 @@
 * linguist-vendored
+
 *.dart linguist-vendored=false
 *.dart linguist-language=Dart
 
@@ -7,3 +8,6 @@
 *.h linguist-vendored=false
 *.c linguist-language=C++
 *.h linguist-language=C++
+
+*.ts linguist-vendored=false
+*.ts linguist-language=ts
