@@ -10,4 +10,4 @@
 *.h linguist-language=C++
 
 *.ts linguist-vendored=false
-*.ts linguist-language=ts
+*.ts linguist-language=TypeScript
