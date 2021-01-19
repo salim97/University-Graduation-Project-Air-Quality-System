@@ -66,21 +66,21 @@ signingConfigs {
 
 
 
-        applicationVariants.all { variant ->
-            variant.outputs.all { output ->
-                def outputFile = output.outputFile
-                if(outputFile != null && outputFile.name.endsWith('.apk')){
-                    String oldName
-                    if(outputFile.name.contains('app-armeabi-v7a-release.apk'))
-                        oldName = "32bit.apk"
-                    if(outputFile.name.contains('app-arm64-v8a-release.apk'))
-                        oldName = "64bit.apk"
-                    def appName = "PFE_AQS"
-                    String  newName  =   "${appName}_V${defaultConfig.versionName}.${new Date().format("yyMMddHHmmss")}_" +oldName
-                    outputFileName = newName
-                }
-            }
-        }
+        // applicationVariants.all { variant ->
+        //     variant.outputs.all { output ->
+        //         def outputFile = output.outputFile
+        //         if(outputFile != null && outputFile.name.endsWith('.apk')){
+        //             String oldName
+        //             if(outputFile.name.contains('app-armeabi-v7a-release.apk'))
+        //                 oldName = "32bit.apk"
+        //             if(outputFile.name.contains('app-arm64-v8a-release.apk'))
+        //                 oldName = "64bit.apk"
+        //             def appName = "PFE_AQS"
+        //             String  newName  =   "${appName}_V${defaultConfig.versionName}.${new Date().format("yyMMddHHmmss")}_" +oldName
+        //             outputFileName = newName
+        //         }
+        //     }
+        // }
 
         }
     }

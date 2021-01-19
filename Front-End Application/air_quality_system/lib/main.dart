@@ -32,6 +32,7 @@ void setupDialogUi() {
 }
 
 void main() {
+  
   setupLocator();
   setupDialogUi();
   runApp(MyApp());

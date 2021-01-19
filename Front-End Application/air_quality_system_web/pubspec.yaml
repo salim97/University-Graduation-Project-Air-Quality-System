@@ -29,7 +29,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.3
   dwds: 
-  flutter_map: ^0.10.1
+  # flutter_map: ^0.10.1
+  flutter_map: ^0.9.0
+  map_controller: ^0.8.0
   geolocator: ^5.3.0
   font_awesome_flutter: ^8.4.0
   material_design_icons_flutter:

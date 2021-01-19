@@ -67,7 +67,8 @@ String _getESP32ChipID() {
 #endif
 */
 
-MySensor *mySensorsList[] = {new MyDHT22(), new MyBME680(), new MySGP30(),
+MySensor *mySensorsList[] = {new MyDHT22(), new MyBME680(), 
+                          //new MySGP30(),
                              new MyMHZ19(), new MyMICS6814()};
 // new MQ131(),
 //  new MyMHZ19(), new MyMICS6814()};
@@ -117,8 +118,8 @@ void setup() {
 
   // preferences.putString("requestDateTime", "requestDateTime");
   // preferences.putString("uid", "Lf7gh5IDYxZgOmUXKhtaHSk6j9y2");
-  // preferences.putFloat("GPS_latitude", 35.6937001);
-  // preferences.putFloat("GPS_longitude",-0.6139010);
+   preferences.putFloat("GPS_latitude", 35.6937001);
+   preferences.putFloat("GPS_longitude",-0.6139010);
   // preferences.putFloat("GPS_altitude", -0.61404);
   // preferences.putBool("FCR", true);
  // preferences.end();

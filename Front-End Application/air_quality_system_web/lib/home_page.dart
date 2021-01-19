@@ -4,6 +4,7 @@ import 'package:air_quality_system_web/widgets/ui_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
+import 'package:map_controller/map_controller.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import 'Rest_API.dart';
@@ -84,6 +85,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   bool isMenuOpen = false;
 
   MapController mapController = new MapController();
+  StatefulMapController statefulMapController;
+
   List<Marker> markers = List<Marker>();
 
   var gas = {
@@ -116,6 +119,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   void initState() {
     // TODO: implement initState
     super.initState();
+    statefulMapController = StatefulMapController(mapController: mapController);
     setState(() {
       currentGas = _gas.keys.first;
       currentGasLegend = _gas.values.first;
@@ -154,26 +158,24 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               );
           });
           setState(() {
-            
-          dataTable = SingleChildScrollView(
-            child: DataTable(
-              columns: [
-                // DataColumn(
-                //   label: Text('Sensor Name'),
-                // ),
-                DataColumn(
-                  label: Text('Sensor_Metric'),
-                ),
-                DataColumn(
-                  label: Text('Value'),
-                ),
-              ],
-              rows: dataArray,
-            ),
-          );
-
+            dataTable = SingleChildScrollView(
+              child: DataTable(
+                columns: [
+                  // DataColumn(
+                  //   label: Text('Sensor Name'),
+                  // ),
+                  DataColumn(
+                    label: Text('Sensor_Metric'),
+                  ),
+                  DataColumn(
+                    label: Text('Value'),
+                  ),
+                ],
+                rows: dataArray,
+              ),
+            );
           });
-_drawerKey.currentState.openDrawer();
+          _drawerKey.currentState.openDrawer();
           // var response = await _dialogService.showCustomDialog(
           //   barrierDismissible: true,
           //   customData: dataTable,
@@ -362,8 +364,7 @@ _drawerKey.currentState.openDrawer();
           markers.add(addMarker(
               text: value + "\n" + symbol, point: points.last, color: legendPressure(double.parse(value).toInt()), otherSensors: element));
         // if (sensor == "CO2")
-          markers.add(addMarker(
-              text: value + "\n" + symbol, point: points.last, color: Colors.blue, otherSensors: element));
+        markers.add(addMarker(text: value + "\n" + symbol, point: points.last, color: Colors.blue, otherSensors: element));
       });
       if (points.isNotEmpty) {
         LatLngBounds llb = new LatLngBounds.fromPoints(points);
@@ -380,7 +381,8 @@ _drawerKey.currentState.openDrawer();
     // if (item == "Humidity") refresh(sensor: item);
     // if (item == "Pressure") refresh(sensor: item);
   }
-GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
+
+  GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -394,8 +396,10 @@ GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
     }
 
     return Scaffold(
-        key: _drawerKey, // assign key to Scaffold
-      drawer: Drawer(child: dataTable,),
+      key: _drawerKey, // assign key to Scaffold
+      drawer: Drawer(
+        child: dataTable,
+      ),
       body: Stack(
         children: <Widget>[
           FlutterMap(
@@ -431,7 +435,7 @@ GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
           MapButton(
             currentSearchPercent: currentSearchPercent,
             currentExplorePercent: currentExplorePercent,
-            bottom: 148,
+            bottom: 150,
             offsetX: -68,
             width: 68,
             height: 71,
@@ -450,7 +454,7 @@ GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
           //search menu background
           offsetSearch != 0
               ? Positioned(
-                  bottom: realH(88),
+                  bottom: 50,
                   right: realW((standardWidth - 320) / 2),
                   width: realW(320),
                   height: realH((400 * currentSearchPercent) + 50),
@@ -485,6 +489,38 @@ GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
             animateSearch: animateSearch,
             onHorizontalDragUpdate: onSearchHorizontalDragUpdate,
             onPanDown: () => animationControllerSearch?.stop(),
+          ),
+          MapButton(
+            currentSearchPercent: currentSearchPercent,
+            currentExplorePercent: currentExplorePercent,
+            bottom: 250,
+            offsetX: -68,
+            width: 68,
+            height: 71,
+            childWidget: Icon(
+              Icons.zoom_out,
+              size: 34,
+              color: Colors.blue,
+            ),
+            onButtonClicked: () {
+              statefulMapController.zoomOut();
+            },
+          ),
+          MapButton(
+            currentSearchPercent: currentSearchPercent,
+            currentExplorePercent: currentExplorePercent,
+            bottom: 350,
+            offsetX: -68,
+            width: 68,
+            height: 71,
+            childWidget: Icon(
+              Icons.zoom_in,
+              size: 34,
+              color: Colors.blue,
+            ),
+            onButtonClicked: () {
+              statefulMapController.zoomIn();
+            },
           ),
         ],
       ),
