@@ -118,13 +118,24 @@ void setup() {
 
   // preferences.putString("requestDateTime", "requestDateTime");
   // preferences.putString("uid", "Lf7gh5IDYxZgOmUXKhtaHSk6j9y2");
-   preferences.putFloat("GPS_latitude", 35.6937001);
-   preferences.putFloat("GPS_longitude",-0.6139010);
+  preferences.putFloat("GPS_latitude" , 35.6937001);
+  preferences.putFloat("GPS_longitude",-0.6139010);
+
+
+  // preferences.putFloat("GPS_latitude", 36.77712702457173);
+  // preferences.putFloat("GPS_longitude",3.055592311162079);
+
+
   // preferences.putFloat("GPS_altitude", -0.61404);
   // preferences.putBool("FCR", true);
  // preferences.end();
   //  preferences.begin("firebaseConfig", true);
-
+//   Serial.println("preferences.getString(uid):");
+//   Serial.println(preferences.getString("uid"));
+//   Serial.println(preferences.getFloat("GPS_latitude"));
+//   Serial.println(preferences.getFloat("GPS_longitude"));
+//   Serial.println(preferences.getFloat("GPS_altitude"));
+// return ;
 
   // jsonHeader();
   // tmp_SecondCoreCode();

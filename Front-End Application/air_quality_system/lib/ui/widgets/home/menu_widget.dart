@@ -64,7 +64,7 @@ class _MenuWidgetState extends State<MenuWidget> {
       return;
     }
     if (item == "Contributions") {
-      Navigator.of(context).pushNamed(Routes.phoneAuthView);
+      Navigator.of(context).pushNamed(Routes.);
       widget.animateMenu(false);
       return;
     }

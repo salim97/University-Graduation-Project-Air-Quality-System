@@ -3,6 +3,7 @@
 
 import 'package:air_quality_system/ui/screens/authentication/phone/phone_auth_view.dart';
 import 'package:air_quality_system/ui/screens/authentication/unauth_view.dart';
+import 'package:air_quality_system/ui/screens/contribute/device_sync_view.dart';
 import 'package:air_quality_system/ui/screens/contribute/map_picker_view.dart';
 import 'package:air_quality_system/ui/screens/home/home_view.dart';
 import 'package:air_quality_system/ui/screens/localNetwork/localNetwork_view.dart';
@@ -11,7 +12,6 @@ import 'package:air_quality_system/ui/screens/contribute/esptouch/esp_touch_view
 import 'package:air_quality_system/ui/screens/contribute/contribute_view.dart';
 
 import 'package:auto_route/auto_route_annotations.dart';
-
 
 @MaterialAutoRouter()
 class $Router {
@@ -24,7 +24,5 @@ class $Router {
   ContributeView contributeView;
   MapPickerView mapPickerView;
   PhoneAuthView phoneAuthView;
-
+  DeviceSyncView deviceSyncView;
 }
-
-

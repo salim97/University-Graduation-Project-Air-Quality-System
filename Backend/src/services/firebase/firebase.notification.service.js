@@ -119,9 +119,9 @@ async function runFirebaseRemoteConfig() {
 
 
 const thisModel = require('../../models/users/notification.model');
-const factory = require('../../controllers/handlerFactory');
+const factory = require('../../controllers/CRUD.controller');
 const catchAsync = require('../../utils/catchAsync');
-const AppError = require('../../utils/appError');
+const AppError = require('./../utils/appError');
 
 
 notify = catchAsync(async (req, res, next) => {

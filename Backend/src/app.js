@@ -12,7 +12,7 @@ const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/error.controller');
 
 
-const authService = require('./services/users/auth.services');
+const authService = require('./services/users/firebase.auth.services');
 const records_service = require('./services/records/records.service');
 
 

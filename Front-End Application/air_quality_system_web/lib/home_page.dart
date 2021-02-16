@@ -123,17 +123,24 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     setState(() {
       currentGas = _gas.keys.first;
       currentGasLegend = _gas.values.first;
+      // currentGas = _gas.keys.elementAt(2);
+      // currentGasLegend = _gas.values.elementAt(2);
+
+      markers.add(addMarker(text: "21 °C", point: LatLng(35.698272, -0.645404), color: legendTemperature(21), otherSensors: null, textColor: Colors.black));
+      markers.add(addMarker(text: "20 °C", point: LatLng(35.687118, -0.636821), color: legendTemperature(20), otherSensors: null, textColor: Colors.black));
+      markers.add(addMarker(text: "22 °C", point: LatLng(35.706357, -0.625834), color: legendTemperature(22), otherSensors: null, textColor: Colors.black));
+      markers.add(addMarker(text: "19 °C", point: LatLng(35.688791, -0.629268), color: legendTemperature(19), otherSensors: null, textColor: Colors.black));
 
       // markers.add(addMarker(text: "80 \n %", point: LatLng(35.698272, -0.645404), color: legendHumidity(80), otherSensors: null));
       // markers.add(addMarker(text: "74 \n %", point: LatLng(35.687118, -0.636821), color: legendHumidity(74), otherSensors: null));
       // markers.add(addMarker(text: "94 \n %", point: LatLng(35.706357, -0.625834), color: legendHumidity(95), otherSensors: null));
       // markers.add(addMarker(text: "76 \n %", point: LatLng(35.688791, -0.629268), color: legendHumidity(76), otherSensors: null));
     });
-    refresh();
+    // refresh();
   }
 
   Widget dataTable = null;
-  addMarker({point, color, text, DeviceDataModel otherSensors}) {
+  addMarker({point, color, text, DeviceDataModel otherSensors, textColor = Colors.white}) {
     return Marker(
       width: 60.0,
       height: 60.0,
@@ -196,7 +203,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 ),
               ),
               Center(
-                child: Text(text, style: TextStyle(fontSize: 13.0, color: Colors.white)),
+                child: Text(text, style: TextStyle(fontSize: 13.0, color: textColor)),
               )
             ],
           ),

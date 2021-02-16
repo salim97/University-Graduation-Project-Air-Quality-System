@@ -6,7 +6,7 @@ import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'app/locator.dart';
-import 'app/router.gr.dart'  ;
+import 'app/router.gr.dart' as myrouter ;
 import 'ui/screens/contribute/contribute_view.dart';
 import 'ui/screens/contribute/device_sync_view.dart';
 import 'ui/screens/contribute/esptouch/esp_touch_view.dart';
@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      onGenerateRoute: Router().onGenerateRoute,
+      onGenerateRoute: myrouter.Router().onGenerateRoute,
       navigatorKey: locator<NavigationService>().navigatorKey,
       theme: ThemeData(
         dividerColor: Color(0xFFECEDF1),
@@ -63,8 +63,8 @@ class MyApp extends StatelessWidget {
       ),
       // theme: ThemeScheme.light(),
       // initialRoute: Routes.startupViewRoute,
-      // home: FeatureDiscovery(recordStepsInSharedPreferences: false, child: HomeView()),
-       home: LocalNetworkView(),
+      home: FeatureDiscovery(recordStepsInSharedPreferences: false, child: HomeView()),
+      //  home: LocalNetworkView(),
     );
   }
 }
