@@ -68,7 +68,7 @@ String _getESP32ChipID() {
 */
 
 MySensor *mySensorsList[] = {new MyDHT22(), new MyBME680(), 
-                          //new MySGP30(),
+                          new MySGP30(),
                              new MyMHZ19(), new MyMICS6814()};
 // new MQ131(),
 //  new MyMHZ19(), new MyMICS6814()};
@@ -362,6 +362,7 @@ void sendDataToFirebase() {
 }
 
 bool httpPOST(String url, String body) {
+    return true; // TODO: remove this line
   if (WiFi.status() == WL_CONNECTED) {
 
     HTTPClient clientHTTP;
@@ -425,8 +426,10 @@ String requestBodyReady() {
   doc["GPS"]["latitude"] = preferences.getFloat("GPS_latitude");
   doc["GPS"]["longitude"] = preferences.getFloat("GPS_longitude");
   doc["upTime"] = millis();
-  serializeJson(doc, requestBodyReady);
-  Serial.println(requestBodyReady.length());
+  serializeJsonPretty(doc, requestBodyReady);
+  Serial.println("------------------------------------------------");
+  Serial.println(requestBodyReady);
+  Serial.println("------------------------------------------------");
 
   return requestBodyReady;
 }

@@ -4,13 +4,38 @@ this is a contributed air quality system made in algeria from people to people, 
 - https://cityair.io/
 - https://kiel.maps.sensor.community/
 
-# Short Screenshot Preview
+# Showcase video
 [![Alt text](https://img.youtube.com/vi/wNRK7oKOohI/0.jpg)](https://www.youtube.com/watch?v=wNRK7oKOohI)
 
 # User Applications
 [Link to Web Application](https://pfe-air-quality.firebaseapp.com/)
 
 [Link to Android Mobile Application](https://drive.google.com/file/d/1Tg73RzL-FEw4-oOlm1jPUTIAzaZBC5hw/view?usp=sharing) 
+
+
+## Android Mobile Application Screenshot
+
+| Home View| Home Menu | Home Guide | Home Drawer Menu |
+|--|--|--|--|
+| ![home view](Screenshots/home_page_temperature.jpg) | ![home menu view](Screenshots/home_page_temperature.jpg) | ![home menu view](Screenshots/home_page_guide.jpg) |![home menu view](Screenshots/home_page_drawer.jpg) |
+
+
+| Phone Auth | Device location | Sync data from mobile to Air Quality Device | 
+|--|--|--|
+| ![Phone Auth](Screenshots/phone_auth.jpg) | ![Device location](Screenshots/device_location_GPS.jpg) | ![Sync data from mobile to Air Quality Device](Screenshots/esp-touch.jpg) |
+
+
+| Weather Forecast  | Weather details |  
+|--|--|
+| ![ Weather Forecast ](Screenshots/home_page_weather.jpg) | ![ Weather details ](Screenshots/home_page_weather_details.jpg) | 
+
+## Android Mobile Application Screenshot
+
+| Web Version  |
+|--|
+| ![ Weather Forecast ](Screenshots/home_page_web.png) | 
+
+
 
 # Contents
  - [How it works](#how-it-works)
@@ -38,7 +63,7 @@ we chosse flutter for cross platfrom user expirance mobile and web
 - [Flutter App](https://github.com/salim97/University-Graduation-Project-Air-Quality-System/tree/master/Front-End%20Application/air_quality_system)
 
 
-# Copyright © 2018-2019
+# Copyright © 2019-2021
 
 [Benabadji Mohammed Salim](https://github.com/salim97)
 
