@@ -1,6 +1,6 @@
 # University-Graduation-Project-Air-Quality-System
-University Graduation Project Air Quality System
-this is a contributed air quality system made in algeria from people to people, inspired from other ready to use solution
+
+A contributed air quality system deployed in algeria, inspired from other ready to use solutions.
 - https://cityair.io/
 - https://kiel.maps.sensor.community/
 
