@@ -30,7 +30,7 @@
     "nodemailer": "^6.1.1",
     "public-ip": "^4.0.3",
     "pug": "^2.0.3",
-    "validator": "^10.11.0",
+    "validator": "^13.7.0",
     "xss-clean": "^0.1.1"
   },
   "devDependencies": {
